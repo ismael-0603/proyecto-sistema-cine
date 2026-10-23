@@ -5,68 +5,93 @@ package ucsur.pe.cineobjects;
  * @author user
  */
 public class TransaccionPago {
+    public static final String TARJETA = "TARJETA";
+    public static final String BILLETERA_DIGITAL = "BILLETERA_DIGITAL";
+    public static final String QR = "QR";
+
+    public static final String PENDIENTE = "PENDIENTE";
+    public static final String APROBADO = "APROBADO";
+    public static final String RECHAZADO = "RECHAZADO";
+
+    private static int contadorReferencia = 0;
+
     private int idTransaccion;
     private double monto;
-    private String medioPago; // Tarjeta Credito o debito, Yape, Plin, ...
-    private String estadoPago; // aprobado, rechazado, pendiente
+    private String medioPago;
+    private String estadoPago;
     private DateTime fechaHora;
-    private String referenciaPasarela; //codigo de operacion o voucher del POS
+    private String referenciaPasarela;
+    private String motivoRechazo;
+    private Compra compra;
 
-    public TransaccionPago(int idTransaccion, double monto, String medioPago, String estadoPago, DateTime fechaHora, String referenciaPasarela) {
+    public TransaccionPago(int idTransaccion, double monto, String medioPago, Compra compra) {
+        if (monto < 0) {
+            throw new IllegalArgumentException("El monto no puede ser negativo");
+        }
+        if (!TARJETA.equals(medioPago) && !BILLETERA_DIGITAL.equals(medioPago) && !QR.equals(medioPago)) {
+            throw new IllegalArgumentException("Medio de pago inválido: " + medioPago);
+        }
+        if (compra == null) {
+            throw new IllegalArgumentException("La compra es obligatoria");
+        }
         this.idTransaccion = idTransaccion;
         this.monto = monto;
         this.medioPago = medioPago;
-        this.estadoPago = estadoPago;
-        this.fechaHora = fechaHora;
-        this.referenciaPasarela = referenciaPasarela;
-    }
-    
-    public int getIdTransaccion() {
-        return idTransaccion;
+        this.estadoPago = PENDIENTE;
+        this.fechaHora = DateTime.ahora();
+        this.compra = compra;
     }
 
-    public void setIdTransaccion(int idTransaccion) {
-        this.idTransaccion = idTransaccion;
+    // Simula la pasarela: aprueba solo si el monto coincide con el total y la compra se confirma.
+    // Cada transacción se procesa una sola vez; si se rechaza, se crea otra nueva.
+    public boolean procesarPago() {
+        if (!PENDIENTE.equals(estadoPago)) {
+            throw new IllegalStateException("La transacción ya fue procesada (" + estadoPago + ")");
+        }
+        this.fechaHora = DateTime.ahora();
+        compra.calcularTotal();
+
+        if (monto <= 0) {
+            return rechazar("Monto inválido");
+        }
+        if (Math.abs(monto - compra.getTotal()) > 0.01) {
+            return rechazar("El monto no coincide con el total de la compra");
+        }
+        if (!compra.confirmar()) {
+            return rechazar("No se pudo confirmar la compra (estado: " + compra.getEstado() + ")");
+        }
+        this.estadoPago = APROBADO;
+        this.referenciaPasarela = "PAS-" + (++contadorReferencia) + "-" + fechaHora.toValorComparable();
+        return true;
     }
 
-    public double getMonto() {
-        return monto;
+    private boolean rechazar(String motivo) {
+        this.estadoPago = RECHAZADO;
+        this.motivoRechazo = motivo;
+        return false;
     }
 
-    public void setMonto(double monto) {
-        this.monto = monto;
+    public String verificarEstado() {
+        return this.estadoPago;
     }
 
-    public String getMedioPago() {
-        return medioPago;
+    // Solo una transacción APROBADA cuya compra siga CONFIRMADA se puede reembolsar
+    public boolean reembolsar() {
+        if (!APROBADO.equals(estadoPago)) return false;
+        return compra.reembolsar();
     }
 
-    public void setMedioPago(String medioPago) {
-        this.medioPago = medioPago;
-    }
+    public int getIdTransaccion() { return idTransaccion; }
+    public double getMonto() { return monto; }
+    public String getMedioPago() { return medioPago; }
+    public String getEstadoPago() { return estadoPago; }
+    public DateTime getFechaHora() { return fechaHora; }
+    public String getReferenciaPasarela() { return referenciaPasarela; }
+    public String getMotivoRechazo() { return motivoRechazo; }
+    public Compra getCompra() { return compra; }
 
-    public String getEstadoPago() {
-        return estadoPago;
+    @Override
+    public String toString() {
+        return "Pago #" + idTransaccion + " " + medioPago + " S/ " + String.format("%.2f", monto) + " [" + estadoPago + "]";
     }
-
-    public void setEstadoPago(String estadoPago) {
-        this.estadoPago = estadoPago;
-    }
-
-    public DateTime getFechaHora() {
-        return fechaHora;
-    }
-
-    public void setFechaHora(DateTime fechaHora) {
-        this.fechaHora = fechaHora;
-    }
-
-    public String getReferenciaPasarela() {
-        return referenciaPasarela;
-    }
-
-    public void setReferenciaPasarela(String referenciaPasarela) {
-        this.referenciaPasarela = referenciaPasarela;
-    }
-    
 }

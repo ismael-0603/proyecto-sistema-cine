@@ -5,51 +5,51 @@ package ucsur.pe.cineobjects;
  * @author user
  */
 public class Rol {
+    // Acciones que el sistema reconoce
+    public static final String ADMINISTRAR = "ADMINISTRAR";       // CRUD de películas, funciones, salas, promociones, etc.
+    public static final String ATENDER_PEDIDO = "ATENDER_PEDIDO"; // preparar y entregar pedidos
+
+    // Niveles de acceso
+    public static final int NIVEL_DULCERIA = 1;
+    public static final int NIVEL_ADMIN = 2;
+
     private int idRol;
-    private String nombre; // nombre del cargo
-    private String descripcion; // las funciones o responsabilidades del puesto
-    private int nivelAcceso; // 0 = admin, 1 = empleado (ejempo)
-    
-    public Rol() {
-    }
-    
+    private String nombre;
+    private String descripcion;
+    private int nivelAcceso;
+
     public Rol(int idRol, String nombre, String descripcion, int nivelAcceso) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del rol es obligatorio");
+        }
+        if (nivelAcceso != NIVEL_DULCERIA && nivelAcceso != NIVEL_ADMIN) {
+            throw new IllegalArgumentException("Nivel de acceso inválido (1 = dulcería, 2 = admin)");
+        }
         this.idRol = idRol;
-        this.nombre = nombre;
+        this.nombre = nombre.trim();
         this.descripcion = descripcion;
         this.nivelAcceso = nivelAcceso;
     }
 
-    public int getIdRol() {
-        return idRol;
+    public boolean tienePermiso(String accion) {
+        if (accion == null) return false;
+        switch (accion.toUpperCase()) {
+            case ADMINISTRAR:
+                return nivelAcceso >= NIVEL_ADMIN;
+            case ATENDER_PEDIDO:
+                return nivelAcceso >= NIVEL_DULCERIA; // dulcería y admin
+            default:
+                return false;
+        }
     }
 
-    public void setIdRol(int idRol) {
-        this.idRol = idRol;
-    }
+    public int getIdRol() { return idRol; }
+    public String getNombre() { return nombre; }
+    public String getDescripcion() { return descripcion; }
+    public int getNivelAcceso() { return nivelAcceso; }
 
-    public String getNombre() {
-        return nombre;
+    @Override
+    public String toString() {
+        return nombre + " (nivel " + nivelAcceso + ")";
     }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public int getNivelAcceso() {
-        return nivelAcceso;
-    }
-
-    public void setNivelAcceso(int nivelAcceso) {
-        this.nivelAcceso = nivelAcceso;
-    }
-    
 }

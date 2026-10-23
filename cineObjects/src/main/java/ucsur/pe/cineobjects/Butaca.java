@@ -5,51 +5,57 @@ package ucsur.pe.cineobjects;
  * @author user
  */
 public class Butaca {
+    public static final String ESTANDAR = "ESTANDAR";
+    public static final String PREFERENCIAL = "PREFERENCIAL";
+    public static final String DISCAPACIDAD = "DISCAPACIDAD";
+
     private int idButaca;
     private String fila;
     private int numero;
-    private String tipo = "ESTANDAR"; // Estandar, preferencial/discapacitados
-    
-    public Butaca() { 
-    }
+    private String tipo;
+    private Sala sala;
 
-    public Butaca(int idButaca, String fila, int numero, String tipo, boolean estado) {
+    public Butaca(int idButaca, String fila, int numero, String tipo, Sala sala) {
+        if (fila == null || fila.trim().isEmpty() || fila.trim().length() > 3) {
+            throw new IllegalArgumentException("La fila es obligatoria (máx. 3 caracteres)");
+        }
+        if (numero <= 0) {
+            throw new IllegalArgumentException("El número de butaca debe ser mayor a 0");
+        }
+        if (!ESTANDAR.equals(tipo) && !PREFERENCIAL.equals(tipo) && !DISCAPACIDAD.equals(tipo)) {
+            throw new IllegalArgumentException("Tipo de butaca inválido: " + tipo);
+        }
+        if (sala == null) {
+            throw new IllegalArgumentException("La sala es obligatoria");
+        }
         this.idButaca = idButaca;
-        this.fila = fila;
+        this.fila = fila.trim().toUpperCase();
         this.numero = numero;
         this.tipo = tipo;
+        this.sala = sala;
     }
 
-    public int getIdButaca() {
-        return idButaca;
+    public String getCodigoAsiento() {
+        return fila + numero;
     }
 
-    public void setIdButaca(int idButaca) {
-        this.idButaca = idButaca;
+    public boolean esAccesible() {
+        return DISCAPACIDAD.equals(tipo);
     }
 
-    public String getFila() {
-        return fila;
+    public boolean estaDisponible(Funcion funcion) {
+        if (funcion == null) return false;
+        return funcion.esButacaDisponible(this);
     }
 
-    public void setFila(String fila) {
-        this.fila = fila;
-    }
+    public int getIdButaca() { return idButaca; }
+    public String getFila() { return fila; }
+    public int getNumero() { return numero; }
+    public String getTipo() { return tipo; }
+    public Sala getSala() { return sala; }
 
-    public int getNumero() {
-        return numero;
+    @Override
+    public String toString() {
+        return getCodigoAsiento() + " (" + tipo + ")";
     }
-
-    public void setNumero(int numero) {
-        this.numero = numero;
-    }
-
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
-    
 }

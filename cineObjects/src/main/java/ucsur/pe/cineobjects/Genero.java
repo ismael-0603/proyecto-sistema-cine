@@ -6,30 +6,28 @@ package ucsur.pe.cineobjects;
  */
 public class Genero {
     private int idGenero;
-    private String nombre; // Etiqueta (accion, terror,etc)
-    
-    public Genero(){
-    }
+    private String nombre;
 
-    public Genero(int idGenero, String nombre, String descripcion) {
+    public Genero(int idGenero, String nombre) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del género es obligatorio");
+        }
+        if (nombre.trim().length() > 20) {
+            throw new IllegalArgumentException("El nombre del género no puede superar 20 caracteres");
+        }
         this.idGenero = idGenero;
-        this.nombre = nombre;
+        this.nombre = nombre.trim();
     }
 
-    public int getIdGenero() {
-        return idGenero;
+    public int getIdGenero() { 
+        return idGenero; 
+    }
+    public String getNombre() { 
+        return nombre; 
     }
 
-    public void setIdGenero(int idGenero) {
-        this.idGenero = idGenero;
-    }
-
-    public String getNombre() {
+    @Override
+    public String toString() {
         return nombre;
     }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-    
 }

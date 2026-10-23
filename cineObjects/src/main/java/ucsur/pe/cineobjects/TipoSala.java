@@ -9,47 +9,35 @@ public class TipoSala {
     private String formato;
     private String descripcion;
     private double tarifaAdicional;
-    
-    public TipoSala(){
-    }
 
     public TipoSala(int idTipoSala, String formato, String descripcion, double tarifaAdicional) {
+        if (formato == null || formato.trim().isEmpty() || formato.trim().length() > 30) {
+            throw new IllegalArgumentException("El formato es obligatorio (máx. 30 caracteres)");
+        }
+        if (descripcion != null && descripcion.length() > 150) {
+            throw new IllegalArgumentException("La descripción no puede superar 150 caracteres");
+        }
+        if (tarifaAdicional < 0) {
+            throw new IllegalArgumentException("La tarifa adicional no puede ser negativa");
+        }
         this.idTipoSala = idTipoSala;
-        this.formato = formato;
+        this.formato = formato.trim();
         this.descripcion = descripcion;
         this.tarifaAdicional = tarifaAdicional;
     }
 
-    public int getIdTipoSala() {
-        return idTipoSala;
+    public double obtenerRecargoFormato() {
+        return this.tarifaAdicional;
     }
 
-    public void setIdTipoSala(int idTipoSala) {
-        this.idTipoSala = idTipoSala;
-    }
+    public int getIdTipoSala() { return idTipoSala; }
+    public String getFormato() { return formato; }
+    public String getDescripcion() { return descripcion; }
+    public double getTarifaAdicional() { return tarifaAdicional; }
 
-    public String getFormato() {
+    @Override
+    public String toString() {
         return formato;
-    }
-
-    public void setFormato(String formato) {
-        this.formato = formato;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public double getTarifaAdicional() {
-        return tarifaAdicional;
-    }
-
-    public void setTarifaAdicional(double tarifaAdicional) {
-        this.tarifaAdicional = tarifaAdicional;
     }
     
 }
