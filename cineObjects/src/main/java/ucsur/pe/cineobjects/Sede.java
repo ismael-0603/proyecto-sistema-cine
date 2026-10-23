@@ -66,16 +66,18 @@ public class Sede {
     }
 
     public void agregarFuncion(Funcion funcion) {
-        if (funcion == null) {
-            throw new IllegalArgumentException("La función no puede ser nula");
-        }
-        if (funcion.getSala().getSede() != this) {
-            throw new IllegalArgumentException("La función se proyecta en una sala de otra sede");
-        }
-        if (!cartelera.contains(funcion)) {
-            cartelera.add(funcion);
-        }
+    if (funcion == null) {
+        throw new IllegalArgumentException("La función no puede ser nula");
     }
+    if (funcion.getSala().getSede() != this) {
+        throw new IllegalArgumentException("La función se proyecta en una sala de otra sede");
+    }
+    if (!cartelera.contains(funcion)) {
+        // Primero valida el solapamiento + buffer en la sala; si falla, lanza IllegalStateException
+        funcion.getSala().agregarFuncion(funcion);
+        cartelera.add(funcion);
+    }
+}
 
     public boolean estaOperativa() {
         return ACTIVA.equals(estado);

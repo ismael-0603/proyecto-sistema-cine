@@ -10,7 +10,8 @@ public class Sala {
     public static final String ACTIVA = "ACTIVA";
     public static final String INACTIVA = "INACTIVA";
     public static final String EN_MANTENIMIENTO = "EN_MANTENIMIENTO";
-
+    public static final int BUFFER_LIMPIEZA_MIN = 15;
+    
     private int idSala;
     private int numero;
     private int capacidad;
@@ -18,6 +19,7 @@ public class Sala {
     private Sede sede;
     private TipoSala tipoSala;
     private List<Butaca> butacas;
+    private List<Funcion> funciones; // lista de funciones de la sala
 
     public Sala(int idSala, int numero, int capacidad, String estado, Sede sede, TipoSala tipoSala) {
         if (numero <= 0) throw new IllegalArgumentException("El número de sala debe ser mayor a 0");
@@ -30,6 +32,7 @@ public class Sala {
         this.sede = sede;
         this.tipoSala = tipoSala;
         this.butacas = new ArrayList<>();
+        this.funciones = new ArrayList<>(); // Inicialización
         setEstado(estado != null ? estado : ACTIVA);
     }
 
@@ -64,6 +67,52 @@ public class Sala {
             throw new IllegalArgumentException("Estado de sala inválido: " + estado);
         }
         this.estado = estado;
+    }
+    
+    // Valida el solapamiento con el buffer de 15 minutos y registra la función en la sala
+    public void agregarFuncion(Funcion nuevaFuncion) {
+        if (nuevaFuncion == null) {
+            throw new IllegalArgumentException("La función no puede ser nula");
+        }
+        if (nuevaFuncion.getSala() != this) {
+            throw new IllegalArgumentException("La función pertenece a otra sala");
+        }
+        if (funciones.contains(nuevaFuncion)) {
+            return; // Ya está registrada
+        }
+
+        // Inicio, fin real y fin con buffer (+15 min) de la nueva función
+        DateTime inicioNueva = nuevaFuncion.obtenerFechaHoraInicio();
+        DateTime finNueva = inicioNueva.sumarMinutos(nuevaFuncion.getPelicula().getDuracion());
+        DateTime finNuevaConBuffer = finNueva.sumarMinutos(BUFFER_LIMPIEZA_MIN);
+
+        for (Funcion existente : funciones) {
+            // Las funciones canceladas no bloquean el horario de la sala
+            if (Funcion.CANCELADA.equals(existente.getEstado())) {
+                continue;
+            }
+
+            DateTime inicioExistente = existente.obtenerFechaHoraInicio();
+            DateTime finExistente = inicioExistente.sumarMinutos(existente.getPelicula().getDuracion());
+            DateTime finExistenteConBuffer = finExistente.sumarMinutos(BUFFER_LIMPIEZA_MIN);
+
+            // Condición de cruce entre los intervalos [inicio, fin + 15 min]
+            if (inicioNueva.esAntesDe(finExistenteConBuffer) && inicioExistente.esAntesDe(finNuevaConBuffer)) {
+                throw new IllegalStateException(String.format(
+                        "Solapamiento en Sala %d: la función '%s' (%s - %s) choca con '%s' (%s - %s, más %d min de limpieza hasta %s)",
+                        this.numero,
+                        nuevaFuncion.getPelicula().getTitulo(), inicioNueva.soloHora(), finNueva.soloHora(),
+                        existente.getPelicula().getTitulo(), inicioExistente.soloHora(), finExistente.soloHora(),
+                        BUFFER_LIMPIEZA_MIN, finExistenteConBuffer.soloHora()
+                ));
+            }
+        }
+
+        funciones.add(nuevaFuncion);
+    }
+
+    public List<Funcion> getFunciones() {
+        return new ArrayList<>(funciones);
     }
 
     public int getIdSala() { return idSala; }

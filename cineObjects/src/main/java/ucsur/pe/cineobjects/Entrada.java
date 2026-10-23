@@ -10,6 +10,8 @@ public class Entrada {
     public static final String EXPIRADA = "EXPIRADA";
     public static final String ANULADA = "ANULADA";
 
+    public static final int TIEMPO_BLOQUEO_MIN = 4;
+
     private int idEntrada;
     private String codigoQR;
     private double precio;
@@ -20,27 +22,41 @@ public class Entrada {
     private Butaca butaca;
     private TipoEntrada tipoEntrada;
 
-    public Entrada(int idEntrada, Funcion funcion, Butaca butaca, TipoEntrada tipoEntrada) {
+    // Constructor para Fase 1 (selección en el mapa: aún no tiene TipoEntrada ni ocupa la butaca en Funcion)
+    public Entrada(int idEntrada, Funcion funcion, Butaca butaca) {
         if (funcion == null) throw new IllegalArgumentException("La función es obligatoria");
         if (butaca == null) throw new IllegalArgumentException("La butaca es obligatoria");
-        if (tipoEntrada == null) throw new IllegalArgumentException("El tipo de entrada es obligatorio");
-        // Regla del trigger trg_entrada_coherencia_sala (se compara por referencia, no por id)
         if (butaca.getSala() != funcion.getSala()) {
             throw new IllegalArgumentException("La butaca no pertenece a la sala de la función");
         }
         this.idEntrada = idEntrada;
         this.funcion = funcion;
         this.butaca = butaca;
-        this.tipoEntrada = tipoEntrada;
         this.estado = BLOQUEADA;
+    }
+
+    // Constructor completo
+    public Entrada(int idEntrada, Funcion funcion, Butaca butaca, TipoEntrada tipoEntrada) {
+        this(idEntrada, funcion, butaca);
+        asignarTipoEntrada(tipoEntrada);
+    }
+
+    // Se llama en la Fase 2 cuando el usuario elige el tipo de entrada para cada asiento bloqueado
+    public void asignarTipoEntrada(TipoEntrada tipoEntrada) {
+        if (tipoEntrada == null) {
+            throw new IllegalArgumentException("El tipo de entrada es obligatorio");
+        }
+        if (VENDIDA.equals(estado)) {
+            throw new IllegalStateException("No se puede cambiar el tipo de una entrada ya vendida");
+        }
+        this.tipoEntrada = tipoEntrada;
         calculaPrecioFinal();
     }
 
-    // Bloquea la butaca por "minutos" y registra la entrada en la función.
-    // Devuelve false si la función no está disponible o la butaca ya está ocupada.
-    public boolean bloquearTemporalmente(int minutos) {
-        if (minutos <= 0) {
-            throw new IllegalArgumentException("Los minutos deben ser mayores a 0");
+    // Bloquea la butaca heredando la hora exacta de expiración de la Compra (Modelo A)
+    public boolean bloquearTemporalmente(DateTime fechaExpiracion) {
+        if (fechaExpiracion == null || !DateTime.ahora().esAntesDe(fechaExpiracion)) {
+            return false; // El tiempo de la compra ya venció
         }
         if (!BLOQUEADA.equals(estado) || expiraBloqueo != null) {
             throw new IllegalStateException("La entrada ya fue bloqueada o no está en estado BLOQUEADA");
@@ -48,36 +64,58 @@ public class Entrada {
         if (!funcion.estaDisponible() || !funcion.esButacaDisponible(butaca)) {
             return false;
         }
-        this.expiraBloqueo = DateTime.ahora().sumarMinutos(minutos);
+        this.expiraBloqueo = fechaExpiracion;
         funcion.registrarEntrada(this);
         return true;
+    }
+
+    // Sobrecarga por minutos (máx. 4 minutos)
+    public boolean bloquearTemporalmente(int minutos) {
+        if (minutos <= 0 || minutos > TIEMPO_BLOQUEO_MIN) {
+            throw new IllegalArgumentException("El tiempo de bloqueo debe estar entre 1 y " + TIEMPO_BLOQUEO_MIN + " minutos");
+        }
+        return bloquearTemporalmente(DateTime.ahora().sumarMinutos(minutos));
     }
 
     // Si el bloqueo venció, pasa a EXPIRADA y libera la butaca
     public boolean haExpirado() {
         if (BLOQUEADA.equals(estado) && expiraBloqueo != null
                 && DateTime.ahora().esDespuesDe(expiraBloqueo)) {
-            this.estado = EXPIRADA;
+            expirar();
         }
         return EXPIRADA.equals(estado);
     }
 
-    // Precio = tarifa del tipo de entrada + recargo del formato de sala
+    // Libera el asiento cuando se agotan los 4 minutos
+    public void expirar() {
+        if (BLOQUEADA.equals(estado)) {
+            this.estado = EXPIRADA;
+            this.expiraBloqueo = null;
+            this.funcion.actualizarEstado();
+        }
+    }
+
     public double calculaPrecioFinal() {
+        if (tipoEntrada == null) {
+            this.precio = 0.0;
+            return 0.0;
+        }
         this.precio = tipoEntrada.getTarifa() + funcion.getSala().getTipoSala().obtenerRecargoFormato();
         return this.precio;
     }
 
-    // Solo se confirma una entrada BLOQUEADA, ya registrada en la función y con el bloqueo vigente
     public void confirmarVenta() {
         if (!BLOQUEADA.equals(estado)) {
             throw new IllegalStateException("Solo se puede confirmar una entrada BLOQUEADA (estado actual: " + estado + ")");
         }
         if (expiraBloqueo == null) {
-            throw new IllegalStateException("Primero se debe bloquear la entrada");
+            throw new IllegalStateException("Primero se debe bloquear la entrada confirmando la selección de asientos");
         }
         if (haExpirado()) {
             throw new IllegalStateException("El bloqueo de la entrada expiró");
+        }
+        if (tipoEntrada == null) {
+            throw new IllegalStateException("Debe asignar un tipo de entrada antes de confirmar la venta");
         }
         this.estado = VENDIDA;
         this.fechaEmision = DateTime.ahora();
@@ -85,12 +123,13 @@ public class Entrada {
         this.codigoQR = generarCodigoQR();
     }
 
-    // Se puede anular una entrada BLOQUEADA o VENDIDA; libera la butaca
     public void anular() {
         if (!BLOQUEADA.equals(estado) && !VENDIDA.equals(estado)) {
             throw new IllegalStateException("No se puede anular una entrada en estado " + estado);
         }
         this.estado = ANULADA;
+        this.expiraBloqueo = null;
+        this.funcion.actualizarEstado();
     }
 
     public String generarCodigoQR() {
