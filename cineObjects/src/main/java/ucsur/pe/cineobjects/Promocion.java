@@ -3,8 +3,8 @@ package ucsur.pe.cineobjects;
 import java.util.ArrayList;
 import java.util.List;
 /**
- *
- * @author user
+ * Define un descuento con vigencia, días permitidos y una regla opcional para clientes socios.
+ * Valida el tipo y rango del descuento, el periodo y que cada día esté entre lunes (1) y domingo (7).
  */
 public class Promocion {
     public static final String PORCENTAJE = "PORCENTAJE";
@@ -18,7 +18,8 @@ public class Promocion {
     private DateTime fechaInicio; // solo fecha: DateTime(dia, mes, anio)
     private DateTime fechaFin;    // solo fecha: DateTime(dia, mes, anio)
     private boolean soloSocios;
-    private List<Integer> diasAplicables; // 1 = lunes ... 7 = domingo; vacía = todos los días
+    /** Días en que aplica: 1 es lunes y 7 domingo; una lista vacía permite cualquier día. */
+    private List<Integer> diasAplicables;
     private boolean estado;
 
     public Promocion(int idPromocion, String nombre, String descripcion, String tipoDescuento,
@@ -65,16 +66,17 @@ public class Promocion {
         this.estado = estado;
     }
 
-    // Activa y dentro del rango de fechas
+    /** Comprueba que la promoción esté activa y que la fecha esté dentro del periodo definido. */
     public boolean validarVigencia(DateTime fecha) {
         return estado && fecha != null && fecha.estaEnRangoFecha(fechaInicio, fechaFin);
     }
 
-    // Si no se indicaron días, aplica todos los días
+    /** Si no se configuraron días, la promoción aplica cualquier día de la semana. */
     public boolean aplicaEnDia(DateTime fecha) {
         return diasAplicables.isEmpty() || diasAplicables.contains(fecha.diaDeLaSemana());
     }
 
+    /** Comprueba estado, fechas, día de semana y, cuando corresponde, que el cliente sea socio. */
     public boolean esAplicable(Compra compra) {
         if (compra == null || !validarVigencia(compra.getFechaHora())) return false;
         if (!aplicaEnDia(compra.getFechaHora())) return false;
@@ -84,7 +86,7 @@ public class Promocion {
         return true;
     }
 
-    // El descuento nunca supera el total
+    /** Calcula el descuento y limita los montos fijos al total recibido. */
     public double calcularDescuento(double total) {
         if (!estado || total <= 0) return 0.0;
         if (PORCENTAJE.equals(tipoDescuento)) {
@@ -93,7 +95,9 @@ public class Promocion {
         return Math.min(total, valor); // MONTO_FIJO
     }
 
+    /** Habilita la promoción; las demás condiciones de vigencia se revisan al aplicarla. */
     public void activar() { this.estado = true; }
+    /** Deshabilita la promoción para nuevas compras. */
     public void desactivar() { this.estado = false; }
 
     public int getIdPromocion() { return idPromocion; }

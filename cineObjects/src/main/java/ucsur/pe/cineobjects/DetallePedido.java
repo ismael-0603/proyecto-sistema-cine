@@ -1,12 +1,13 @@
 package ucsur.pe.cineobjects;
 
 /**
- *
- * @author user
+ * Representa una línea de pedido y conserva el precio unitario vigente al crearla.
+ * Requiere un producto activo con stock suficiente, cantidad positiva y personalización de hasta 255 caracteres.
  */
 public class DetallePedido {
     private int idDetalle;
     private int cantidad;
+    /** Precio guardado al crear la línea, para mantener el importe aunque cambie el precio del producto. */
     private double precioUnitario;
     private String personalizacion;
     private double subtotal;
@@ -30,19 +31,16 @@ public class DetallePedido {
         this.cantidad = cantidad;
         this.precioUnitario = producto.getPrecio(); // precio fijado al momento de la compra
         this.personalizacion = personalizacion;
-        calcularSubtotal(this.cantidad);
+        calcularSubtotal();
     }
 
-    // Firma del diagrama: + calcularSubtotal(cant: int): double
-    public double calcularSubtotal(int cant) {
-        this.subtotal = cant * this.precioUnitario;
+    /** Calcula y guarda el subtotal de la línea con la cantidad actual. */
+    public double calcularSubtotal() {
+        this.subtotal = cantidad * precioUnitario;
         return this.subtotal;
     }
 
-    public double calcularSubtotal() {
-        return calcularSubtotal(this.cantidad);
-    }
-
+    /** Cambia la cantidad si es positiva y el producto tiene stock suficiente. */
     public void modificarCantidad(int cant) {
         if (cant <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
@@ -51,7 +49,7 @@ public class DetallePedido {
             throw new IllegalStateException("Stock insuficiente para " + producto.getNombre());
         }
         this.cantidad = cant;
-        calcularSubtotal(this.cantidad);
+        calcularSubtotal();
     }
 
     public int getIdDetalle() { return idDetalle; }

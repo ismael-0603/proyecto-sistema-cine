@@ -3,8 +3,9 @@ package ucsur.pe.cineobjects;
 import java.util.ArrayList;
 import java.util.List;
 /**
- *
- * @author user
+ * Representa una sala, sus butacas y el horario de funciones asignadas.
+ * Exige número y capacidad positivos, sede y tipo de sala; limita las butacas a la capacidad
+ * y evita horarios solapados, considerando quince minutos de limpieza.
  */
 public class Sala {
     public static final String ACTIVA = "ACTIVA";
@@ -18,8 +19,10 @@ public class Sala {
     private String estado;
     private Sede sede;
     private TipoSala tipoSala;
+    /** Butacas físicas configuradas para esta sala. */
     private List<Butaca> butacas;
-    private List<Funcion> funciones; // lista de funciones de la sala
+    /** Funciones asignadas; se usan para comprobar cruces de horario y limpieza. */
+    private List<Funcion> funciones;
 
     public Sala(int idSala, int numero, int capacidad, String estado, Sede sede, TipoSala tipoSala) {
         if (numero <= 0) throw new IllegalArgumentException("El número de sala debe ser mayor a 0");
@@ -32,7 +35,7 @@ public class Sala {
         this.sede = sede;
         this.tipoSala = tipoSala;
         this.butacas = new ArrayList<>();
-        this.funciones = new ArrayList<>(); // Inicialización
+        this.funciones = new ArrayList<>();
         setEstado(estado != null ? estado : ACTIVA);
     }
 
@@ -54,10 +57,12 @@ public class Sala {
         butacas.add(butaca);
     }
 
+    /** Devuelve la lista de butacas sin exponer la lista interna de la sala. */
     public List<Butaca> obtenerMapaButacas() {
         return new ArrayList<>(butacas); // copia: no se modifica desde afuera
     }
 
+    /** Solo una sala ACTIVA puede ofrecer funciones y asientos. */
     public boolean estaOperativa() {
         return ACTIVA.equals(estado);
     }
@@ -69,7 +74,7 @@ public class Sala {
         this.estado = estado;
     }
     
-    // Valida el solapamiento con el buffer de 15 minutos y registra la función en la sala
+    /** Registra una función si pertenece a esta sala y no cruza otro horario ni su tiempo de limpieza. */
     public void agregarFuncion(Funcion nuevaFuncion) {
         if (nuevaFuncion == null) {
             throw new IllegalArgumentException("La función no puede ser nula");
@@ -81,13 +86,13 @@ public class Sala {
             return; // Ya está registrada
         }
 
-        // Inicio, fin real y fin con buffer (+15 min) de la nueva función
+        // Se incluye el tiempo de limpieza posterior al término de la nueva función.
         DateTime inicioNueva = nuevaFuncion.obtenerFechaHoraInicio();
         DateTime finNueva = inicioNueva.sumarMinutos(nuevaFuncion.getPelicula().getDuracion());
         DateTime finNuevaConBuffer = finNueva.sumarMinutos(BUFFER_LIMPIEZA_MIN);
 
         for (Funcion existente : funciones) {
-            // Las funciones canceladas no bloquean el horario de la sala
+            // Una función cancelada ya no ocupa el horario de la sala.
             if (Funcion.CANCELADA.equals(existente.getEstado())) {
                 continue;
             }
@@ -96,7 +101,7 @@ public class Sala {
             DateTime finExistente = inicioExistente.sumarMinutos(existente.getPelicula().getDuracion());
             DateTime finExistenteConBuffer = finExistente.sumarMinutos(BUFFER_LIMPIEZA_MIN);
 
-            // Condición de cruce entre los intervalos [inicio, fin + 15 min]
+            // Hay cruce si cada intervalo empieza antes de que termine el otro (incluida limpieza).
             if (inicioNueva.esAntesDe(finExistenteConBuffer) && inicioExistente.esAntesDe(finNuevaConBuffer)) {
                 throw new IllegalStateException(String.format(
                         "Solapamiento en Sala %d: la función '%s' (%s - %s) choca con '%s' (%s - %s, más %d min de limpieza hasta %s)",

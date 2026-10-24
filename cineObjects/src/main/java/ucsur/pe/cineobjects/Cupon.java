@@ -1,8 +1,8 @@
 package ucsur.pe.cineobjects;
 
 /**
- *
- * @author user
+ * Representa un cupón de descuento porcentual o de monto fijo.
+ * Valida el código, el rango del descuento, las fechas y el límite de usos.
  */
 public class Cupon {
     public static final String PORCENTAJE = "PORCENTAJE";
@@ -14,7 +14,9 @@ public class Cupon {
     private double descuento;
     private DateTime fechaInicio; // solo fecha: DateTime(dia, mes, anio)
     private DateTime fechaFin;    // solo fecha: DateTime(dia, mes, anio)
+    /** Máximo de compras que pueden usar el cupón; cero significa que no se puede usar. */
     private int limiteUso;
+    /** Cantidad de veces que ya se aplicó en compras confirmadas. */
     private int usosRealizados;
     private boolean estado;
 
@@ -52,17 +54,18 @@ public class Cupon {
         this.estado = estado;
     }
 
+    /** Indica si el cupón está habilitado; la vigencia también depende de fechas y usos. */
     public boolean estaActivo() {
         return this.estado;
     }
 
-    // Activo, con usos disponibles y dentro del rango de fechas
+    /** Devuelve true si está activo, dentro de fechas y aún tiene usos disponibles. */
     public boolean validarVigencia(DateTime fecha) {
         return estaActivo() && usosRealizados < limiteUso
                 && fecha != null && fecha.estaEnRangoFecha(fechaInicio, fechaFin);
     }
 
-    // El descuento nunca supera el total
+    /** Calcula el descuento; el monto fijo se limita al total y un cupón inactivo no descuenta. */
     public double calcularDescuento(double total) {
         if (!estaActivo() || total <= 0) return 0.0;
         if (PORCENTAJE.equals(tipoDescuento)) {
@@ -71,6 +74,7 @@ public class Cupon {
         return Math.min(total, descuento); // MONTO_FIJO
     }
 
+    /** Suma un uso al cupón y falla si ya alcanzó el límite configurado. */
     public void registrarUso() {
         if (usosRealizados >= limiteUso) {
             throw new IllegalStateException("El cupón " + codigo + " alcanzó su límite de uso");
@@ -78,8 +82,11 @@ public class Cupon {
         usosRealizados++;
     }
 
+    /** Habilita el cupón; aún debe estar dentro de fechas y tener usos disponibles. */
     public void activar() { this.estado = true; }
+    /** Deshabilita temporalmente el cupón. */
     public void desactivar() { this.estado = false; }
+    /** Cambia directamente si el cupón está habilitado. */
     public void setEstado(boolean estado) { this.estado = estado; }
 
     public int getIdCupon() { return idCupon; }

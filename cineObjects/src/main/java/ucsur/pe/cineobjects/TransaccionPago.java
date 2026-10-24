@@ -1,8 +1,8 @@
 package ucsur.pe.cineobjects;
 
 /**
- *
- * @author user
+ * Simula el procesamiento de un pago y conserva el resultado asociado a una compra.
+ * El monto debe ser no negativo, el medio de pago reconocido y la compra obligatoria.
  */
 public class TransaccionPago {
     public static final String TARJETA = "TARJETA";
@@ -42,8 +42,10 @@ public class TransaccionPago {
         this.compra = compra;
     }
 
-    // Simula la pasarela: aprueba solo si el monto coincide con el total y la compra se confirma.
-    // Cada transacción se procesa una sola vez; si se rechaza, se crea otra nueva.
+    /**
+     * Procesa una transacción pendiente; aprueba solo si el monto coincide y la compra se confirma.
+     * Una transacción procesada no se puede volver a procesar.
+     */
     public boolean procesarPago() {
         if (!PENDIENTE.equals(estadoPago)) {
             throw new IllegalStateException("La transacción ya fue procesada (" + estadoPago + ")");
@@ -75,7 +77,7 @@ public class TransaccionPago {
         return this.estadoPago;
     }
 
-    // Solo una transacción APROBADA cuya compra siga CONFIRMADA se puede reembolsar
+    /** Solicita el reembolso de la compra solo cuando este pago fue aprobado. */
     public boolean reembolsar() {
         if (!APROBADO.equals(estadoPago)) return false;
         return compra.reembolsar();

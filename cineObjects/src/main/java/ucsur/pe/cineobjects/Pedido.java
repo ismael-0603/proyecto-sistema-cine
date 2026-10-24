@@ -3,8 +3,8 @@ package ucsur.pe.cineobjects;
 import java.util.ArrayList;
 import java.util.List;
 /**
- *
- * @author user
+ * Agrupa productos de dulcería y controla el ciclo de preparación y entrega del pedido.
+ * Solo registra pedidos con detalles y stock suficiente; los cambios de estado respetan el orden del proceso.
  */
 public class Pedido {
     public static final String PENDIENTE = "PENDIENTE";
@@ -18,9 +18,12 @@ public class Pedido {
     private DateTime fechaEntrega;
     private String estado;
     private double total;
-    private Empleado empleado; // null hasta que un empleado inicia la preparación
+    private Empleado empleado; // Permanece null hasta que un empleado inicia la preparación.
+    /** Productos y cantidades que forman el pedido. */
     private List<DetallePedido> detalles;
-    private boolean registrado; // true cuando ya se descontó el stock
+    /** Indica si el pedido ya descontó las cantidades correspondientes del inventario. */
+    /** Se activa después de descontar el stock para evitar registrarlo o cobrarlo dos veces. */
+    private boolean registrado;
 
     public Pedido(int idPedido) {
         this.idPedido = idPedido;
@@ -31,7 +34,7 @@ public class Pedido {
         this.registrado = false;
     }
 
-    // Solo se agregan productos antes de registrar el pedido
+    /** Agrega una línea antes del registro y recalcula el total del pedido. */
     public void agregarDetalle(DetallePedido detalle) {
         if (detalle == null) {
             throw new IllegalArgumentException("El detalle no puede ser nulo");
@@ -43,8 +46,7 @@ public class Pedido {
         calcularTotal();
     }
 
-    // Verifica el stock de todos los productos y recién entonces lo descuenta.
-    // Devuelve false si el pedido está vacío, ya fue registrado o falta stock.
+    /** Verifica primero el stock de todas las líneas y luego lo descuenta; false indica que no procede. */
     public boolean registrar() {
         if (registrado || detalles.isEmpty()) return false;
         for (DetallePedido d : detalles) {
@@ -62,6 +64,7 @@ public class Pedido {
         return true;
     }
 
+    /** Suma los subtotales de todas las líneas y guarda el total actualizado. */
     public double calcularTotal() {
         double suma = 0;
         for (DetallePedido d : detalles) {
@@ -93,10 +96,12 @@ public class Pedido {
         notificarCliente();
     }
 
+    /** Simula el aviso que recibiría el cliente cuando el pedido pasa a LISTO. */
     public void notificarCliente() {
         System.out.println("Notificación: Pedido #" + idPedido + " listo para recoger. QR: " + codigoQR);
     }
 
+    /** Compara el código recibido con el QR asociado al pedido. */
     public boolean validarCodigo(String codigo) {
         return this.codigoQR != null && this.codigoQR.equals(codigo);
     }

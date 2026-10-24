@@ -5,8 +5,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 /**
- *
- * @author user
+ * Representa una proyección y administra su horario, estado, disponibilidad y entradas emitidas.
+ * Requiere fecha, hora, idioma, película y sala; el estado solo puede ser uno de los estados definidos.
  */
 public class Funcion {
     public static final String DISPONIBLE = "DISPONIBLE";
@@ -22,6 +22,7 @@ public class Funcion {
     private String estado;
     private Pelicula pelicula;
     private Sala sala;
+    /** Entradas asociadas a la función; permite detectar butacas ocupadas o bloqueadas. */
     private List<Entrada> entradasEmitidas;
 
     public Funcion(int idFuncion, DateTime fecha, DateTime horaInicio, String idioma,
@@ -43,25 +44,26 @@ public class Funcion {
         setEstado(estado != null ? estado : DISPONIBLE);
     }
 
-    // ---------- Fechas ----------
-    // Une fecha + hora de inicio en un solo DateTime
+    // Combina la fecha y la hora de inicio para comparar el horario completo.
+    /** Combina la fecha y la hora guardadas por separado para comparar el horario completo. */
     public DateTime obtenerFechaHoraInicio() {
         return new DateTime(fecha.getDia(), fecha.getMes(), fecha.getAnio(),
                 horaInicio.getHora(), horaInicio.getMinuto());
     }
 
-    // Fecha y hora exactas de fin (soporta funciones que cruzan la medianoche)
+    // La duración puede llevar el fin al día siguiente.
+    /** Suma la duración a la fecha y hora de inicio, incluso si termina al día siguiente. */
     public DateTime obtenerFechaHoraFin() {
         return obtenerFechaHoraInicio().sumarMinutos(pelicula.getDuracion());
     }
 
-    // Solo la hora de fin (HH:mm), como en el diagrama
+    // Devuelve únicamente la hora de fin para mostrarla sin la fecha.
     public DateTime calcularHoraFin() {
         return horaInicio.sumarMinutosAHora(pelicula.getDuracion());
     }
 
-    // ---------- Estado ----------
-    // Recalcula el estado según la hora actual y las butacas libres. La función CANCELADA no cambia.
+    // El estado se deriva del horario y la disponibilidad; CANCELADA es un estado permanente.
+    /** Actualiza el estado según la hora actual, las entradas disponibles y si fue cancelada. */
     public void actualizarEstado() {
         if (CANCELADA.equals(estado)) return;
         DateTime ahora = DateTime.ahora();
@@ -89,7 +91,7 @@ public class Funcion {
         this.estado = estado;
     }
 
-    // ---------- Consultas ----------
+    // Consultas de idioma, formato y disponibilidad de asientos.
     public boolean esSubtitulada() {
         return idioma.toUpperCase().contains("SUB");
     }
@@ -98,7 +100,7 @@ public class Funcion {
         return sala.getTipoSala().getFormato();
     }
 
-    // Una butaca está ocupada si hay una entrada VENDIDA, o BLOQUEADA con bloqueo vigente
+    /** Una butaca ocupada por una venta o por un bloqueo vigente no está disponible. */
     public boolean esButacaDisponible(Butaca butaca) {
         if (butaca == null || butaca.getSala() != this.sala) {
             return false;
@@ -111,6 +113,7 @@ public class Funcion {
         return true;
     }
 
+    /** Lista las butacas libres de la sala para esta función. */
     public List<Butaca> obtenerButacasDisponibles() {
         List<Butaca> disponibles = new ArrayList<>();
         for (Butaca b : sala.obtenerMapaButacas()) {
@@ -121,12 +124,21 @@ public class Funcion {
         return disponibles;
     }
 
+    /** Cuenta cuántas butacas se pueden elegir en este momento. */
     public int consultarDisponibilidad() {
         return obtenerButacasDisponibles().size();
     }
+    
+    /** Quita una entrada de la función para dejar la butaca libre sin marcarla como anulada. */
+    public void liberarEntrada(Entrada entrada) {
+        entradasEmitidas.remove(entrada);
+        actualizarEstado();
+    }
 
-    // Busca "cantidad" butacas contiguas en una misma fila, lo más cerca posible del centro.
-    // Se reservan las butacas de DISCAPACIDAD. Si no hay un grupo contiguo, devuelve las primeras libres.
+    /**
+     * Recomienda butacas contiguas cercanas al centro de una fila, excluyendo las accesibles.
+     * Si no encuentra un grupo contiguo, devuelve las primeras butacas libres disponibles.
+     */
     public List<Butaca> recomendarMejoresAsientos(int cantidad) {
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
@@ -156,7 +168,7 @@ public class Funcion {
         }
         if (mejorGrupo != null) return mejorGrupo;
 
-        // Sin grupo contiguo: devuelve las primeras butacas libres
+        // No hay grupo contiguo suficiente, así que se completa con butacas libres separadas.
         List<Butaca> sueltas = new ArrayList<>();
         for (List<Butaca> libres : porFila.values()) {
             for (Butaca b : libres) {
@@ -166,7 +178,7 @@ public class Funcion {
         return sueltas;
     }
 
-    // Número central de una fila según las butacas de la sala
+    /** Calcula el centro de una fila usando los números de sus butacas. */
     private double centroDeFila(String fila) {
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
@@ -179,7 +191,7 @@ public class Funcion {
         return (min + max) / 2.0;
     }
 
-    // ---------- Registro de entradas ----------
+    /** Registra una entrada solo si pertenece a esta función y su butaca aún está libre. */
     public void registrarEntrada(Entrada entrada) {
         if (entrada == null) {
             throw new IllegalArgumentException("La entrada no puede ser nula");
@@ -201,7 +213,6 @@ public class Funcion {
         actualizarEstado(); // si era la última butaca, pasa a AGOTADA
     }
 
-    // ---------- Getters ----------
     public int getIdFuncion() { return idFuncion; }
     public DateTime getFecha() { return fecha; }
     public DateTime getHoraInicio() { return horaInicio; }

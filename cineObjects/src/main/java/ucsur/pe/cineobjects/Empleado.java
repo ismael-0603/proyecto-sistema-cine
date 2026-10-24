@@ -4,22 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
- * @author user
+ * Representa al personal de una sede y controla qué pedidos puede preparar o entregar.
+ * El empleado requiere un rol y una sede; su rol debe permitir atender pedidos para gestionarlos.
  */
 public class Empleado extends Persona {
     private int idEmpleado;
     private String turno;
     private Rol rol;
     private Sede sede;
+    /** Cola de pedidos que el empleado puede atender. */
     private List<Pedido> pedidosAsignados;
 
     public Empleado(int idEmpleado, String dni, String nombres, String apellidos, DateTime fechaNac,
                     String correoElectronico, String telefono, String contra,
                     String turno, Rol rol, Sede sede) {
         super(dni, nombres, apellidos, fechaNac, correoElectronico, telefono, contra);
-        if (rol == null) throw new IllegalArgumentException("El rol es obligatorio"); // esto se adapto por la BD
-        if (sede == null) throw new IllegalArgumentException("La sede es obligatoria"); // esto se adapto por la BD
+        if (rol == null) throw new IllegalArgumentException("El rol es obligatorio");
+        if (sede == null) throw new IllegalArgumentException("La sede es obligatoria");
         if (turno != null && turno.length() > 20) {
             throw new IllegalArgumentException("El turno no puede superar 20 caracteres");
         }
@@ -34,6 +35,7 @@ public class Empleado extends Persona {
         return this.turno;
     }
 
+    /** Devuelve una copia de la cola con pedidos pendientes o que ya se están preparando. */
     public List<Pedido> consultarPedidosPendientes() {
         List<Pedido> pendientes = new ArrayList<>();
         for (Pedido p : pedidosAsignados) {
@@ -44,7 +46,7 @@ public class Empleado extends Persona {
         return pendientes;
     }
 
-    // Toma el primer pedido PENDIENTE de su cola
+    /** Inicia la preparación del primer pedido pendiente, si existe. */
     public void prepararPedido() {
         validarPermisoPedidos();
         for (Pedido p : pedidosAsignados) {
@@ -55,7 +57,7 @@ public class Empleado extends Persona {
         }
     }
 
-    // Sobrecarga: asigna y prepara un pedido específico
+    /** Asigna el pedido indicado a la cola y comienza su preparación si está pendiente. */
     public void prepararPedido(Pedido pedido) {
         validarPermisoPedidos();
         if (pedido != null && Pedido.PENDIENTE.equals(pedido.getEstado())) {
@@ -66,7 +68,7 @@ public class Empleado extends Persona {
         }
     }
 
-    // Entrega el primer pedido LISTO de su cola
+    /** Entrega el primer pedido listo que encuentre en su cola. */
     public void entregarPedido() {
         validarPermisoPedidos();
         for (Pedido p : pedidosAsignados) {
@@ -77,6 +79,7 @@ public class Empleado extends Persona {
         }
     }
 
+    /** Entrega el pedido indicado si ya está listo; ignora pedidos nulos o en otro estado. */
     public void entregarPedido(Pedido pedido) {
         validarPermisoPedidos();
         if (pedido != null && Pedido.LISTO.equals(pedido.getEstado())) {
@@ -84,7 +87,7 @@ public class Empleado extends Persona {
         }
     }
 
-    // Solo quien tiene permiso de atender pedidos puede prepararlos o entregarlos
+    /** Impide preparar o entregar pedidos cuando el rol no tiene ese permiso. */
     private void validarPermisoPedidos() {
         if (!rol.tienePermiso(Rol.ATENDER_PEDIDO)) {
             throw new IllegalStateException("El rol " + rol.getNombre() + " no puede atender pedidos");

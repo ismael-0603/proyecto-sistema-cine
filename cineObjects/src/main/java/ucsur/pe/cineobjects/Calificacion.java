@@ -1,15 +1,17 @@
 package ucsur.pe.cineobjects;
 
 /**
- *
- * @author user
+ * Guarda la puntuación y el comentario de una compra.
+ * La puntuación debe estar entre 1 y 5, el comentario no puede superar 255 caracteres
+ * y solo se registra cuando la compra está confirmada.
  */
 public class Calificacion {
     private int idCalificacion;
-    private int puntuacion; // entre 1 y 5
+    private int puntuacion; // Valor permitido: de 1 a 5.
     private String comentario;
     private DateTime fecha;
     private Compra compra;
+    /** Evita registrar la misma calificación más de una vez. */
     private boolean registrada;
 
     public Calificacion(int idCalificacion, int puntuacion, String comentario, Compra compra) {
@@ -30,15 +32,17 @@ public class Calificacion {
         this.registrada = false;
     }
 
+    /** Comprueba el mismo rango usado al crear una calificación. */
     private static boolean esPuntuacionValida(int p) {
         return p >= 1 && p <= 5;
     }
 
+    /** Permite revisar la puntuación antes de registrar la calificación. */
     public boolean validarPuntuacion() {
         return esPuntuacionValida(this.puntuacion);
     }
 
-    // Solo se califica una compra CONFIRMADA, y una sola vez
+    /** Registra la calificación una sola vez y únicamente si la compra está confirmada. */
     public boolean registrar() {
         if (registrada) return false;
         if (!validarPuntuacion() || !Compra.CONFIRMADA.equals(compra.getEstado())) {

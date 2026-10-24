@@ -3,8 +3,8 @@ package ucsur.pe.cineobjects;
 import java.util.ArrayList;
 import java.util.List;
 /**
- *
- * @author user
+ * Guarda la información de una película y sus géneros para mostrarla en la cartelera.
+ * Exige título, duración positiva y clasificación de edad válida; el estado solo admite los valores definidos.
  */
 public class Pelicula {
     public static final String PROXIMAMENTE = "PROXIMAMENTE";
@@ -20,6 +20,7 @@ public class Pelicula {
     private String poster;
     private DateTime fechaEstreno; // solo fecha: DateTime(dia, mes, anio)
     private String estado;
+    /** Géneros de la película; no se agregan dos veces géneros con el mismo identificador. */
     private List<Genero> generos;
 
     public Pelicula(int idPelicula, String titulo, String sinopsis, int duracion,
@@ -47,10 +48,12 @@ public class Pelicula {
         this.generos = new ArrayList<>();
     }
 
+    /** Indica si el estado permite mostrar la película en la cartelera actual. */
     public boolean estaEnCartelera() {
         return EN_CARTELERA.equals(this.estado);
     }
 
+    /** Prepara una descripción legible con clasificación, duración, géneros y estreno. */
     public String obtenerDetalle() {
         StringBuilder nombresGeneros = new StringBuilder();
         for (int i = 0; i < generos.size(); i++) {
@@ -64,6 +67,7 @@ public class Pelicula {
                 estado);
     }
 
+    /** Agrega el género si no se había agregado ya; un valor nulo se ignora. */
     public void agregarGenero(Genero genero) {
         if (genero == null) return;
         for (Genero g : generos) {
@@ -72,7 +76,7 @@ public class Pelicula {
         generos.add(genero);
     }
 
-    // Si genero es null, no se filtra (devuelve true)
+    /** Comprueba si tiene el género indicado; un valor null significa que no se aplica filtro. */
     public boolean tieneGenero(Genero genero) {
         if (genero == null) return true;
         for (Genero g : generos) {
@@ -84,7 +88,7 @@ public class Pelicula {
         return false;
     }
 
-    // Getters
+    // Acceso a los datos de la película.
     public int getIdPelicula() { return idPelicula; }
     public String getTitulo() { return titulo; }
     public String getSinopsis() { return sinopsis; }

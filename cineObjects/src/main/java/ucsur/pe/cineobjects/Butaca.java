@@ -1,8 +1,8 @@
 package ucsur.pe.cineobjects;
 
 /**
- *
- * @author user
+ * Representa una butaca física, identificada por su fila y número dentro de una sala.
+ * El constructor valida la fila, el número, el tipo permitido y que se indique una sala.
  */
 public class Butaca {
     public static final String ESTANDAR = "ESTANDAR";
@@ -43,6 +43,7 @@ public class Butaca {
         return DISCAPACIDAD.equals(tipo);
     }
 
+    /** Consulta la disponibilidad de esta butaca para una función; si no hay función, devuelve false. */
     public boolean estaDisponible(Funcion funcion) {
         if (funcion == null) return false;
         return funcion.esButacaDisponible(this);

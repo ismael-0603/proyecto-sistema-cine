@@ -1,8 +1,8 @@
 package ucsur.pe.cineobjects;
 
 /**
- *
- * @author user
+ * Describe el formato de una sala, sus características y el recargo aplicado a la tarifa.
+ * El formato es obligatorio, la descripción tiene un máximo de 150 caracteres y el recargo no puede ser negativo.
  */
 public class TipoSala {
     private int idTipoSala;

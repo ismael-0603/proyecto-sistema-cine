@@ -1,8 +1,8 @@
 package ucsur.pe.cineobjects;
 
 /**
- *
- * @author user
+ * Representa una entrada para una butaca y función, desde su selección hasta su venta o liberación.
+ * La función y la butaca son obligatorias, y la butaca debe pertenecer a la sala de esa función.
  */
 public class Entrada {
     public static final String BLOQUEADA = "BLOQUEADA";
@@ -16,13 +16,13 @@ public class Entrada {
     private String codigoQR;
     private double precio;
     private DateTime fechaEmision;
-    private DateTime expiraBloqueo;
+    private DateTime expiraBloqueo; // Momento en que debe liberarse el asiento si no se confirma la venta.
     private String estado;
     private Funcion funcion;
     private Butaca butaca;
     private TipoEntrada tipoEntrada;
 
-    // Constructor para Fase 1 (selección en el mapa: aún no tiene TipoEntrada ni ocupa la butaca en Funcion)
+    /** Crea una preselección sin tipo de entrada; todavía no bloquea la butaca en la función. */
     public Entrada(int idEntrada, Funcion funcion, Butaca butaca) {
         if (funcion == null) throw new IllegalArgumentException("La función es obligatoria");
         if (butaca == null) throw new IllegalArgumentException("La butaca es obligatoria");
@@ -35,13 +35,13 @@ public class Entrada {
         this.estado = BLOQUEADA;
     }
 
-    // Constructor completo
+    /** Crea una entrada con su tipo, calculando el precio base y validando sus asociaciones. */
     public Entrada(int idEntrada, Funcion funcion, Butaca butaca, TipoEntrada tipoEntrada) {
         this(idEntrada, funcion, butaca);
         asignarTipoEntrada(tipoEntrada);
     }
 
-    // Se llama en la Fase 2 cuando el usuario elige el tipo de entrada para cada asiento bloqueado
+    /** Asigna un tipo válido y calcula el precio final según tarifa y recargo de sala. */
     public void asignarTipoEntrada(TipoEntrada tipoEntrada) {
         if (tipoEntrada == null) {
             throw new IllegalArgumentException("El tipo de entrada es obligatorio");
@@ -53,7 +53,7 @@ public class Entrada {
         calculaPrecioFinal();
     }
 
-    // Bloquea la butaca heredando la hora exacta de expiración de la Compra (Modelo A)
+    /** Bloquea la butaca hasta la hora límite compartida con la compra. */
     public boolean bloquearTemporalmente(DateTime fechaExpiracion) {
         if (fechaExpiracion == null || !DateTime.ahora().esAntesDe(fechaExpiracion)) {
             return false; // El tiempo de la compra ya venció
@@ -69,7 +69,7 @@ public class Entrada {
         return true;
     }
 
-    // Sobrecarga por minutos (máx. 4 minutos)
+    /** Bloquea la butaca durante la cantidad de minutos indicada, hasta un máximo de cuatro. */
     public boolean bloquearTemporalmente(int minutos) {
         if (minutos <= 0 || minutos > TIEMPO_BLOQUEO_MIN) {
             throw new IllegalArgumentException("El tiempo de bloqueo debe estar entre 1 y " + TIEMPO_BLOQUEO_MIN + " minutos");
@@ -77,7 +77,7 @@ public class Entrada {
         return bloquearTemporalmente(DateTime.ahora().sumarMinutos(minutos));
     }
 
-    // Si el bloqueo venció, pasa a EXPIRADA y libera la butaca
+    /** Comprueba si venció el bloqueo y, en ese caso, expira la entrada y libera la butaca. */
     public boolean haExpirado() {
         if (BLOQUEADA.equals(estado) && expiraBloqueo != null
                 && DateTime.ahora().esDespuesDe(expiraBloqueo)) {
@@ -86,7 +86,7 @@ public class Entrada {
         return EXPIRADA.equals(estado);
     }
 
-    // Libera el asiento cuando se agotan los 4 minutos
+    /** Marca la entrada como expirada y quita su bloqueo de la función. */
     public void expirar() {
         if (BLOQUEADA.equals(estado)) {
             this.estado = EXPIRADA;
@@ -95,6 +95,7 @@ public class Entrada {
         }
     }
 
+    /** Suma la tarifa de entrada y el recargo por formato de sala; sin tipo, el precio es cero. */
     public double calculaPrecioFinal() {
         if (tipoEntrada == null) {
             this.precio = 0.0;
@@ -104,6 +105,7 @@ public class Entrada {
         return this.precio;
     }
 
+    /** Cambia el bloqueo vigente a venta y crea el código QR de la entrada. */
     public void confirmarVenta() {
         if (!BLOQUEADA.equals(estado)) {
             throw new IllegalStateException("Solo se puede confirmar una entrada BLOQUEADA (estado actual: " + estado + ")");
@@ -123,6 +125,7 @@ public class Entrada {
         this.codigoQR = generarCodigoQR();
     }
 
+    /** Anula una entrada bloqueada o vendida y actualiza la disponibilidad de la función. */
     public void anular() {
         if (!BLOQUEADA.equals(estado) && !VENDIDA.equals(estado)) {
             throw new IllegalStateException("No se puede anular una entrada en estado " + estado);
@@ -132,9 +135,18 @@ public class Entrada {
         this.funcion.actualizarEstado();
     }
 
+    /** Forma un código único con la entrada, la función, el asiento y, si existe, la fecha de venta. */
     public String generarCodigoQR() {
         String base = "QR-ENT-" + idEntrada + "-F" + funcion.getIdFuncion() + "-" + butaca.getCodigoAsiento();
         return (fechaEmision != null) ? base + "-" + fechaEmision.toValorComparable() : base;
+    }
+    
+    /** Deshace el bloqueo y devuelve la entrada a la preselección. */
+    public void liberarBloqueo() {
+        if (BLOQUEADA.equals(estado) && expiraBloqueo != null) {
+            this.expiraBloqueo = null;
+            funcion.liberarEntrada(this);
+        }
     }
 
     public int getIdEntrada() { return idEntrada; }

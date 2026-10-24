@@ -1,8 +1,8 @@
 package ucsur.pe.cineobjects;
 
 /**
- *
- * @author user
+ * Registra reclamos, quejas o solicitudes de reembolso vinculados a una compra.
+ * Exige un tipo reconocido, una descripción no vacía y una compra asociada.
  */
 public class Reclamo {
     public static final String RECLAMO = "RECLAMO";
@@ -42,7 +42,7 @@ public class Reclamo {
         this.registrado = false;
     }
 
-    // Formaliza el reclamo. Solo procede si la compra fue confirmada (o reembolsada) y solo una vez.
+    /** Formaliza el reclamo una sola vez y solo para compras confirmadas o reembolsadas. */
     public boolean registrar() {
         if (registrado) return false;
         if (!Compra.CONFIRMADA.equals(compra.getEstado()) && !Compra.REEMBOLSADA.equals(compra.getEstado())) {
@@ -54,6 +54,7 @@ public class Reclamo {
         return true;
     }
 
+    /** Devuelve el estado actual, como REGISTRADO, EN_REVISION o RESUELTO. */
     public String consultarEstado() {
         return this.estado;
     }
@@ -66,6 +67,7 @@ public class Reclamo {
         this.estado = EN_REVISION;
     }
 
+    /** Cierra el reclamo como resuelto y guarda la respuesta no vacía. */
     public void responderReclamo(String respuesta) {
         validarAbierto();
         validarRespuesta(respuesta);
@@ -73,6 +75,7 @@ public class Reclamo {
         this.estado = RESUELTO;
     }
 
+    /** Cierra el reclamo como rechazado y guarda el motivo indicado. */
     public void rechazarReclamo(String motivo) {
         validarAbierto();
         validarRespuesta(motivo);
@@ -84,7 +87,7 @@ public class Reclamo {
         return REEMBOLSO.equals(this.tipo);
     }
 
-    // Debe estar registrado y aún sin cerrar (ni RESUELTO ni RECHAZADO)
+    /** Impide revisar o responder reclamos que no se registraron o que ya fueron cerrados. */
     private void validarAbierto() {
         if (!registrado) {
             throw new IllegalStateException("El reclamo aún no fue registrado");
@@ -94,6 +97,7 @@ public class Reclamo {
         }
     }
 
+    /** Evita cerrar el reclamo sin explicar la respuesta o el motivo. */
     private void validarRespuesta(String texto) {
         if (texto == null || texto.trim().isEmpty()) {
             throw new IllegalArgumentException("La respuesta es obligatoria");

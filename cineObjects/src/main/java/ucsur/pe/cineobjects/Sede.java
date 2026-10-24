@@ -3,8 +3,8 @@ package ucsur.pe.cineobjects;
 import java.util.ArrayList;
 import java.util.List;
 /**
- *
- * @author user
+ * Representa una sede de cine y reúne sus salas y funciones disponibles para consulta.
+ * El nombre, dirección y distrito son obligatorios; teléfono y horario tienen límites de longitud.
  */
 public class Sede {
     public static final String ACTIVA = "ACTIVA";
@@ -18,7 +18,9 @@ public class Sede {
     private String telefono;
     private String horarioAtencion;
     private String estado; // en la BD es BOOLEAN: ACTIVA = 1, INACTIVA = 0
+    /** Salas que pertenecen a esta sede. */
     private List<Sala> salas;
+    /** Todas las funciones programadas, incluso las agotadas, canceladas o fuera de venta. */
     private List<Funcion> cartelera;
 
     public Sede(int idSede, String nombre, String direccion, String distrito,
@@ -49,6 +51,7 @@ public class Sede {
         setEstado(estado != null ? estado : ACTIVA);
     }
 
+    /** Agrega una sala propia y evita repetirla o duplicar su número dentro de la sede. */
     public void agregarSala(Sala sala) {
         if (sala == null) {
             throw new IllegalArgumentException("La sala no puede ser nula");
@@ -65,6 +68,7 @@ public class Sede {
         salas.add(sala);
     }
 
+    /** Agrega una función propia después de validar el horario en su sala. */
     public void agregarFuncion(Funcion funcion) {
     if (funcion == null) {
         throw new IllegalArgumentException("La función no puede ser nula");
@@ -73,7 +77,7 @@ public class Sede {
         throw new IllegalArgumentException("La función se proyecta en una sala de otra sede");
     }
     if (!cartelera.contains(funcion)) {
-        // Primero valida el solapamiento + buffer en la sala; si falla, lanza IllegalStateException
+        // La sala rechaza la función si se cruza con otra o con el tiempo de limpieza.
         funcion.getSala().agregarFuncion(funcion);
         cartelera.add(funcion);
     }
@@ -83,6 +87,7 @@ public class Sede {
         return ACTIVA.equals(estado);
     }
 
+    /** Devuelve salas activas; una sede inactiva no ofrece salas disponibles. */
     public List<Sala> consultarSalasDisponibles() {
         List<Sala> disponibles = new ArrayList<>();
         if (!estaOperativa()) return disponibles;
@@ -94,7 +99,7 @@ public class Sede {
         return disponibles;
     }
 
-    // Funciones disponibles para la venta, de películas en cartelera y en salas operativas
+    /** Devuelve las funciones vendibles en esta sede, con película y sala operativas. */
     public List<Funcion> consultarCartelera() {
         List<Funcion> activas = new ArrayList<>();
         if (!estaOperativa()) return activas;
@@ -108,7 +113,7 @@ public class Sede {
         return activas;
     }
 
-    // Un parámetro null o vacío significa "no filtrar por ese criterio"
+    /** Filtra por idioma, clasificación y género; cada parámetro nulo o vacío omite ese filtro. */
     public List<Funcion> filtrarCartelera(String idioma, String clasificacion, Genero genero) {
         List<Funcion> filtradas = new ArrayList<>();
         for (Funcion f : consultarCartelera()) {
@@ -140,6 +145,7 @@ public class Sede {
     public String getHorarioAtencion() { return horarioAtencion; }
     public String getEstado() { return estado; }
     public List<Sala> getSalas() { return new ArrayList<>(salas); }
+    /** Devuelve una copia de las funciones programadas para proteger la lista interna. */
     public List<Funcion> getCartelera() { return new ArrayList<>(cartelera); }
 
     @Override

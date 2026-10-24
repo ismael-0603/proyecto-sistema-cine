@@ -1,9 +1,6 @@
 package ucsur.pe.cineobjects;
 
-/**
- *
- * @author user
- */
+/** Representa un género cinematográfico; su nombre es obligatorio y no puede superar 20 caracteres. */
 public class Genero {
     private int idGenero;
     private String nombre;

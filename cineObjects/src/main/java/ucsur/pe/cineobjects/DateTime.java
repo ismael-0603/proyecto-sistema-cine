@@ -1,15 +1,15 @@
 package ucsur.pe.cineobjects;
 
 /**
- *
- * @author user
+ * Guarda una fecha y hora, valida días reales del calendario y ofrece operaciones de comparación y suma.
+ * La fecha actual se calcula con UTC-5, que corresponde a la hora de Perú.
  */
 public class DateTime {
-    private int dia;
-    private int mes;
-    private int anio;
-    private int hora;
-    private int minuto;
+    private int dia; // Día válido para el mes y año indicados.
+    private int mes; // Mes del año, de 1 a 12.
+    private int anio; // Año positivo.
+    private int hora; // Hora en formato de 24 horas, de 0 a 23.
+    private int minuto; // Minutos, de 0 a 59.
 
     public DateTime(int dia, int mes, int anio, int hora, int minuto) {
         validar(dia, mes, anio, hora, minuto);
@@ -20,20 +20,20 @@ public class DateTime {
         this.minuto = minuto;
     }
     
-    // Constructor solo FECHA
+    /** Crea una fecha y asigna medianoche como hora. */
     public DateTime(int dia, int mes, int anio){
         this(dia, mes, anio, 0, 0);
     }
     
-    //Constructor solo HORA (fecha base 01/01/1970)
+    /** Crea una hora usando 01/01/1970 como fecha de referencia. */
     public DateTime(int hora, int minuto){
         this(1,1,1970, hora, minuto);
     }
     
-    // VALIDACIONES Y UTILIDADES DE CALENDARIO
+    // Validaciones y cálculos básicos del calendario.
     public static boolean esBisiesto(int anio) { 
         return (anio % 4 == 0 && anio % 100 != 0) || anio % 400 == 0;
-    } // calcula si un año es bisiesto o no
+    } // Un año es bisiesto si cumple la regla del calendario gregoriano.
     
     public static int diasDelMes(int mes, int anio) {
         return switch (mes) {
@@ -41,7 +41,7 @@ public class DateTime {
             case 4, 6, 9, 11 -> 30;
             default -> 31;
         };
-    } // calcula cuantos dias tienen los meses
+    } // Devuelve 28/29, 30 o 31 según el mes y el año.
     
     private static void validar(int dia, int mes, int anio, int hora, int minuto) {
         if (anio < 1) throw new IllegalArgumentException("Año inválido");
@@ -51,7 +51,7 @@ public class DateTime {
         if (minuto < 0 || minuto > 59) throw new IllegalArgumentException("Minuto inválido");
     }
     
-    // FECHA Y HORA ACTUAL (Perú, UTC-5)
+    /** Devuelve la fecha y hora actual usando el huso horario fijo UTC-5 (Perú). */
     public static DateTime ahora() {
         long minutosTotales = System.currentTimeMillis() / 60000L - 5 * 60;
         long dias = minutosTotales / 1440;
@@ -70,12 +70,13 @@ public class DateTime {
         return new DateTime((int) dias + 1, mes, anio, minutosDelDia / 60, minutosDelDia % 60);
     }
 
-    // COMPARACIONES
-    // Valor numérico comparable (AAAAMMDDHHMM)
+    // Las claves numéricas mantienen el orden cronológico al compararse.
+    /** Convierte fecha y hora en un número ordenable; se usa para comparar y crear referencias. */
     public long toValorComparable() {
         return (long) anio * 100000000L + mes * 1000000L + dia * 10000L + hora * 100L + minuto;
     }
 
+    /** Devuelve una clave numérica de año, mes y día, sin considerar la hora. */
     public long toValorSoloFecha() {
         return (long) anio * 10000L + mes * 100L + dia;
     }
@@ -88,12 +89,13 @@ public class DateTime {
         return this.toValorComparable() > otra.toValorComparable();
     }
 
+    /** Comprueba si la fecha está entre inicio y fin, incluyendo ambos extremos. */
     public boolean estaEnRangoFecha(DateTime inicio, DateTime fin) {
         long actual = this.toValorSoloFecha();
         return actual >= inicio.toValorSoloFecha() && actual <= fin.toValorSoloFecha();
     }
     
-    // Día de la semana: 1 = lunes ... 7 = domingo (algoritmo de Sakamoto)
+    /** Devuelve el día de la semana: 1 corresponde al lunes y 7 al domingo. */
     public int diaDeLaSemana() {
         int[] t = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
         int y = (mes < 3) ? anio - 1 : anio;
@@ -101,8 +103,7 @@ public class DateTime {
         return (dow == 0) ? 7 : dow;
     }
 
-    // OPERACIONES
-    // Suma días (acepta negativos, permite retroceder) respetando meses y años bisiestos
+    // Las sumas aceptan valores negativos y ajustan correctamente los cambios de mes y año.
     public DateTime sumarDias(int dias) {
         int d = this.dia, m = this.mes, a = this.anio;
         while (dias > 0) {
@@ -118,7 +119,7 @@ public class DateTime {
         return new DateTime(d, m, a, this.hora, this.minuto);
     }
 
-    // Suma minutos (acepta negativos,permite retroceder); si cruza medianoche, cambia el día
+    // Al cruzar medianoche, esta suma también ajusta la fecha.
     public DateTime sumarMinutos(int minutosExtra) {
         int total = this.hora * 60 + this.minuto + minutosExtra;
         int diasExtra = Math.floorDiv(total, 1440);
@@ -127,7 +128,8 @@ public class DateTime {
         return base.sumarDias(diasExtra);
     }
 
-    // Para objetos "solo hora": suma minutos y da la vuelta a las 24 h (23:30 + 150 = 02:00)
+    // Esta variante conserva la fecha base y solo hace avanzar la hora dentro de 24 horas.
+    /** Suma minutos para mostrar una hora final; al pasar medianoche vuelve a las 00:00. */
     public DateTime sumarMinutosAHora(int minutosExtra) {
         int total = Math.floorMod(this.hora * 60 + this.minuto + minutosExtra, 1440);
         return new DateTime(total / 60, total % 60);
@@ -141,7 +143,7 @@ public class DateTime {
         return Math.max(0, edad);
     }
 
-    // TEXTO 
+    // Formatos para mostrar la fecha, la hora o ambas.
     public String soloFecha() {
         return String.format("%02d/%02d/%04d", dia, mes, anio);
     }
@@ -167,7 +169,7 @@ public class DateTime {
         return Long.hashCode(toValorComparable());
     }
 
-    // ---------- Getters y Setters (con validación) ----------
+    // Cada setter valida el nuevo valor junto con los demás componentes antes de guardarlo.
     public int getDia() { return dia; }
     public void setDia(int dia) { validar(dia, mes, anio, hora, minuto); this.dia = dia; }
     public int getMes() { return mes; }
@@ -178,9 +180,5 @@ public class DateTime {
     public void setHora(int hora) { validar(dia, mes, anio, hora, minuto); this.hora = hora; }
     public int getMinuto() { return minuto; }
     public void setMinuto(int minuto) { validar(dia, mes, anio, hora, minuto); this.minuto = minuto; }
-
-    void calcularAniosHata(DateTime ahora) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
     
 }

@@ -1,11 +1,11 @@
 package ucsur.pe.cineobjects;
 
 /**
- *
- * @author user
+ * Define una tarifa de entrada, sus requisitos de elegibilidad y los puntos que genera.
+ * El nombre es obligatorio, la descripción tiene un máximo de 200 caracteres y la tarifa no puede ser negativa.
  */
 public class TipoEntrada {
-    // Escala de puntos por tipo de entrada comprada
+    // Puntos que se otorgan según la categoría de la entrada.
     public static final int PUNTOS_SOCIO = 3;
     public static final int PUNTOS_GENERAL = 2;
     public static final int PUNTOS_REDUCIDO = 1;
@@ -15,10 +15,17 @@ public class TipoEntrada {
     private String descripcion;
     private double tarifa;
     private boolean requiereSocio;
+    /** Puntos que cuesta canjear esta tarifa; cero significa que no se descuentan puntos. */
+    private int puntosCanje;
     private boolean estado;
 
     public TipoEntrada(int idTipoEntrada, String nombre, String descripcion,
                        double tarifa, boolean requiereSocio, boolean estado) {
+        this(idTipoEntrada, nombre, descripcion, tarifa, requiereSocio, estado, 0);
+    }
+
+    public TipoEntrada(int idTipoEntrada, String nombre, String descripcion,
+                       double tarifa, boolean requiereSocio, boolean estado, int puntosCanje) {
         if (nombre == null || nombre.trim().isEmpty() || nombre.trim().length() > 40) {
             throw new IllegalArgumentException("El nombre es obligatorio (máx. 40 caracteres)");
         }
@@ -28,19 +35,28 @@ public class TipoEntrada {
         if (tarifa < 0) {
             throw new IllegalArgumentException("La tarifa no puede ser negativa");
         }
+        if (puntosCanje < 0) {
+            throw new IllegalArgumentException("Los puntos de canje no pueden ser negativos");
+        }
+        if (puntosCanje > 0 && !requiereSocio) {
+        throw new IllegalArgumentException("Un tipo de entrada que cuesta puntos debe ser exclusivo para socios");
+        }
         this.idTipoEntrada = idTipoEntrada;
         this.nombre = nombre.trim();
         this.descripcion = descripcion;
         this.tarifa = tarifa;
         this.requiereSocio = requiereSocio;
         this.estado = estado;
+        this.puntosCanje = puntosCanje;
     }
 
-    public double getTarifa() {
-        return this.tarifa;
-    }
+    public int getPuntosCanje() { return puntosCanje; }
 
-    // Un tipo inactivo no se vende; si requiere socio, el cliente debe serlo
+        public double getTarifa() {
+            return this.tarifa;
+        }
+
+    /** Rechaza tipos inactivos y exige que el cliente sea socio cuando la tarifa lo requiere. */
     public boolean validarElegibilidad(Cliente cliente) {
         if (!this.estado) return false;
         if (this.requiereSocio) {
@@ -49,15 +65,18 @@ public class TipoEntrada {
         return true;
     }
 
+    /** Habilita esta tarifa para nuevas compras. */
     public void activar() { 
         this.estado = true; 
     }
     
+    /** Deshabilita esta tarifa para nuevas compras. */
     public void desactivar() { 
         this.estado = false; 
     }
     
-    // Asigna los puntos según el tipo de entrada si se encuentra activa
+    /** Devuelve los puntos de la categoría; los tipos inactivos no generan puntos. */
+    /** Devuelve los puntos que entrega esta tarifa según su nombre; si está inactiva, devuelve cero. */
     public int obtenerPuntos() {
         if (!this.estado) return 0;
         return switch (this.nombre.toUpperCase()) {

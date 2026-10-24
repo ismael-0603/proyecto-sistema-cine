@@ -1,8 +1,9 @@
 package ucsur.pe.cineobjects;
 
 /**
- *
- * @author user
+ * Clase base para clientes y empleados; centraliza sus datos personales y validaciones comunes.
+ * El DNI, cuando se proporciona, debe tener ocho dígitos; también se valida el correo, teléfono,
+ * fecha de nacimiento y longitud de la contraseña. Los datos obligatorios se exigen según el tipo de cuenta.
  */
 public abstract class Persona {
     protected String dni;
@@ -14,8 +15,7 @@ public abstract class Persona {
     protected String contra;
     protected boolean estado = true;
 
-    // Los datos son opcionales aquí (el cliente invitado solo tiene correo);
-    // los que lo exigen llaman a exigirDatosCompletos().
+    // Se permiten datos incompletos para invitados; clientes registrados y empleados validan lo requerido.
     protected Persona(String dni, String nombres, String apellidos, DateTime fechaNac,
                       String correo, String telefono, String contra) {
         this.dni = validarDni(dni);
@@ -28,7 +28,8 @@ public abstract class Persona {
         this.estado = true;
     }
 
-    // ---------- Comportamientos del diagrama ----------
+    // Operaciones compartidas de inicio de sesión y datos personales.
+    /** Inicia sesión solo si la cuenta está activa y coinciden correo y contraseña. */
     public boolean iniciarSesion(String correo, String contra) {
         if (!estado || this.correo == null || this.contra == null || correo == null || contra == null) {
             return false;
@@ -36,6 +37,7 @@ public abstract class Persona {
         return this.correo.equalsIgnoreCase(correo) && this.contra.equals(contra);
     }
 
+    /** Valida correo y teléfono antes de guardar; si alguno no sirve, conserva los datos anteriores. */
     public boolean modificarDatos(String telefono, String correo) {
         try {
             String nuevoCorreo = validarCorreo(correo);
@@ -48,31 +50,33 @@ public abstract class Persona {
         }
     }
 
+    /** Une nombres y apellidos; devuelve "Invitado" si no hay ninguno informado. */
     public String getNombreCompleto() {
         String completo = ((nombres != null ? nombres : "") + " " + (apellidos != null ? apellidos : "")).trim();
         return completo.isEmpty() ? "Invitado" : completo;
     }
 
+    /** Calcula la edad a la fecha de hoy; si no se conoce el nacimiento, devuelve cero. */
     public int calcularEdad() {
         if (this.fechaNac == null) return 0;
         return this.fechaNac.calcularAniosHasta(DateTime.ahora());
     }
 
-    // ---------- Validaciones (reglas de la BD) ----------
-    // Para clientes registrados y empleados: estos datos son NOT NULL en la BD
+    // Validaciones comunes del modelo; estos campos son obligatorios para cuentas registradas.
     protected void exigirDatosCompletos() {
         if (dni == null || nombres == null || apellidos == null || correo == null || contra == null) {
             throw new IllegalArgumentException("DNI, nombres, apellidos, correo y contraseña son obligatorios");
         }
     }
 
-    // Para el cliente invitado: solo el correo es obligatorio
+    // Un invitado no necesita datos personales, pero sí correo.
     protected void exigirCorreo() {
         if (correo == null) {
             throw new IllegalArgumentException("El correo es obligatorio");
         }
     }
 
+    /** Acepta un DNI nulo para invitados; si existe, debe contener exactamente ocho dígitos. */
     private static String validarDni(String dni) {
         if (dni != null && !dni.matches("\\d{8}")) {
             throw new IllegalArgumentException("El DNI debe tener exactamente 8 dígitos");
@@ -80,6 +84,7 @@ public abstract class Persona {
         return dni;
     }
 
+    /** Recorta espacios y rechaza textos vacíos o que superen el máximo indicado. */
     private static String validarTexto(String texto, String campo, int max) {
         if (texto == null) return null;
         String t = texto.trim();
@@ -89,6 +94,7 @@ public abstract class Persona {
         return t;
     }
 
+    /** Rechaza fechas de nacimiento posteriores al momento actual. */
     private static DateTime validarFechaNac(DateTime fecha) {
         if (fecha != null && fecha.esDespuesDe(DateTime.ahora())) {
             throw new IllegalArgumentException("La fecha de nacimiento no puede ser futura");
@@ -96,6 +102,7 @@ public abstract class Persona {
         return fecha;
     }
 
+    /** Acepta un correo nulo cuando el tipo de persona lo permite; valida formato y longitud si se informa. */
     private static String validarCorreo(String correo) {
         if (correo == null) return null;
         String c = correo.trim();
@@ -105,6 +112,7 @@ public abstract class Persona {
         return c;
     }
 
+    /** Permite omitir el teléfono y limita a veinte caracteres el valor informado. */
     private static String validarTelefono(String telefono) {
         if (telefono != null && telefono.length() > 20) {
             throw new IllegalArgumentException("El teléfono no puede superar 20 caracteres");
@@ -112,7 +120,8 @@ public abstract class Persona {
         return telefono;
     }
 
-    // Máx. 40 caracteres: es el límite de empleado.contra en la BD
+    // El límite de longitud corresponde al campo de contraseña definido para empleados.
+    /** Permite contraseña nula para invitados; si se informa, no puede estar vacía ni exceder 40 caracteres. */
     private static String validarContra(String contra) {
         if (contra != null && (contra.isEmpty() || contra.length() > 40)) {
             throw new IllegalArgumentException("La contraseña no puede estar vacía ni superar 40 caracteres");
@@ -120,7 +129,7 @@ public abstract class Persona {
         return contra;
     }
 
-    // ---------- Getters y setters ----------
+    // Los setters vuelven a validar cada dato antes de guardarlo.
     public String getDni() { return dni; }
     public void setDni(String dni) { this.dni = validarDni(dni); }
 
