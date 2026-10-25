@@ -1,5 +1,6 @@
 package ucsur.pe.cineobjects;
 
+import ucsur.pe.cineobjects.cineInterfaz.Totalizable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +11,7 @@ import java.util.List;
  * saldo de puntos que cuestan ciertos tipos de entrada) y el pedido puedan confirmarse.
  * El plazo se comprueba con DateTime, sin hilos en segundo plano.
  */
-public class Compra {
+public class Compra implements Totalizable{
     public static final String EN_PROCESO = "EN_PROCESO";
     public static final String CONFIRMADA = "CONFIRMADA";
     public static final String CANCELADA = "CANCELADA";
@@ -200,6 +201,7 @@ public class Compra {
     }
 
     /** Recalcula subtotal, promoción, cupón, IGV y total, y los puntos que cuesta la compra. */
+    @Override
     public double calcularTotal() {
         double sumaEntradas = 0;
         for (Entrada e : entradas) {
