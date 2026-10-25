@@ -1,14 +1,15 @@
 package ucsur.pe.cineobjects;
-
+import ucsur.pe.cineobjects.cineInterfaz.Registrable;
 /**
  * Registra reclamos, quejas o solicitudes de reembolso vinculados a una compra.
  * Exige un tipo reconocido, una descripción no vacía y una compra asociada.
  */
-public class Reclamo {
+public class Reclamo implements Registrable{
     public static final String RECLAMO = "RECLAMO";
     public static final String QUEJA = "QUEJA";
     public static final String REEMBOLSO = "REEMBOLSO";
 
+    public static final String BORRADOR = "BORRADOR";
     public static final String REGISTRADO = "REGISTRADO";
     public static final String EN_REVISION = "EN_REVISION";
     public static final String RESUELTO = "RESUELTO";
@@ -24,35 +25,43 @@ public class Reclamo {
     private boolean registrado;
 
     public Reclamo(int idReclamo, String tipo, String descripcion, Compra compra) {
-        if (!RECLAMO.equals(tipo) && !QUEJA.equals(tipo) && !REEMBOLSO.equals(tipo)) {
-            throw new IllegalArgumentException("Tipo de reclamo inválido: " + tipo);
-        }
-        if (descripcion == null || descripcion.trim().isEmpty()) {
-            throw new IllegalArgumentException("La descripción es obligatoria");
-        }
-        if (compra == null) {
-            throw new IllegalArgumentException("La compra es obligatoria");
-        }
         this.idReclamo = idReclamo;
         this.tipo = tipo;
         this.descripcion = descripcion.trim();
         this.fecha = DateTime.ahora();
-        this.estado = REGISTRADO;
+        this.estado = BORRADOR;
         this.compra = compra;
         this.registrado = false;
     }
 
     /** Formaliza el reclamo una sola vez y solo para compras confirmadas o reembolsadas. */
+    @Override
     public boolean registrar() {
+        
+        if (compra == null) {
+            throw new IllegalArgumentException("La compra es obligatoria");
+        }
+        
+        
+        if (!RECLAMO.equals(tipo) && !QUEJA.equals(tipo) && !REEMBOLSO.equals(tipo)) {
+            throw new IllegalArgumentException("Tipo de reclamo invalido: " + tipo);
+            
+        }
+        if (descripcion == null || descripcion.trim().isEmpty()) {
+            throw new IllegalArgumentException("La descripcion es obligatoria");
+        }
+        
         if (registrado) return false;
+
         if (!Compra.CONFIRMADA.equals(compra.getEstado()) && !Compra.REEMBOLSADA.equals(compra.getEstado())) {
             return false;
         }
         this.fecha = DateTime.ahora();
         this.estado = REGISTRADO;
         this.registrado = true;
+        
         return true;
-    }
+    }   
 
     /** Devuelve el estado actual, como REGISTRADO, EN_REVISION o RESUELTO. */
     public String consultarEstado() {

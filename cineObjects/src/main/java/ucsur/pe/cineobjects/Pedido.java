@@ -1,5 +1,6 @@
 package ucsur.pe.cineobjects;
 
+import ucsur.pe.cineobjects.cineInterfaz.Registrable;
 import ucsur.pe.cineobjects.cineInterfaz.Totalizable;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.List;
  * Agrupa productos de dulcería y controla el ciclo de preparación y entrega del pedido.
  * Solo registra pedidos con detalles y stock suficiente; los cambios de estado respetan el orden del proceso.
  */
-public class Pedido implements Totalizable{
+public class Pedido implements Totalizable, Registrable{
     public static final String PENDIENTE = "PENDIENTE";
     public static final String EN_PREPARACION = "EN_PREPARACION";
     public static final String LISTO = "LISTO";
@@ -48,6 +49,7 @@ public class Pedido implements Totalizable{
     }
 
     /** Verifica primero el stock de todas las líneas y luego lo descuenta; false indica que no procede. */
+    @Override
     public boolean registrar() {
         if (registrado || detalles.isEmpty()) return false;
         for (DetallePedido d : detalles) {
