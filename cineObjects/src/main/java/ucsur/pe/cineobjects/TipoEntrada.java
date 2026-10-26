@@ -4,12 +4,7 @@ package ucsur.pe.cineobjects;
  * Define una tarifa de entrada, sus requisitos de elegibilidad y los puntos que genera.
  * El nombre es obligatorio, la descripción tiene un máximo de 200 caracteres y la tarifa no puede ser negativa.
  */
-public class TipoEntrada {
-    // Puntos que se otorgan según la categoría de la entrada.
-    public static final int PUNTOS_SOCIO = 3;
-    public static final int PUNTOS_GENERAL = 2;
-    public static final int PUNTOS_REDUCIDO = 1;
-    
+public abstract class TipoEntrada {
     private int idTipoEntrada;
     private String nombre;
     private String descripcion;
@@ -19,13 +14,13 @@ public class TipoEntrada {
     private int puntosCanje;
     private boolean estado;
 
-    public TipoEntrada(int idTipoEntrada, String nombre, String descripcion,
-                       double tarifa, boolean requiereSocio, boolean estado) {
+    protected TipoEntrada(int idTipoEntrada, String nombre, String descripcion,
+                          double tarifa, boolean requiereSocio, boolean estado) {
         this(idTipoEntrada, nombre, descripcion, tarifa, requiereSocio, estado, 0);
     }
 
-    public TipoEntrada(int idTipoEntrada, String nombre, String descripcion,
-                       double tarifa, boolean requiereSocio, boolean estado, int puntosCanje) {
+    protected TipoEntrada(int idTipoEntrada, String nombre, String descripcion,
+                          double tarifa, boolean requiereSocio, boolean estado, int puntosCanje) {
         if (nombre == null || nombre.trim().isEmpty() || nombre.trim().length() > 40) {
             throw new IllegalArgumentException("El nombre es obligatorio (máx. 40 caracteres)");
         }
@@ -75,15 +70,28 @@ public class TipoEntrada {
         this.estado = false; 
     }
     
-    /** Devuelve los puntos de la categoría; los tipos inactivos no generan puntos. */
-    /** Devuelve los puntos que entrega esta tarifa según su nombre; si está inactiva, devuelve cero. */
+    /** Devuelve los puntos que entrega esta tarifa; si está inactiva, devuelve cero. */
     public int obtenerPuntos() {
-        if (!this.estado) return 0;
-        return switch (this.nombre.toUpperCase()) {
-            case "SOCIO", "ENTRADA SOCIO" -> PUNTOS_SOCIO;
-            case "GENERAL", "ADULTO", "ENTRADA GENERAL" -> PUNTOS_GENERAL;
-            case "NIÑO", "NINO", "ADULTO MAYOR", "MAYOR", "CONADIS", "DISCAPACIDAD" -> PUNTOS_REDUCIDO;
-            default -> PUNTOS_REDUCIDO;
+        return this.estado ? puntosBase() : 0;
+    }
+
+    /** Cada categoría de entrada define cuántos puntos otorga. */
+    protected abstract int puntosBase();
+
+    /**
+     * Crea la categoría adecuada a partir del nombre guardado en la tabla tipo_entrada:
+     * SOCIO, GENERAL/ADULTO o, en cualquier otro caso, entrada reducida.
+     */
+    public static TipoEntrada desdeNombre(int idTipoEntrada, String nombre, String descripcion,
+                                          double tarifa, boolean requiereSocio, boolean estado, int puntosCanje) {
+        String n = nombre == null ? "" : nombre.trim().toUpperCase();
+        return switch (n) {
+            case "SOCIO", "ENTRADA SOCIO" ->
+                    new TipoEntradaSocio(idTipoEntrada, nombre, descripcion, tarifa, requiereSocio, estado, puntosCanje);
+            case "GENERAL", "ADULTO", "ENTRADA GENERAL" ->
+                    new TipoEntradaGeneral(idTipoEntrada, nombre, descripcion, tarifa, requiereSocio, estado, puntosCanje);
+            default ->
+                    new TipoEntradaReducida(idTipoEntrada, nombre, descripcion, tarifa, requiereSocio, estado, puntosCanje);
         };
     }
 

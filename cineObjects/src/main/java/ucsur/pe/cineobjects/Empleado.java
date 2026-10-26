@@ -98,7 +98,7 @@ public class Empleado extends Persona {
     public String getTurno() { return turno; }
     public Rol getRol() { return rol; }
     public Sede getSede() { return sede; }
-    public List<Pedido> getPedidosAsignados() { return pedidosAsignados; }
+    public List<Pedido> getPedidosAsignados() { return new ArrayList<>(pedidosAsignados); }
 
     @Override
     public String toString() {
