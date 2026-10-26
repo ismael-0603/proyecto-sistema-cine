@@ -1,4 +1,4 @@
-package ucsur.pe.cineobjects.cineInterfaz;
+package ucsur.pe.cineInterfaz;
 
 /** Contrato para objetos que pueden completar un registro sujeto a reglas de negocio. */
 public interface Registrable {

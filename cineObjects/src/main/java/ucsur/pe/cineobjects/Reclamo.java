@@ -1,5 +1,5 @@
 package ucsur.pe.cineobjects;
-import ucsur.pe.cineobjects.cineInterfaz.Registrable;
+import ucsur.pe.cineInterfaz.Registrable;
 
 /**
  * Registra reclamos, quejas o solicitudes de reembolso vinculados a una compra.
@@ -10,7 +10,7 @@ public class Reclamo implements Registrable {
     public static final String QUEJA = "QUEJA";
     public static final String REEMBOLSO = "REEMBOLSO";
 
-    public static final String BORRADOR = "BORRADOR";
+    public static final String BORRADOR = "BORRADOR"; // solo en memoria hasta registrar(); no existe en la BD
     public static final String REGISTRADO = "REGISTRADO";
     public static final String EN_REVISION = "EN_REVISION";
     public static final String RESUELTO = "RESUELTO";
@@ -21,9 +21,9 @@ public class Reclamo implements Registrable {
     private String descripcion;
     private DateTime fecha;
     private String estado;
-    private String respuesta;
+    private String respuesta; // texto con el que se cierra; si se rechaza, es el motivo
     private Compra compra;
-    private boolean registrado;
+    private boolean registrado; // evita registrar el mismo reclamo dos veces
 
     public Reclamo(int idReclamo, String tipo, String descripcion, Compra compra) {
         if (!RECLAMO.equals(tipo) && !QUEJA.equals(tipo) && !REEMBOLSO.equals(tipo)) {
@@ -62,6 +62,7 @@ public class Reclamo implements Registrable {
         return this.estado;
     }
 
+    /** Pasa de REGISTRADO a EN_REVISION. */
     public void iniciarRevision() {
         validarAbierto();
         if (!REGISTRADO.equals(estado)) {
@@ -86,6 +87,7 @@ public class Reclamo implements Registrable {
         this.estado = RECHAZADO;
     }
 
+    /** Indica si el reclamo pide un reembolso. */
     public boolean esReembolso() {
         return REEMBOLSO.equals(this.tipo);
     }

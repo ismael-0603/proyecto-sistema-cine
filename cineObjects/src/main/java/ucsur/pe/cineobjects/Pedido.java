@@ -1,7 +1,7 @@
 package ucsur.pe.cineobjects;
 
-import ucsur.pe.cineobjects.cineInterfaz.Registrable;
-import ucsur.pe.cineobjects.cineInterfaz.Totalizable;
+import ucsur.pe.cineInterfaz.Registrable;
+import ucsur.pe.cineInterfaz.Totalizable;
 import java.util.ArrayList;
 import java.util.List;
 /**
@@ -15,25 +15,44 @@ public class Pedido implements Totalizable, Registrable{
     public static final String ENTREGADO = "ENTREGADO";
 
     private int idPedido;
-    private String codigoQR;
+    private String codigoQR; // null hasta que el pedido se registra, cuando ya existe su id real.
     private DateTime fechaHora;
     private DateTime fechaEntrega;
     private String estado;
-    private double total;
+    private double total; // suma de los subtotales de las líneas
     private Empleado empleado; // Permanece null hasta que un empleado inicia la preparación.
+    /** Sede de cuyo inventario se descuenta el stock; se fija al registrar el pedido. */
+    private Sede sede;
     /** Productos y cantidades que forman el pedido. */
     private List<DetallePedido> detalles;
-    /** Indica si el pedido ya descontó las cantidades correspondientes del inventario. */
-    /** Se activa después de descontar el stock para evitar registrarlo o cobrarlo dos veces. */
+    /** Se activa al descontar el stock, para no registrar ni cobrar el pedido dos veces. */
     private boolean registrado;
 
     public Pedido(int idPedido) {
         this.idPedido = idPedido;
         this.fechaHora = DateTime.ahora();
         this.estado = PENDIENTE;
-        this.codigoQR = "QR-PED-" + idPedido + "-" + fechaHora.toValorComparable();
         this.detalles = new ArrayList<>();
         this.registrado = false;
+    }
+
+    /** Asigna el id real generado por la base tras el INSERT; si el QR ya existe, lo rehace con ese id. */
+    public void asignarId(int idPedido) {
+        if (this.idPedido > 0) {
+            throw new IllegalStateException("El pedido ya tiene id asignado");
+        }
+        if (idPedido <= 0) {
+            throw new IllegalArgumentException("El id del pedido debe ser mayor a 0");
+        }
+        this.idPedido = idPedido;
+        if (codigoQR != null) {
+            this.codigoQR = generarCodigoQR();
+        }
+    }
+
+    /** Forma el QR con el id del pedido y la fecha de registro; se llama una vez que el pedido ya tiene su id. */
+    private String generarCodigoQR() {
+        return "QR-PED-" + idPedido + "-" + fechaHora.toValorComparable();
     }
 
     /** Agrega una línea antes del registro y recalcula el total del pedido. */
@@ -48,21 +67,43 @@ public class Pedido implements Totalizable, Registrable{
         calcularTotal();
     }
 
-    /** Verifica primero el stock de todas las líneas y luego lo descuenta; false indica que no procede. */
+    /** Fija la sede del pedido; no se puede cambiar una vez registrado. */
+    public void asignarSede(Sede sede) {
+        if (sede == null) {
+            throw new IllegalArgumentException("La sede es obligatoria");
+        }
+        if (registrado) {
+            throw new IllegalStateException("No se puede cambiar la sede de un pedido ya registrado");
+        }
+        this.sede = sede;
+    }
+
+    /** Registra el pedido descontando el stock del inventario de la sede indicada. */
+    public boolean registrar(Sede sede) {
+        if (sede == null || registrado) return false;
+        this.sede = sede;
+        return registrar();
+    }
+
+    /**
+     * Verifica primero el stock de todas las líneas en la sede del pedido y luego lo descuenta.
+     * Devuelve false si el pedido no tiene sede o si algo no procede.
+     */
     @Override
     public boolean registrar() {
-        if (registrado || detalles.isEmpty()) return false;
+        if (registrado || detalles.isEmpty() || sede == null) return false;
         for (DetallePedido d : detalles) {
-            if (!d.getProducto().verificarStock(d.getCantidad())) {
+            if (!d.getProducto().verificarStock(sede, d.getCantidad())) {
                 return false;
             }
         }
         for (DetallePedido d : detalles) {
-            d.getProducto().descontarStock(d.getCantidad());
+            d.getProducto().descontarStock(sede, d.getCantidad());
         }
         this.registrado = true;
         this.fechaHora = DateTime.ahora();
         this.estado = PENDIENTE;
+        this.codigoQR = generarCodigoQR();
         calcularTotal();
         return true;
     }
@@ -77,6 +118,7 @@ public class Pedido implements Totalizable, Registrable{
         return this.total;
     }
 
+    /** Pasa a EN_PREPARACION; exige un pedido registrado y PENDIENTE, y un empleado que pueda atender pedidos. */
     public void iniciarPreparacion(Empleado empleado) {
         if (!registrado || !PENDIENTE.equals(estado)) {
             throw new IllegalStateException("Solo se puede preparar un pedido registrado y PENDIENTE (estado actual: " + estado + ")");
@@ -91,6 +133,7 @@ public class Pedido implements Totalizable, Registrable{
         this.estado = EN_PREPARACION;
     }
 
+    /** Pasa de EN_PREPARACION a LISTO y avisa al cliente. */
     public void marcarListo() {
         if (!EN_PREPARACION.equals(estado)) {
             throw new IllegalStateException("Solo se puede marcar LISTO un pedido EN_PREPARACION (estado actual: " + estado + ")");
@@ -109,6 +152,7 @@ public class Pedido implements Totalizable, Registrable{
         return this.codigoQR != null && this.codigoQR.equals(codigo);
     }
 
+    /** Pasa de LISTO a ENTREGADO y guarda la fecha de entrega. */
     public void entregar() {
         if (!LISTO.equals(estado)) {
             throw new IllegalStateException("Solo se puede entregar un pedido LISTO (estado actual: " + estado + ")");
@@ -124,6 +168,7 @@ public class Pedido implements Totalizable, Registrable{
     public String getEstado() { return estado; }
     public double getTotal() { return total; }
     public Empleado getEmpleado() { return empleado; }
+    public Sede getSede() { return sede; }
     public List<DetallePedido> getDetalles() { return new ArrayList<>(detalles); }
     public boolean isRegistrado() { return registrado; }
 

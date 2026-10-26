@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package ucsur.pe.cineobjects.cineInterfaz;
+package ucsur.pe.cineInterfaz;
 
 /**
  *
@@ -16,6 +16,7 @@ import ucsur.pe.cineobjects.Compra;
 import ucsur.pe.cineobjects.Pedido;
 import ucsur.pe.cineobjects.Producto;
 import ucsur.pe.cineobjects.DetallePedido;
+import ucsur.pe.cineobjects.Sede;
 
 public class MainTotalizable {
 
@@ -29,16 +30,20 @@ public class MainTotalizable {
         // 2. Creamos un pedido de dulceria
         Pedido pedido1 = new Pedido(1);
 
-        // 3. Creamos los productos con sus precios y stock
+        // 3. Creamos la sede y los productos con sus precios y stock en esa sede
+        Sede sede = new Sede(1, "Cine Prueba", "Av. Lima 123", "Miraflores", null, null, Sede.ACTIVA);
+
         Producto producto1 = new Producto(
                 1, "Canchita mediana(Salado)", "Canchita Mediana",
-                "Canchitas", 17.00, false, 20, true
+                "Canchitas", 17.00, false, true
         );
+        producto1.reponerStock(sede, 20);
 
         Producto producto2 = new Producto(
                 2, "CCBebida Mediana", "CCBebida Mediana(21oz)",
-                "Bebidas", 13.00, false, 30, true
+                "Bebidas", 13.00, false, true
         );
+        producto2.reponerStock(sede, 30);
 
         // 4. Creamos los detalles indicando cantidades
         DetallePedido detalle1 = new DetallePedido(
@@ -63,8 +68,8 @@ public class MainTotalizable {
                 pedido1.calcularTotal()
         );
 
-        // 7. Creamos la compra del cliente
-        Compra compra1 = cliente1.realizarCompra();
+        // 7. Creamos la compra del cliente en la sede
+        Compra compra1 = cliente1.realizarCompra(sede);
 
         // 8. Asociamos el pedido a la compra
         compra1.asignarPedido(pedido1);

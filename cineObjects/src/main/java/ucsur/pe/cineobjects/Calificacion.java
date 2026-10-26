@@ -1,6 +1,6 @@
 package ucsur.pe.cineobjects;
 
-import ucsur.pe.cineobjects.cineInterfaz.Registrable;
+import ucsur.pe.cineInterfaz.Registrable;
 
 /**
  * Guarda la puntuación y el comentario de una compra.
@@ -11,7 +11,7 @@ public class Calificacion implements Registrable {
     private int idCalificacion;
     private int puntuacion; // Valor permitido: de 1 a 5.
     private String comentario;
-    private DateTime fecha;
+    private DateTime fecha; // al crear la calificación; se actualiza al registrarla
     private Compra compra;
     /** Evita registrar la misma calificación más de una vez. */
     private boolean registrada;

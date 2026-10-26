@@ -10,7 +10,7 @@ public class Promocion extends DescuentoBase {
     private int idPromocion;
     private String nombre;
     private String descripcion;
-    private boolean soloSocios;
+    private boolean soloSocios; // si es true, solo la aprovechan clientes socios
     /** Días en que aplica: 1 es lunes y 7 domingo; una lista vacía permite cualquier día. */
     private List<Integer> diasAplicables;
 

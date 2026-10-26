@@ -1,15 +1,12 @@
 package ucsur.pe.cineobjects;
 
-import ucsur.pe.cineobjects.cineInterfaz.Totalizable;
+import ucsur.pe.cineInterfaz.Totalizable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Coordina una compra desde la selección de asientos hasta su confirmación, cancelación o reembolso.
- * El constructor exige un cliente y comienza un plazo de cuatro minutos; la clase también calcula
- * descuentos, IGV y puntos, y valida que las entradas, el cupón, los beneficios de socio (incluido el
- * saldo de puntos que cuestan ciertos tipos de entrada) y el pedido puedan confirmarse.
- * El plazo se comprueba con DateTime, sin hilos en segundo plano.
+ * Compra de entradas y dulcería de un cliente en una sede, con 4 minutos para completarla.
+ * Calcula descuentos, IGV y puntos, y controla su confirmación, cancelación y reembolso.
  */
 public class Compra implements Totalizable{
     public static final String EN_PROCESO = "EN_PROCESO";
@@ -20,13 +17,12 @@ public class Compra implements Totalizable{
 
     public static final int TIEMPO_MAXIMO_COMPRA_MIN = 4;
     private static final double TASA_IGV = 0.18;
-    private static int contadorSerie = 0;
     /** Cupones disponibles para buscar por código en las compras de esta ejecución. */
     private static List<Cupon> catalogoCupones = new ArrayList<>();
 
     private int idCompra;
     private DateTime fechaHora;
-    private DateTime expiraCompra; // Hora límite para completar la compra.
+    private DateTime expiraCompra; // Hora límite de todo el proceso (butacas, dulcería y pago); en la BD es compra.expira_compra.
     private boolean asientosBloqueados; // Indica si las butacas seleccionadas ya se bloquearon en la función.
     private String serieNumero;
     private double subtotal;
@@ -37,19 +33,24 @@ public class Compra implements Totalizable{
     private int puntosOtorgados; // Puntos ganados al confirmar; se revierten si se reembolsa.
     private String estado;
     private Cliente cliente;
+    private Sede sede; // Sede donde se hace la compra; en la BD es compra.id_sede NOT NULL.
     private Cupon cupon;
     private Promocion promocion;
     /** Entradas seleccionadas en esta compra, incluidas las que luego se bloquean o venden. */
     private List<Entrada> entradas;
     private Pedido pedido;
 
-    public Compra(int idCompra, DateTime fechaHora, Cliente cliente) {
+    public Compra(int idCompra, DateTime fechaHora, Cliente cliente, Sede sede) {
         if (cliente == null) {
             throw new IllegalArgumentException("El cliente es obligatorio");
+        }
+        if (sede == null) {
+            throw new IllegalArgumentException("La sede es obligatoria");
         }
         this.idCompra = idCompra;
         this.fechaHora = fechaHora != null ? fechaHora : DateTime.ahora();
         this.cliente = cliente;
+        this.sede = sede;
         this.estado = EN_PROCESO;
         this.entradas = new ArrayList<>();
         this.asientosBloqueados = false;
@@ -58,6 +59,7 @@ public class Compra implements Totalizable{
         this.expiraCompra = this.fechaHora.sumarMinutos(TIEMPO_MAXIMO_COMPRA_MIN);
     }
 
+    /** Agrega el cupón al catálogo para buscarlo por código; rechaza códigos repetidos. */
     public static void registrarCuponEnCatalogo(Cupon c) {
         if (c == null) return;
         for (Cupon existente : catalogoCupones) {
@@ -88,6 +90,7 @@ public class Compra implements Totalizable{
         return false;
     }
 
+    /** Expira la compra si venció su plazo y lanza error si ya no está EN_PROCESO. */
     private void validarEnProceso() {
         verificarExpiracion();
         if (!EN_PROCESO.equals(estado)) {
@@ -95,7 +98,7 @@ public class Compra implements Totalizable{
         }
     }
 
-    // En esta primera fase se guardan selecciones, pero las butacas aún no quedan bloqueadas.
+    /** Preselecciona una entrada; la butaca aún no se bloquea y no se repite la misma butaca. */
     public void agregarEntrada(Entrada entrada) {
         validarEnProceso();
         if (asientosBloqueados) {
@@ -188,7 +191,7 @@ public class Compra implements Totalizable{
     }
 
     // ---------- Totales ----------
-    // Puntos que cuestan los tipos de entrada elegidos (solo entradas válidas con tipo asignado).
+    /** Suma los puntos que cuestan las entradas válidas que tienen tipo asignado. */
     private int calcularPuntosRequeridos() {
         int requeridos = 0;
         for (Entrada e : entradas) {
@@ -362,8 +365,8 @@ public class Compra implements Totalizable{
             return false;
         }
 
-        // 5. Registrar el pedido de dulcería (verifica y descuenta stock)
-        if (pedido != null && !pedido.isRegistrado() && !pedido.registrar()) return false;
+        // 5. Registrar el pedido de dulcería (verifica y descuenta stock en la sede de la compra)
+        if (pedido != null && !pedido.isRegistrado() && !pedido.registrar(sede)) return false;
 
         // 6. Ya no hay nada que pueda fallar: se confirma todo
         for (Entrada e : porVender) {
@@ -375,8 +378,7 @@ public class Compra implements Totalizable{
         if (puntosCanjeados > 0) {
             cliente.canjearPuntos(puntosCanjeados);
         }
-        this.serieNumero = String.format("B001-%06d", ++contadorSerie);
-        this.estado = CONFIRMADA;
+        this.estado = CONFIRMADA; // la serie la asigna la base al confirmar (trigger trg_compra_serie)
 
         // Los puntos ganados usan el nivel que tenía el cliente antes de esta compra
         if (cliente.esSocio()) {
@@ -396,7 +398,6 @@ public class Compra implements Totalizable{
             }
         }
         this.asientosBloqueados = false;
-        this.expiraCompra = null;
         this.puntosCanjeados = 0; // los puntos nunca se descontaron del saldo
         this.estado = CANCELADA;
     }
@@ -414,7 +415,6 @@ public class Compra implements Totalizable{
             }
         }
         this.asientosBloqueados = false;
-        this.expiraCompra = null;
         this.puntosCanjeados = 0; // los puntos nunca se descontaron del saldo
         this.estado = EXPIRADA;
     }
@@ -445,14 +445,30 @@ public class Compra implements Totalizable{
         return true;
     }
 
+    /** Guarda la serie que la base asignó al confirmar la compra (por ejemplo B001-000123); solo se fija una vez. */
+    public void asignarSerie(String serieNumero) {
+        if (!CONFIRMADA.equals(estado) && !REEMBOLSADA.equals(estado)) {
+            throw new IllegalStateException("Solo una compra confirmada puede tener serie");
+        }
+        if (this.serieNumero != null) {
+            throw new IllegalStateException("La compra ya tiene serie asignada");
+        }
+        if (serieNumero == null || serieNumero.trim().isEmpty() || serieNumero.trim().length() > 20) {
+            throw new IllegalArgumentException("La serie es obligatoria (máx. 20 caracteres)");
+        }
+        this.serieNumero = serieNumero.trim();
+    }
+
+    /** Arma el texto del comprobante; exige que la compra ya tenga serie. */
     public String generarComprobante() {
         if (serieNumero == null) {
-            throw new IllegalStateException("La compra aún no tiene comprobante (no está confirmada)");
+            throw new IllegalStateException("La compra aún no tiene comprobante (la base asigna la serie al confirmarla)");
         }
         return String.format("Comprobante %s | Fecha: %s | Subtotal: S/ %.2f | Desc: S/ %.2f | IGV: S/ %.2f | Total: S/ %.2f",
                 serieNumero, fechaHora, subtotal, descuento, igv, total);
     }
 
+    /** Uso interno del paquete: fija el estado si es uno de los cinco válidos. */
     void setEstado(String estado) {
         if (!EN_PROCESO.equals(estado) && !CONFIRMADA.equals(estado) && !CANCELADA.equals(estado)
                 && !EXPIRADA.equals(estado) && !REEMBOLSADA.equals(estado)) {
@@ -474,6 +490,7 @@ public class Compra implements Totalizable{
     public int getPuntosOtorgados() { return puntosOtorgados; }
     public String getEstado() { return estado; }
     public Cliente getCliente() { return cliente; }
+    public Sede getSede() { return sede; }
     public Cupon getCupon() { return cupon; }
     public Promocion getPromocion() { return promocion; }
     public Pedido getPedido() { return pedido; }

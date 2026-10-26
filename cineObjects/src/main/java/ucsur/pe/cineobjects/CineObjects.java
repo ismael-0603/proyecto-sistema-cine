@@ -61,7 +61,7 @@ public class CineObjects {
                 new DateTime(1, 1, 2000), "ismael@mail.com", null, "clave123");
         TipoEntrada general = new TipoEntradaGeneral(1, "GENERAL", "Entrada general", 20.0, false, true);
 
-        Compra compra = cliente.realizarCompra();
+        Compra compra = cliente.realizarCompra(sede);
         System.out.println("Asientos recomendados: " + funcion.recomendarMejoresAsientos(2));
         for (Butaca b : funcion.recomendarMejoresAsientos(2)) {
             compra.agregarEntrada(new Entrada(0, funcion, b, general));
@@ -70,6 +70,7 @@ public class CineObjects {
 
         TransaccionPago pago = new TransaccionPago(0, compra.getTotal(), TransaccionPago.TARJETA, compra);
         System.out.println("Pago aprobado: " + pago.procesarPago());
+        compra.asignarSerie("B001-000001"); // simula la serie que asigna la base al confirmar
         System.out.println(compra.generarComprobante());
         System.out.println("Puntos del cliente: " + cliente.consultarPuntos());
         System.out.println("Butacas libres en funcion 1: " + funcion.consultarDisponibilidad());
@@ -77,8 +78,8 @@ public class CineObjects {
         // ---------- 3. Conflicto de asiento ----------
         titulo("3. Dos clientes eligen la misma butaca (A5)");
         Cliente otro = Cliente.ingresarComoInvitado("otro@mail.com");
-        Compra c1 = cliente.realizarCompra();
-        Compra c2 = otro.realizarCompra();
+        Compra c1 = cliente.realizarCompra(sede);
+        Compra c2 = otro.realizarCompra(sede);
         Butaca a4 = sala.obtenerMapaButacas().get(3);
         Butaca a5 = sala.obtenerMapaButacas().get(4);
 
@@ -104,7 +105,8 @@ public class CineObjects {
 
         // ---------- 4. Dulceria, cupon y pedido ----------
         titulo("4. Entrada + combo + cupon + pedido");
-        Producto combo = new Producto(1, "Combo Mediano", "Canchita y gaseosa", "Combos", 25.0, true, 10, true);
+        Producto combo = new Producto(1, "Combo Mediano", "Canchita y gaseosa", "Combos", 25.0, true, true);
+        combo.reponerStock(sede, 10);
         Cupon cupon = new Cupon(1, "CINE10", Cupon.PORCENTAJE, 10,
                 new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 5, true);
         Compra.registrarCuponEnCatalogo(cupon);
@@ -113,7 +115,7 @@ public class CineObjects {
         Empleado empleado = new Empleado(1, "87654321", "Ana", "Quispe", new DateTime(5, 5, 1999),
                 "ana@mail.com", null, "clave456", "Tarde", rolDulceria, sede);
 
-        Compra c3 = cliente.realizarCompra();
+        Compra c3 = cliente.realizarCompra(sede);
         c3.agregarEntrada(new Entrada(0, funcion3, sala.obtenerMapaButacas().get(0), general)); // A1
         Pedido pedido = new Pedido(0);
         pedido.agregarDetalle(new DetallePedido(0, combo, 2, "Sin sal"));
@@ -123,8 +125,9 @@ public class CineObjects {
 
         TransaccionPago pago3 = new TransaccionPago(0, c3.getTotal(), TransaccionPago.QR, c3);
         System.out.println("Pago aprobado: " + pago3.procesarPago());
+        c3.asignarSerie("B001-000002"); // simula la serie que asigna la base
         System.out.println(c3.generarComprobante());
-        System.out.println("Stock del combo: " + combo.getStock());
+        System.out.println("Stock del combo: " + combo.getStock(sede));
         System.out.println("Puntos del cliente: " + cliente.consultarPuntos());
 
         empleado.prepararPedido(pedido);
@@ -136,7 +139,7 @@ public class CineObjects {
 
         // ---------- 5. Pago rechazado y reembolso ----------
         titulo("5. Pago rechazado y reembolso");
-        Compra c5 = cliente.realizarCompra();
+        Compra c5 = cliente.realizarCompra(sede);
         c5.agregarEntrada(new Entrada(0, funcion3, sala.obtenerMapaButacas().get(2), general)); // A3
         c5.confirmarSeleccionAsientos();
         TransaccionPago pago5 = new TransaccionPago(0, 1.0, TransaccionPago.TARJETA, c5);
@@ -145,7 +148,7 @@ public class CineObjects {
         c5.cancelar();
         System.out.println("Estado c5: " + c5.getEstado());
 
-        Compra c4 = cliente.realizarCompra();
+        Compra c4 = cliente.realizarCompra(sede);
         c4.agregarEntrada(new Entrada(0, funcion3, sala.obtenerMapaButacas().get(1), general)); // A2
         c4.confirmarSeleccionAsientos();
         TransaccionPago pago4 = new TransaccionPago(0, c4.getTotal(), TransaccionPago.TARJETA, c4);
@@ -164,13 +167,15 @@ public class CineObjects {
         System.out.println("Saldo de puntos de prueba: " + cliente.consultarPuntos());
         TipoEntrada normal = new TipoEntradaGeneral(2, "GENERAL", "Entrada general", 30.0, false, true);
         TipoEntrada socio50 = new TipoEntradaSocio(3, "SOCIO", "Entrada socio a mitad de precio", 15.0, true, true, 40);
-        Producto comboNivel2 = new Producto(2, "Combo Oferta Nivel 2", "Oferta para socios nivel 2", "Combos", 30.0, true, 2, 5, true);
-        Producto comboSocio = new Producto(3, "Combo Socio", "Oferta para socios", "Combos", 25.0, true, 1, 5, true);
+        Producto comboNivel2 = new Producto(2, "Combo Oferta Nivel 2", "Oferta para socios nivel 2", "Combos", 30.0, true, 2, true);
+        comboNivel2.reponerStock(sede, 5);
+        Producto comboSocio = new Producto(3, "Combo Socio", "Oferta para socios", "Combos", 25.0, true, 1, true);
+        comboSocio.reponerStock(sede, 5);
         System.out.println("Tarifa normal: " + normal.getTarifa());
         System.out.println("Tarifa socio (mitad): " + socio50.getTarifa());
         System.out.println("Puntos que cuesta: " + socio50.getPuntosCanje());
 
-        Compra c6 = cliente.realizarCompra();
+        Compra c6 = cliente.realizarCompra(sede);
         c6.agregarEntrada(new Entrada(0, funcion, sala.obtenerMapaButacas().get(0), socio50)); // A1
 
         // Un combo de nivel 2 no esta disponible para un cliente de nivel 1
@@ -190,12 +195,13 @@ public class CineObjects {
 
         TransaccionPago pago6 = new TransaccionPago(0, c6.getTotal(), TransaccionPago.TARJETA, c6);
         System.out.println("Pago aprobado: " + pago6.procesarPago());
+        c6.asignarSerie("B001-000003"); // simula la serie que asigna la base
         System.out.println(c6.generarComprobante());
         System.out.println("Puntos del cliente: " + cliente.consultarPuntos());
-        System.out.println("Stock del Combo Socio: " + comboSocio.getStock());
+        System.out.println("Stock del Combo Socio: " + comboSocio.getStock(sede));
 
         // Un invitado no puede usar la entrada de socio
-        Compra c7 = otro.realizarCompra();
+        Compra c7 = otro.realizarCompra(sede);
         c7.agregarEntrada(new Entrada(0, funcion, sala.obtenerMapaButacas().get(3), socio50)); // A4
         try {
             c7.validarBeneficiosSocio();
@@ -208,7 +214,7 @@ public class CineObjects {
         // Un socio sin puntos suficientes tampoco
         Cliente nuevo = new Cliente(2, "11112222", "Luis", "Perez", new DateTime(1, 1, 1995),
                 "luis@mail.com", null, "clave789");
-        Compra c8 = nuevo.realizarCompra();
+        Compra c8 = nuevo.realizarCompra(sede);
         c8.agregarEntrada(new Entrada(0, funcion, sala.obtenerMapaButacas().get(3), socio50)); // A4
         try {
             c8.validarBeneficiosSocio();
@@ -234,7 +240,7 @@ public class CineObjects {
         sede.agregarFuncion(funcion4);
 
         // Una compra creada hace 10 minutos ya vencio su plazo de 4
-        Compra vencida = new Compra(0, DateTime.ahora().sumarMinutos(-10), cliente);
+        Compra vencida = new Compra(0, DateTime.ahora().sumarMinutos(-10), cliente, sede);
         try {
             vencida.agregarEntrada(new Entrada(0, funcion4, sala2.obtenerMapaButacas().get(0), general));
             System.out.println("ERROR: la compra vencida debio rechazar la entrada");
@@ -247,7 +253,7 @@ public class CineObjects {
         Cliente frecuente = new Cliente(3, "33334444", "Rosa", "Diaz", new DateTime(10, 10, 1990),
                 "rosa@mail.com", null, "clave000");
         for (int i = 0; i < 10; i++) {
-            Compra cv = frecuente.realizarCompra();
+            Compra cv = frecuente.realizarCompra(sede);
             cv.agregarEntrada(new Entrada(0, funcion4, sala2.obtenerMapaButacas().get(i), general));
             cv.confirmarSeleccionAsientos();
             new TransaccionPago(0, cv.getTotal(), TransaccionPago.QR, cv).procesarPago();
@@ -268,7 +274,7 @@ public class CineObjects {
                 new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), false, soloHoy, true);
         Promocion pOtro = new Promocion(2, "Promo otro dia", "20% otro dia", Promocion.PORCENTAJE, 20,
                 new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), false, otroDia, true);
-        Compra cp = cliente.realizarCompra();
+        Compra cp = cliente.realizarCompra(sede);
         System.out.println("Hoy es dia " + diaHoy
                 + " | promo de hoy aplicable: " + cp.aplicarPromocion(pHoy)
                 + " | promo de otro dia aplicable: " + cp.aplicarPromocion(pOtro));
@@ -288,7 +294,7 @@ public class CineObjects {
         rec.iniciarRevision();
         rec.responderReclamo("Se ofrecen disculpas");
         System.out.println("Reclamo: " + rec);
-        Compra pendiente = cliente.realizarCompra();
+        Compra pendiente = cliente.realizarCompra(sede);
         Reclamo rec2 = new Reclamo(0, Reclamo.RECLAMO, "Prueba", pendiente);
         System.out.println("Reclamo sobre compra en proceso: " + rec2.registrar());
         pendiente.cancelar();

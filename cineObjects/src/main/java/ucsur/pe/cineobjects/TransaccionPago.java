@@ -13,15 +13,15 @@ public class TransaccionPago {
     public static final String APROBADO = "APROBADO";
     public static final String RECHAZADO = "RECHAZADO";
 
-    private static int contadorReferencia = 0;
+    private static int contadorReferencia = 0; // simula la referencia que daría una pasarela de pago real
 
     private int idTransaccion;
     private double monto;
     private String medioPago;
     private String estadoPago;
     private DateTime fechaHora;
-    private String referenciaPasarela;
-    private String motivoRechazo;
+    private String referenciaPasarela; // solo existe si el pago fue aprobado
+    private String motivoRechazo; // solo existe si el pago fue rechazado
     private Compra compra;
 
     public TransaccionPago(int idTransaccion, double monto, String medioPago, Compra compra) {
@@ -67,12 +67,14 @@ public class TransaccionPago {
         return true;
     }
 
+    /** Marca el pago como RECHAZADO, guarda el motivo y devuelve false. */
     private boolean rechazar(String motivo) {
         this.estadoPago = RECHAZADO;
         this.motivoRechazo = motivo;
         return false;
     }
 
+    /** Devuelve el estado del pago: PENDIENTE, APROBADO o RECHAZADO. */
     public String verificarEstado() {
         return this.estadoPago;
     }

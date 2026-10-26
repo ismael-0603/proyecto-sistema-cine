@@ -30,19 +30,21 @@ public class DateTime {
         this(1,1,1970, hora, minuto);
     }
     
-    // Validaciones y cálculos básicos del calendario.
+    /** Un año es bisiesto según la regla del calendario gregoriano. */
     public static boolean esBisiesto(int anio) { 
         return (anio % 4 == 0 && anio % 100 != 0) || anio % 400 == 0;
-    } // Un año es bisiesto si cumple la regla del calendario gregoriano.
+    }
     
+    /** Devuelve 28 o 29, 30 o 31 días según el mes y el año. */
     public static int diasDelMes(int mes, int anio) {
         return switch (mes) {
             case 2 -> esBisiesto(anio) ? 29 : 28;
             case 4, 6, 9, 11 -> 30;
             default -> 31;
         };
-    } // Devuelve 28/29, 30 o 31 según el mes y el año.
+    }
     
+    /** Lanza error si algún componente está fuera de rango o el día no existe en ese mes. */
     private static void validar(int dia, int mes, int anio, int hora, int minuto) {
         if (anio < 1) throw new IllegalArgumentException("Año inválido");
         if (mes < 1 || mes > 12) throw new IllegalArgumentException("Mes inválido");
@@ -81,10 +83,12 @@ public class DateTime {
         return (long) anio * 10000L + mes * 100L + dia;
     }
 
+    /** Compara fecha y hora: true si esta es anterior a la otra. */
     public boolean esAntesDe(DateTime otra) {
         return this.toValorComparable() < otra.toValorComparable();
     }
 
+    /** Compara fecha y hora: true si esta es posterior a la otra. */
     public boolean esDespuesDe(DateTime otra) {
         return this.toValorComparable() > otra.toValorComparable();
     }
@@ -103,7 +107,7 @@ public class DateTime {
         return (dow == 0) ? 7 : dow;
     }
 
-    // Las sumas aceptan valores negativos y ajustan correctamente los cambios de mes y año.
+    /** Devuelve una fecha nueva con los días sumados (o restados si son negativos), ajustando mes y año. */
     public DateTime sumarDias(int dias) {
         int d = this.dia, m = this.mes, a = this.anio;
         while (dias > 0) {
@@ -119,7 +123,7 @@ public class DateTime {
         return new DateTime(d, m, a, this.hora, this.minuto);
     }
 
-    // Al cruzar medianoche, esta suma también ajusta la fecha.
+    /** Devuelve una fecha y hora nuevas con los minutos sumados; al cruzar medianoche cambia el día. */
     public DateTime sumarMinutos(int minutosExtra) {
         int total = this.hora * 60 + this.minuto + minutosExtra;
         int diasExtra = Math.floorDiv(total, 1440);
@@ -128,13 +132,13 @@ public class DateTime {
         return base.sumarDias(diasExtra);
     }
 
-    // Esta variante conserva la fecha base y solo hace avanzar la hora dentro de 24 horas.
-    /** Suma minutos para mostrar una hora final; al pasar medianoche vuelve a las 00:00. */
+    /** Suma minutos solo a la hora, sin cambiar la fecha; al pasar medianoche vuelve a las 00:00. */
     public DateTime sumarMinutosAHora(int minutosExtra) {
         int total = Math.floorMod(this.hora * 60 + this.minuto + minutosExtra, 1440);
         return new DateTime(total / 60, total % 60);
     }
 
+    /** Calcula los años cumplidos desde esta fecha hasta la indicada; nunca devuelve negativos. */
     public int calcularAniosHasta(DateTime fechaActual) {
         int edad = fechaActual.anio - this.anio;
         if (fechaActual.mes < this.mes || (fechaActual.mes == this.mes && fechaActual.dia < this.dia)) {
@@ -143,11 +147,12 @@ public class DateTime {
         return Math.max(0, edad);
     }
 
-    // Formatos para mostrar la fecha, la hora o ambas.
+    /** Fecha con formato dd/MM/yyyy. */
     public String soloFecha() {
         return String.format("%02d/%02d/%04d", dia, mes, anio);
     }
 
+    /** Hora con formato HH:mm. */
     public String soloHora() {
         return String.format("%02d:%02d", hora, minuto);
     }

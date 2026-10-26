@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class Empleado extends Persona {
     private int idEmpleado;
-    private String turno;
+    private String turno; // texto libre, máx. 20 caracteres
     private Rol rol;
     private Sede sede;
     /** Cola de pedidos que el empleado puede atender. */
@@ -31,6 +31,7 @@ public class Empleado extends Persona {
         this.pedidosAsignados = new ArrayList<>();
     }
 
+    /** Devuelve el turno asignado. */
     public String consultarTurno() {
         return this.turno;
     }

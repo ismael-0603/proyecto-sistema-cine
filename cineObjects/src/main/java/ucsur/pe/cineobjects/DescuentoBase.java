@@ -1,6 +1,6 @@
 package ucsur.pe.cineobjects;
 
-import ucsur.pe.cineobjects.cineInterfaz.Descuento;
+import ucsur.pe.cineInterfaz.Descuento;
 
 /**
  * Base común de los descuentos comerciales (cupones y promociones).
@@ -11,10 +11,10 @@ public abstract class DescuentoBase implements Descuento {
     public static final String MONTO_FIJO = "MONTO_FIJO";
 
     protected final String tipoDescuento;
-    protected final double valor;
+    protected final double valor; // porcentaje (0 a 100) o monto en soles, según el tipo
     protected final DateTime fechaInicio; // solo fecha: DateTime(dia, mes, anio)
     protected final DateTime fechaFin;    // solo fecha: DateTime(dia, mes, anio)
-    protected boolean estado;
+    protected boolean estado; // habilitado o no; es independiente de las fechas
 
     protected DescuentoBase(String tipoDescuento, double valor, DateTime fechaInicio,
                             DateTime fechaFin, boolean estado) {
@@ -59,9 +59,11 @@ public abstract class DescuentoBase implements Descuento {
     /** Cada tipo de descuento define sus propias condiciones para aplicarse a una compra. */
     public abstract boolean esAplicable(Compra compra);
 
+    /** Habilita el descuento. */
     @Override
     public void activar() { this.estado = true; }
 
+    /** Deshabilita el descuento. */
     @Override
     public void desactivar() { this.estado = false; }
 

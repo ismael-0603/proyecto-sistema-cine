@@ -9,7 +9,7 @@ public abstract class TipoEntrada {
     private String nombre;
     private String descripcion;
     private double tarifa;
-    private boolean requiereSocio;
+    private boolean requiereSocio; // si es true, solo la compra un cliente socio
     /** Puntos que cuesta canjear esta tarifa; cero significa que no se descuentan puntos. */
     private int puntosCanje;
     private boolean estado;
@@ -34,7 +34,7 @@ public abstract class TipoEntrada {
             throw new IllegalArgumentException("Los puntos de canje no pueden ser negativos");
         }
         if (puntosCanje > 0 && !requiereSocio) {
-        throw new IllegalArgumentException("Un tipo de entrada que cuesta puntos debe ser exclusivo para socios");
+            throw new IllegalArgumentException("Un tipo de entrada que cuesta puntos debe ser exclusivo para socios");
         }
         this.idTipoEntrada = idTipoEntrada;
         this.nombre = nombre.trim();
@@ -45,11 +45,13 @@ public abstract class TipoEntrada {
         this.puntosCanje = puntosCanje;
     }
 
+    /** Puntos que se descuentan del saldo del cliente al usar esta tarifa. */
     public int getPuntosCanje() { return puntosCanje; }
 
-        public double getTarifa() {
-            return this.tarifa;
-        }
+    /** Precio base de la entrada, sin el recargo del formato de sala. */
+    public double getTarifa() {
+        return this.tarifa;
+    }
 
     /** Rechaza tipos inactivos y exige que el cliente sea socio cuando la tarifa lo requiere. */
     public boolean validarElegibilidad(Cliente cliente) {

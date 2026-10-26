@@ -11,10 +11,10 @@ public class Sala {
     public static final String ACTIVA = "ACTIVA";
     public static final String INACTIVA = "INACTIVA";
     public static final String EN_MANTENIMIENTO = "EN_MANTENIMIENTO";
-    public static final int BUFFER_LIMPIEZA_MIN = 15;
+    public static final int BUFFER_LIMPIEZA_MIN = 15; // minutos de limpieza entre el fin de una función y la siguiente
     
     private int idSala;
-    private int numero;
+    private int numero; // número visible de la sala dentro de su sede
     private int capacidad;
     private String estado;
     private Sede sede;
@@ -39,6 +39,7 @@ public class Sala {
         setEstado(estado != null ? estado : ACTIVA);
     }
 
+    /** Agrega una butaca de esta sala sin superar la capacidad ni repetir fila y número. */
     public void agregarButaca(Butaca butaca) {
         if (butaca == null) {
             throw new IllegalArgumentException("La butaca no puede ser nula");
@@ -67,6 +68,7 @@ public class Sala {
         return ACTIVA.equals(estado);
     }
 
+    /** Cambia el estado; solo admite ACTIVA, INACTIVA o EN_MANTENIMIENTO. */
     public void setEstado(String estado) {
         if (!ACTIVA.equals(estado) && !INACTIVA.equals(estado) && !EN_MANTENIMIENTO.equals(estado)) {
             throw new IllegalArgumentException("Estado de sala inválido: " + estado);
@@ -116,6 +118,7 @@ public class Sala {
         funciones.add(nuevaFuncion);
     }
 
+    /** Devuelve una copia de las funciones asignadas a la sala. */
     public List<Funcion> getFunciones() {
         return new ArrayList<>(funciones);
     }

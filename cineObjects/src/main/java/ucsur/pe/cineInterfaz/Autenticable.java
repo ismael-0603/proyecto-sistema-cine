@@ -1,4 +1,4 @@
-package ucsur.pe.cineobjects.cineInterfaz;
+package ucsur.pe.cineInterfaz;
 
 /** Define las operaciones de inicio de sesión y actualización de datos de una cuenta. */
 public interface Autenticable {

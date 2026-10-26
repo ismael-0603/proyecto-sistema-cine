@@ -16,7 +16,7 @@ public class Rol {
     private int idRol;
     private String nombre;
     private String descripcion;
-    private int nivelAcceso;
+    private int nivelAcceso; // NIVEL_DULCERIA (1) o NIVEL_ADMIN (2)
 
     public Rol(int idRol, String nombre, String descripcion, int nivelAcceso) {
         if (nombre == null || nombre.trim().isEmpty()) {

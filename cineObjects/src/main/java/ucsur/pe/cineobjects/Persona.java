@@ -1,6 +1,6 @@
 package ucsur.pe.cineobjects;
 
-import ucsur.pe.cineobjects.cineInterfaz.Autenticable;
+import ucsur.pe.cineInterfaz.Autenticable;
 
 /**
  * Clase base para clientes y empleados; centraliza sus datos personales y validaciones comunes.
@@ -15,7 +15,7 @@ public abstract class Persona implements Autenticable {
     protected String correo;
     protected String telefono;
     protected String contra;
-    protected boolean estado = true;
+    protected boolean estado = true; // cuenta activa; si es false no puede iniciar sesión
 
     // Se permiten datos incompletos para invitados; clientes registrados y empleados validan lo requerido.
     protected Persona(String dni, String nombres, String apellidos, DateTime fechaNac,
@@ -124,11 +124,10 @@ public abstract class Persona implements Autenticable {
         return telefono;
     }
 
-    // El límite de longitud corresponde al campo de contraseña definido para empleados.
-    /** Permite contraseña nula para invitados; si se informa, no puede estar vacía ni exceder 40 caracteres. */
+    /** Permite contraseña nula para invitados; si se informa, no puede estar vacía ni exceder 255 caracteres. */
     private static String validarContra(String contra) {
-        if (contra != null && (contra.isEmpty() || contra.length() > 40)) {
-            throw new IllegalArgumentException("La contraseña no puede estar vacía ni superar 40 caracteres");
+        if (contra != null && (contra.isEmpty() || contra.length() > 255)) {
+            throw new IllegalArgumentException("La contraseña no puede estar vacía ni superar 255 caracteres");
         }
         return contra;
     }

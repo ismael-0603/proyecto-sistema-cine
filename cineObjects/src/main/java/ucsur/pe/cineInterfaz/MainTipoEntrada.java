@@ -1,4 +1,4 @@
-package ucsur.pe.cineobjects.cineInterfaz;
+package ucsur.pe.cineInterfaz;
 
 import java.util.ArrayList;
 import java.util.List;

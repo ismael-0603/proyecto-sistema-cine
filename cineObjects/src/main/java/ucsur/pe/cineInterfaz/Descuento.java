@@ -1,9 +1,8 @@
-package ucsur.pe.cineobjects.cineInterfaz;
+package ucsur.pe.cineInterfaz;
 
 import ucsur.pe.cineobjects.DateTime;
 
 /** Contrato común para validar y calcular descuentos que pueden activarse o desactivarse. */
-
 public interface Descuento {
     /** Comprueba si el descuento puede usarse en la fecha indicada. */
     boolean validarVigencia(DateTime fecha);

@@ -8,7 +8,7 @@ public class TipoSala {
     private int idTipoSala;
     private String formato;
     private String descripcion;
-    private double tarifaAdicional;
+    private double tarifaAdicional; // recargo en soles que se suma a la tarifa de entrada
 
     public TipoSala(int idTipoSala, String formato, String descripcion, double tarifaAdicional) {
         if (formato == null || formato.trim().isEmpty() || formato.trim().length() > 30) {
@@ -26,6 +26,7 @@ public class TipoSala {
         this.tarifaAdicional = tarifaAdicional;
     }
 
+    /** Devuelve el recargo que este formato añade al precio de la entrada. */
     public double obtenerRecargoFormato() {
         return this.tarifaAdicional;
     }

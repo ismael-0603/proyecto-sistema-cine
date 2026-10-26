@@ -2,7 +2,8 @@ package ucsur.pe.cineobjects;
 
 /**
  * Representa una línea de pedido y conserva el precio unitario vigente al crearla.
- * Requiere un producto activo con stock suficiente, cantidad positiva y personalización de hasta 255 caracteres.
+ * Requiere un producto activo, cantidad positiva y personalización de hasta 255 caracteres.
+ * El stock no se valida aquí porque depende de la sede; Pedido lo comprueba al registrarse.
  */
 public class DetallePedido {
     private int idDetalle;
@@ -10,7 +11,7 @@ public class DetallePedido {
     /** Precio guardado al crear la línea, para mantener el importe aunque cambie el precio del producto. */
     private double precioUnitario;
     private String personalizacion;
-    private double subtotal;
+    private double subtotal; // cantidad por precio unitario
     private Producto producto;
 
     public DetallePedido(int idDetalle, Producto producto, int cantidad, String personalizacion) {
@@ -23,8 +24,8 @@ public class DetallePedido {
         if (personalizacion != null && personalizacion.length() > 255) {
             throw new IllegalArgumentException("La personalización no puede superar 255 caracteres");
         }
-        if (!producto.verificarStock(cantidad)) {
-            throw new IllegalStateException("Stock insuficiente o producto inactivo: " + producto.getNombre());
+        if (!producto.isEstado()) {
+            throw new IllegalStateException("Producto inactivo: " + producto.getNombre());
         }
         this.idDetalle = idDetalle;
         this.producto = producto;
@@ -40,13 +41,10 @@ public class DetallePedido {
         return this.subtotal;
     }
 
-    /** Cambia la cantidad si es positiva y el producto tiene stock suficiente. */
+    /** Cambia la cantidad si es positiva; el stock de la sede se comprueba al registrar el pedido. */
     public void modificarCantidad(int cant) {
         if (cant <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
-        }
-        if (!producto.verificarStock(cant)) {
-            throw new IllegalStateException("Stock insuficiente para " + producto.getNombre());
         }
         this.cantidad = cant;
         calcularSubtotal();

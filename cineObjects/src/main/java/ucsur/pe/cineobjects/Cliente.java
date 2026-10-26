@@ -8,14 +8,14 @@ import java.util.List;
  * También permite compras como invitado; los invitados no acumulan puntos ni niveles de socio.
  */
 public class Cliente extends Persona {
-    private static final int VISITAS_POR_NIVEL = 10;
+    private static final int VISITAS_POR_NIVEL = 10; // visitas confirmadas del año que hacen subir un nivel
     private static final int NIVEL_MAXIMO = 4;
 
     private int idCliente;
     private DateTime fechaRegistro;
-    private int puntos = 0;
-    private int nivelSocio = 0;
-    private boolean esInvitado;
+    private int puntos = 0; // saldo canjeable; no depende del nivel
+    private int nivelSocio = 0; // 0 = invitado; 1 a 4 = socio, sube con las visitas del año
+    private boolean esInvitado; // compra solo con correo, sin puntos ni nivel
     /** Compras realizadas por el cliente; se usa para consultar visitas y su historial. */
     private List<Compra> historialCompras;
 
@@ -79,6 +79,7 @@ public class Cliente extends Persona {
         return true;
     }
 
+    /** Devuelve el saldo actual de puntos. */
     public int consultarPuntos() {
         return this.puntos;
     }
@@ -110,13 +111,13 @@ public class Cliente extends Persona {
         return new ArrayList<>(this.historialCompras);
     }
 
-    /** Crea una compra en proceso, la agrega al historial y la devuelve. */
-    public Compra realizarCompra() {
-        Compra nuevaCompra = new Compra(0, DateTime.ahora(), this); // el id real lo genera la BD
+    /** Crea una compra en proceso en la sede indicada, la agrega al historial y la devuelve. */
+    public Compra realizarCompra(Sede sede) {
+        Compra nuevaCompra = new Compra(0, DateTime.ahora(), this, sede); // el id real lo genera la BD
         this.historialCompras.add(nuevaCompra);
         return nuevaCompra;
     }
-    
+
     /** Multiplicador de puntos según el nivel de socio: 1 = x1, 2 = x1.25, 3 = x1.5, 4 = x2. */
     public double obtenerMultiplicadorPuntos() {
         if (esInvitado) return 0.0;

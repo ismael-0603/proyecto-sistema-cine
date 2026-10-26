@@ -17,7 +17,7 @@ public class Sede {
     private String distrito;
     private String telefono;
     private String horarioAtencion;
-    private String estado; // en la BD es BOOLEAN: ACTIVA = 1, INACTIVA = 0
+    private String estado; // en la BD es VARCHAR(20): ACTIVA, INACTIVA o EN_MANTENIMIENTO
     /** Salas que pertenecen a esta sede. */
     private List<Sala> salas;
     /** Todas las funciones programadas, incluso las agotadas, canceladas o fuera de venta. */
@@ -83,6 +83,7 @@ public class Sede {
     }
 }
 
+    /** Una sede solo opera si está ACTIVA. */
     public boolean estaOperativa() {
         return ACTIVA.equals(estado);
     }
@@ -130,6 +131,7 @@ public class Sede {
         return filtradas;
     }
     
+    /** Cambia el estado; solo admite ACTIVA, INACTIVA o EN_MANTENIMIENTO. */
     public void setEstado(String estado) {
         if (!ACTIVA.equals(estado) && !INACTIVA.equals(estado) && !EN_MANTENIMIENTO.equals(estado)) {
             throw new IllegalArgumentException("Estado de sala inválido: " + estado);

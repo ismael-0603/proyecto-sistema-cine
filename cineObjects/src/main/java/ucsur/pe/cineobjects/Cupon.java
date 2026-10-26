@@ -6,7 +6,7 @@ package ucsur.pe.cineobjects;
  */
 public class Cupon extends DescuentoBase {
     private int idCupon;
-    private String codigo;
+    private String codigo; // el cliente lo escribe para aplicar el cupón; no distingue mayúsculas
     /** Máximo de compras que pueden usar el cupón; cero significa que no se puede usar. */
     private int limiteUso;
     /** Cantidad de veces que ya se aplicó en compras confirmadas. */
@@ -57,6 +57,7 @@ public class Cupon extends DescuentoBase {
 
     public int getIdCupon() { return idCupon; }
     public String getCodigo() { return codigo; }
+    /** Valor del descuento: porcentaje o monto fijo, según el tipo. */
     public double getDescuento() { return valor; }
     public int getLimiteUso() { return limiteUso; }
     public int getUsosRealizados() { return usosRealizados; }

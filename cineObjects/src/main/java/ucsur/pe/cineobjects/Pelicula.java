@@ -16,8 +16,8 @@ public class Pelicula {
     private String sinopsis;
     private int duracion; // en minutos, debe ser > 0
     private String clasificacionEdad;
-    private String trailer;
-    private String poster;
+    private String trailer; // enlace al tráiler
+    private String poster; // enlace a la imagen del póster
     private DateTime fechaEstreno; // solo fecha: DateTime(dia, mes, anio)
     private String estado;
     /** Géneros de la película; no se agregan dos veces géneros con el mismo identificador. */
@@ -100,6 +100,7 @@ public class Pelicula {
     public String getEstado() { return estado; }
     public List<Genero> getGeneros() { return generos; }
 
+    /** Cambia el estado; solo admite PROXIMAMENTE, EN_CARTELERA o FUERA_DE_CARTELERA. */
     public void setEstado(String estado) {
         if (!PROXIMAMENTE.equals(estado) && !EN_CARTELERA.equals(estado)
                 && !FUERA_DE_CARTELERA.equals(estado)) {

@@ -44,26 +44,23 @@ public class Funcion {
         setEstado(estado != null ? estado : DISPONIBLE);
     }
 
-    // Combina la fecha y la hora de inicio para comparar el horario completo.
     /** Combina la fecha y la hora guardadas por separado para comparar el horario completo. */
     public DateTime obtenerFechaHoraInicio() {
         return new DateTime(fecha.getDia(), fecha.getMes(), fecha.getAnio(),
                 horaInicio.getHora(), horaInicio.getMinuto());
     }
 
-    // La duración puede llevar el fin al día siguiente.
     /** Suma la duración a la fecha y hora de inicio, incluso si termina al día siguiente. */
     public DateTime obtenerFechaHoraFin() {
         return obtenerFechaHoraInicio().sumarMinutos(pelicula.getDuracion());
     }
 
-    // Devuelve únicamente la hora de fin para mostrarla sin la fecha.
+    /** Devuelve solo la hora de fin, sin fecha, para mostrarla en cartelera. */
     public DateTime calcularHoraFin() {
         return horaInicio.sumarMinutosAHora(pelicula.getDuracion());
     }
 
-    // El estado se deriva del horario y la disponibilidad; CANCELADA es un estado permanente.
-    /** Actualiza el estado según la hora actual, las entradas disponibles y si fue cancelada. */
+    /** Recalcula el estado según la hora y las butacas libres; una función CANCELADA no cambia. */
     public void actualizarEstado() {
         if (CANCELADA.equals(estado)) return;
         DateTime ahora = DateTime.ahora();
@@ -78,11 +75,13 @@ public class Funcion {
         }
     }
 
+    /** Indica si se puede vender (estado DISPONIBLE) tras actualizar el estado. */
     public boolean estaDisponible() {
         actualizarEstado();
         return DISPONIBLE.equals(estado);
     }
 
+    /** Fija el estado si es uno de los cinco definidos. */
     public void setEstado(String estado) {
         if (!DISPONIBLE.equals(estado) && !AGOTADA.equals(estado) && !EN_CURSO.equals(estado)
                 && !FINALIZADA.equals(estado) && !CANCELADA.equals(estado)) {
@@ -91,11 +90,12 @@ public class Funcion {
         this.estado = estado;
     }
 
-    // Consultas de idioma, formato y disponibilidad de asientos.
+    /** Indica si el idioma de la función incluye subtítulos. */
     public boolean esSubtitulada() {
         return idioma.toUpperCase().contains("SUB");
     }
 
+    /** Devuelve el formato de la sala donde se proyecta. */
     public String obtenerFormato() {
         return sala.getTipoSala().getFormato();
     }

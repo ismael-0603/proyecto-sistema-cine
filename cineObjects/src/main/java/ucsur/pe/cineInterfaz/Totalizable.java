@@ -1,4 +1,4 @@
-package ucsur.pe.cineobjects.cineInterfaz;
+package ucsur.pe.cineInterfaz;
 
 /** Regla común para objetos que suman importes y devuelven el total actualizado. */
 public interface Totalizable {

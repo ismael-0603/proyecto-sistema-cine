@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package ucsur.pe.cineobjects.cineInterfaz;
+package ucsur.pe.cineInterfaz;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,9 +47,9 @@ public class MainRegistrable {
                 "Dulceria",
                 12.00,
                 false,
-                20,
                 true
         );
+        producto.reponerStock(compraPrueba.getSede(), 20);
 
         // 3. Creamos el detalle del pedido
         DetallePedido detalle = new DetallePedido(
@@ -61,6 +61,7 @@ public class MainRegistrable {
 
         // 4. Creamos el pedido y agregamos el detalle
         Pedido pedidoValido = new Pedido(1);
+        pedidoValido.asignarSede(compraPrueba.getSede());
         pedidoValido.agregarDetalle(detalle);
 
         // 5. Creamos un reclamo válido
@@ -106,7 +107,7 @@ public class MainRegistrable {
 
         // 10. Los objetos válidos que incumplen reglas de negocio se rechazan al registrar
         Pedido pedidoVacio = new Pedido(2);
-        Compra compraSinConfirmar = cliente.realizarCompra();
+        Compra compraSinConfirmar = cliente.realizarCompra(compraPrueba.getSede());
         Calificacion calificacionSinCompraConfirmada =
                 new Calificacion(3, 4, "La compra no está confirmada", compraSinConfirmar);
 
@@ -138,7 +139,7 @@ public class MainRegistrable {
         sede.agregarFuncion(funcion);
 
         TipoEntradaGeneral general = new TipoEntradaGeneral(1, "GENERAL", "Entrada general", 20.0, false, true);
-        Compra compra = cliente.realizarCompra();
+        Compra compra = cliente.realizarCompra(sede);
         compra.agregarEntrada(new Entrada(0, funcion, funcion.recomendarMejoresAsientos(1).get(0), general));
         compra.confirmarSeleccionAsientos();
 

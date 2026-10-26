@@ -10,11 +10,11 @@ public class Entrada {
     public static final String EXPIRADA = "EXPIRADA";
     public static final String ANULADA = "ANULADA";
 
-    public static final int TIEMPO_BLOQUEO_MIN = 4;
+    public static final int TIEMPO_BLOQUEO_MIN = 4; // máximo de minutos que una butaca puede quedar bloqueada
 
     private int idEntrada;
-    private String codigoQR;
-    private double precio;
+    private String codigoQR; // se crea al confirmar la venta
+    private double precio; // tarifa del tipo de entrada más el recargo del formato de sala
     private DateTime fechaEmision;
     private DateTime expiraBloqueo; // Momento en que debe liberarse el asiento si no se confirma la venta.
     private String estado;
@@ -51,6 +51,17 @@ public class Entrada {
         }
         this.tipoEntrada = tipoEntrada;
         calculaPrecioFinal();
+    }
+
+    /** Asigna el id real generado por la base tras el INSERT; el QR se crea después, al confirmar la venta. */
+    public void asignarId(int idEntrada) {
+        if (this.idEntrada > 0) {
+            throw new IllegalStateException("La entrada ya tiene id asignado");
+        }
+        if (idEntrada <= 0) {
+            throw new IllegalArgumentException("El id de la entrada debe ser mayor a 0");
+        }
+        this.idEntrada = idEntrada;
     }
 
     /** Bloquea la butaca hasta la hora límite compartida con la compra. */

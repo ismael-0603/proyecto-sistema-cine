@@ -1,14 +1,16 @@
 package ucsur.pe.cineobjects;
 
-import ucsur.pe.cineobjects.cineInterfaz.Inventariable;
+import java.util.HashMap;
+import java.util.Map;
+import ucsur.pe.cineInterfaz.Inventariable;
 
 /**
- * Representa un producto de dulcería y administra su estado, stock y puntos si es un combo.
- * Valida nombre, categoría, límites de descripción, precio y stock no negativos.
+ * Representa un producto de dulcería y administra su estado, su stock por sede y sus puntos si es un combo.
+ * Valida nombre, categoría, límites de descripción y precio no negativo; el stock de cada sede nunca baja de cero.
  * Un producto puede ser una oferta disponible solo desde cierto nivel de socio.
  */
 public class Producto implements Inventariable {
-    public static final int PUNTOS_COMBO = 2;
+    public static final int PUNTOS_COMBO = 2; // puntos que da cada combo vendido
     public static final int NIVEL_SOCIO_MAXIMO = 4;
 
     private int idProducto;
@@ -18,17 +20,18 @@ public class Producto implements Inventariable {
     private double precio;
     private boolean esCombo;
     private int nivelSocioMinimo; // 0 = todos; 1 = cualquier socio; 2 a 4 = ofertas de ese nivel o superior
-    private int stock; // Stock simplificado del modelo; en la base de datos se registra por sede.
+    /** Unidades disponibles en cada sede; equivale a las filas de inventario_sede de este producto. */
+    private Map<Sede, Integer> stockPorSede = new HashMap<>();
     private boolean estado;
 
-    /** Crea un producto abierto para cualquier cliente. */
+    /** Crea un producto abierto para cualquier cliente, sin stock en ninguna sede. */
     public Producto(int idProducto, String nombre, String descripcion, String categoria,
-                    double precio, boolean esCombo, int stock, boolean estado) {
-        this(idProducto, nombre, descripcion, categoria, precio, esCombo, 0, stock, estado);
+                    double precio, boolean esCombo, boolean estado) {
+        this(idProducto, nombre, descripcion, categoria, precio, esCombo, 0, estado);
     }
 
     public Producto(int idProducto, String nombre, String descripcion, String categoria,
-                    double precio, boolean esCombo, int nivelSocioMinimo, int stock, boolean estado) {
+                    double precio, boolean esCombo, int nivelSocioMinimo, boolean estado) {
         if (nombre == null || nombre.trim().isEmpty() || nombre.trim().length() > 100) {
             throw new IllegalArgumentException("El nombre es obligatorio (máx. 100 caracteres)");
         }
@@ -44,9 +47,6 @@ public class Producto implements Inventariable {
         if (nivelSocioMinimo < 0 || nivelSocioMinimo > NIVEL_SOCIO_MAXIMO) {
             throw new IllegalArgumentException("El nivel de socio mínimo debe estar entre 0 y " + NIVEL_SOCIO_MAXIMO);
         }
-        if (stock < 0) {
-            throw new IllegalArgumentException("El stock no puede ser negativo");
-        }
         this.idProducto = idProducto;
         this.nombre = nombre.trim();
         this.descripcion = descripcion;
@@ -54,14 +54,13 @@ public class Producto implements Inventariable {
         this.precio = precio;
         this.esCombo = esCombo;
         this.nivelSocioMinimo = nivelSocioMinimo;
-        this.stock = stock;
         this.estado = estado;
     }
 
-    /** Devuelve true si el producto está activo y hay unidades suficientes para la cantidad solicitada. */
+    /** Devuelve true si el producto está activo y la sede tiene unidades suficientes para la cantidad solicitada. */
     @Override
-    public boolean verificarStock(int cant) {
-        return this.estado && cant > 0 && this.stock >= cant;
+    public boolean verificarStock(Sede sede, int cant) {
+        return this.estado && sede != null && cant > 0 && getStock(sede) >= cant;
     }
 
     /** Rechaza productos inactivos y exige un nivel de socio mínimo cuando el producto es una oferta. */
@@ -73,31 +72,36 @@ public class Producto implements Inventariable {
         return true;
     }
 
-    /** Descuenta unidades solo cuando la cantidad es positiva y el producto tiene stock suficiente. */
+    /** Descuenta unidades de la sede solo cuando la cantidad es positiva y esa sede tiene stock suficiente. */
     @Override
-    public void descontarStock(int cant) {
+    public void descontarStock(Sede sede, int cant) {
         if (cant <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
         }
-        if (!verificarStock(cant)) {
+        if (!verificarStock(sede, cant)) {
             throw new IllegalStateException("Stock insuficiente o producto inactivo: " + nombre);
         }
-        this.stock -= cant;
+        stockPorSede.put(sede, getStock(sede) - cant);
     }
 
-    /** Aumenta el stock; rechaza cantidades iguales o menores que cero. */
+    /** Aumenta el stock de la sede; rechaza una sede nula y cantidades iguales o menores que cero. */
     @Override
-    public void reponerStock(int cant) {
+    public void reponerStock(Sede sede, int cant) {
+        if (sede == null) {
+            throw new IllegalArgumentException("La sede es obligatoria");
+        }
         if (cant <= 0) {
             throw new IllegalArgumentException("La cantidad a reponer debe ser mayor a 0");
         }
-        this.stock += cant;
+        stockPorSede.put(sede, getStock(sede) + cant);
     }
 
+    /** Habilita el producto para la venta. */
     public void activar() {
         this.estado = true;
     }
 
+    /** Retira el producto de la venta. */
     public void desactivar() {
         this.estado = false;
     }
@@ -115,7 +119,8 @@ public class Producto implements Inventariable {
     public boolean isEsCombo() { return esCombo; }
     public int getNivelSocioMinimo() { return nivelSocioMinimo; }
     public boolean isRequiereSocio() { return nivelSocioMinimo > 0; }
-    public int getStock() { return stock; }
+    /** Unidades disponibles en la sede indicada; cero si la sede no tiene registro de este producto. */
+    public int getStock(Sede sede) { return stockPorSede.getOrDefault(sede, 0); }
     public boolean isEstado() { return estado; }
 
     @Override

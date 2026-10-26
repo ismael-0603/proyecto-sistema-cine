@@ -10,7 +10,7 @@ public class Butaca {
     public static final String DISCAPACIDAD = "DISCAPACIDAD";
 
     private int idButaca;
-    private String fila;
+    private String fila; // de 1 a 3 letras, se guarda en mayúsculas
     private int numero;
     private String tipo;
     private Sala sala;
@@ -35,10 +35,12 @@ public class Butaca {
         this.sala = sala;
     }
 
+    /** Código visible del asiento: fila y número, como A5. */
     public String getCodigoAsiento() {
         return fila + numero;
     }
 
+    /** Indica si es una butaca para personas con discapacidad. */
     public boolean esAccesible() {
         return DISCAPACIDAD.equals(tipo);
     }
