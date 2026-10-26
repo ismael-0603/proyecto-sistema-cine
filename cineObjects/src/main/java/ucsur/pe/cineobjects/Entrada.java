@@ -1,14 +1,15 @@
 package ucsur.pe.cineobjects;
 
 /**
- * Representa una entrada para una butaca y función, desde su selección hasta su venta o liberación.
- * La función y la butaca son obligatorias, y la butaca debe pertenecer a la sala de esa función.
+ * Por qué existe: es el boleto de una butaca para una función.
+ * Pasa de BLOQUEADA a VENDIDA, o se libera como EXPIRADA o ANULADA.
  */
 public class Entrada {
-    public static final String BLOQUEADA = "BLOQUEADA";
-    public static final String VENDIDA = "VENDIDA";
-    public static final String EXPIRADA = "EXPIRADA";
-    public static final String ANULADA = "ANULADA";
+    // Estados de una entrada (constantes: se usan como Entrada.NOMBRE y su valor no cambia).
+    public static final String BLOQUEADA = "BLOQUEADA"; // butaca reservada temporalmente, aún sin pagar
+    public static final String VENDIDA = "VENDIDA"; // pagada; ya tiene código QR
+    public static final String EXPIRADA = "EXPIRADA"; // el bloqueo venció sin pagar; la butaca se libera
+    public static final String ANULADA = "ANULADA"; // cancelada o reembolsada; la butaca se libera
 
     public static final int TIEMPO_BLOQUEO_MIN = 4; // máximo de minutos que una butaca puede quedar bloqueada
 

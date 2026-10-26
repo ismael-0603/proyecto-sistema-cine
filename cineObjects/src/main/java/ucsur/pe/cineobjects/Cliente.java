@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Representa a una persona que compra entradas y acumula beneficios como cliente registrado.
- * También permite compras como invitado; los invitados no acumulan puntos ni niveles de socio.
+ * Por qué existe: es quien compra. Puede ser invitado (solo correo) o socio registrado,
+ * que gana puntos y sube de nivel (1 a 4) según sus visitas del año.
  */
 public class Cliente extends Persona {
     private static final int VISITAS_POR_NIVEL = 10; // visitas confirmadas del año que hacen subir un nivel
-    private static final int NIVEL_MAXIMO = 4;
+    private static final int NIVEL_MAXIMO = 4; // nivel de socio más alto
 
     private int idCliente;
     private DateTime fechaRegistro;
@@ -129,6 +129,15 @@ public class Cliente extends Persona {
         };
     }
 
+    /**
+     * Aplica el multiplicador de su nivel a unos puntos base y redondea hacia abajo.
+     * Solo un socio activo gana puntos; para invitados o cuentas inactivas devuelve cero.
+     */
+    public int aplicarMultiplicador(int puntosBase) {
+        if (puntosBase <= 0 || !esSocio()) return 0;
+        return (int) Math.floor(puntosBase * obtenerMultiplicadorPuntos());
+    }
+
     /** Devuelve puntos canjeados (por ejemplo, tras un reembolso). */
     public void devolverPuntos(int cant) {
         if (cant > 0 && !esInvitado) this.puntos += cant;
@@ -141,7 +150,6 @@ public class Cliente extends Persona {
 
     public int getIdCliente() { return idCliente; }
     public DateTime getFechaRegistro() { return fechaRegistro; }
-    public int getPuntos() { return puntos; }
     public int getNivelSocio() { return nivelSocio; }
     public boolean isEsInvitado() { return esInvitado; }
 

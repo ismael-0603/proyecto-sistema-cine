@@ -3,13 +3,13 @@ package ucsur.pe.cineobjects;
 import java.util.ArrayList;
 import java.util.List;
 /**
- * Representa una sede de cine y reúne sus salas y funciones disponibles para consulta.
- * El nombre, dirección y distrito son obligatorios; teléfono y horario tienen límites de longitud.
+ * Por qué existe: es un local del cine. Reúne sus salas y su cartelera y permite filtrarla.
  */
 public class Sede {
-    public static final String ACTIVA = "ACTIVA";
-    public static final String INACTIVA = "INACTIVA";
-    public static final String EN_MANTENIMIENTO = "EN_MANTENIMIENTO";
+    // Estados de una sede (constantes: se usan como Sede.NOMBRE y su valor no cambia).
+    public static final String ACTIVA = "ACTIVA"; // abierta al público
+    public static final String INACTIVA = "INACTIVA"; // cerrada
+    public static final String EN_MANTENIMIENTO = "EN_MANTENIMIENTO"; // cerrada temporalmente por reparación
 
     private int idSede;
     private String nombre;
@@ -134,7 +134,7 @@ public class Sede {
     /** Cambia el estado; solo admite ACTIVA, INACTIVA o EN_MANTENIMIENTO. */
     public void setEstado(String estado) {
         if (!ACTIVA.equals(estado) && !INACTIVA.equals(estado) && !EN_MANTENIMIENTO.equals(estado)) {
-            throw new IllegalArgumentException("Estado de sala inválido: " + estado);
+            throw new IllegalArgumentException("Estado de sede inválido: " + estado);
         }
         this.estado = estado;
     }

@@ -1,6 +1,9 @@
 package ucsur.pe.cineInterfaz;
 
-/** Define las operaciones de inicio de sesión y actualización de datos de una cuenta. */
+/**
+ * Por qué existe: para que cualquier cuenta (cliente o empleado) inicie sesión y actualice
+ * sus datos de la misma forma, sin que el resto del sistema necesite saber cuál es.
+ */
 public interface Autenticable {
     /** Valida las credenciales y devuelve si se pudo iniciar sesión. */
     boolean iniciarSesion(String correo, String contrasena);

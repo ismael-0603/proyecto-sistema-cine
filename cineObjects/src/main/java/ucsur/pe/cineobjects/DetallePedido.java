@@ -1,9 +1,8 @@
 package ucsur.pe.cineobjects;
 
 /**
- * Representa una línea de pedido y conserva el precio unitario vigente al crearla.
- * Requiere un producto activo, cantidad positiva y personalización de hasta 255 caracteres.
- * El stock no se valida aquí porque depende de la sede; Pedido lo comprueba al registrarse.
+ * Por qué existe: es una línea del pedido (producto x cantidad). Guarda el precio del momento
+ * para que el importe no cambie si después sube el precio del producto.
  */
 public class DetallePedido {
     private int idDetalle;

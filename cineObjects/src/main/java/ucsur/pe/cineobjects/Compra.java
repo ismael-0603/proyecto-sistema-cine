@@ -1,34 +1,28 @@
 package ucsur.pe.cineobjects;
 
 import ucsur.pe.cineInterfaz.Totalizable;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Compra de entradas y dulcería de un cliente en una sede, con 4 minutos para completarla.
- * Calcula descuentos, IGV y puntos, y controla su confirmación, cancelación y reembolso.
+ * Por qué existe: representa la compra de un cliente en una sede y controla su proceso de principio a fin
+ * (4 minutos para completarla). Coordina y delega: asientos a SeleccionAsientos, dinero a CalculadoraImporte,
+ * puntos a GestorPuntos y comprobante a Comprobante.
  */
 public class Compra implements Totalizable{
-    public static final String EN_PROCESO = "EN_PROCESO";
-    public static final String CONFIRMADA = "CONFIRMADA";
-    public static final String CANCELADA = "CANCELADA";
-    public static final String EXPIRADA = "EXPIRADA";
-    public static final String REEMBOLSADA = "REEMBOLSADA";
+    // Estados de una compra (constantes: se usan como Compra.NOMBRE y su valor no cambia).
+    public static final String EN_PROCESO = "EN_PROCESO"; // el cliente aún está eligiendo y pagando
+    public static final String CONFIRMADA = "CONFIRMADA"; // pagada; las entradas quedan vendidas
+    public static final String CANCELADA = "CANCELADA"; // el cliente la canceló antes de pagar
+    public static final String EXPIRADA = "EXPIRADA"; // se acabaron los 4 minutos sin pagar
+    public static final String REEMBOLSADA = "REEMBOLSADA"; // se devolvió el dinero (función cancelada)
 
-    public static final int TIEMPO_MAXIMO_COMPRA_MIN = 4;
-    private static final double TASA_IGV = 0.18;
-    /** Cupones disponibles para buscar por código en las compras de esta ejecución. */
-    private static List<Cupon> catalogoCupones = new ArrayList<>();
+    public static final int TIEMPO_MAXIMO_COMPRA_MIN = 4; // minutos para completar toda la compra
 
     private int idCompra;
     private DateTime fechaHora;
     private DateTime expiraCompra; // Hora límite de todo el proceso (butacas, dulcería y pago); en la BD es compra.expira_compra.
-    private boolean asientosBloqueados; // Indica si las butacas seleccionadas ya se bloquearon en la función.
     private String serieNumero;
-    private double subtotal;
-    private double descuento;
-    private double igv;
-    private double total;
+    private ResumenImporte importe; // subtotal, descuento, IGV y total del último cálculo
     private int puntosCanjeados; // Puntos que cuestan los tipos de entrada elegidos; se descuentan solo al confirmar.
     private int puntosOtorgados; // Puntos ganados al confirmar; se revierten si se reembolsa.
     private String estado;
@@ -36,9 +30,12 @@ public class Compra implements Totalizable{
     private Sede sede; // Sede donde se hace la compra; en la BD es compra.id_sede NOT NULL.
     private Cupon cupon;
     private Promocion promocion;
-    /** Entradas seleccionadas en esta compra, incluidas las que luego se bloquean o venden. */
-    private List<Entrada> entradas;
     private Pedido pedido;
+
+    // Colaboradores: cada uno se encarga de una parte de la compra.
+    private final SeleccionAsientos asientos = new SeleccionAsientos();
+    private final CalculadoraImporte calculadora = new CalculadoraImporte();
+    private final GestorPuntos gestorPuntos = new GestorPuntos();
 
     public Compra(int idCompra, DateTime fechaHora, Cliente cliente, Sede sede) {
         if (cliente == null) {
@@ -52,22 +49,10 @@ public class Compra implements Totalizable{
         this.cliente = cliente;
         this.sede = sede;
         this.estado = EN_PROCESO;
-        this.entradas = new ArrayList<>();
-        this.asientosBloqueados = false;
+        this.importe = ResumenImporte.VACIO;
 
         // El plazo comienza al crear la compra, cuando el cliente entra al mapa de asientos.
         this.expiraCompra = this.fechaHora.sumarMinutos(TIEMPO_MAXIMO_COMPRA_MIN);
-    }
-
-    /** Agrega el cupón al catálogo para buscarlo por código; rechaza códigos repetidos. */
-    public static void registrarCuponEnCatalogo(Cupon c) {
-        if (c == null) return;
-        for (Cupon existente : catalogoCupones) {
-            if (existente.getCodigo().equalsIgnoreCase(c.getCodigo()) && existente != c) {
-                throw new IllegalArgumentException("Ya existe un cupón con el código " + c.getCodigo());
-            }
-        }
-        if (!catalogoCupones.contains(c)) catalogoCupones.add(c);
     }
 
     /** Comprueba el plazo y expira la compra si venció; devuelve true si ya expiró. */
@@ -76,12 +61,8 @@ public class Compra implements Totalizable{
             return EXPIRADA.equals(estado);
         }
         boolean tiempoVencido = (expiraCompra != null && DateTime.ahora().esDespuesDe(expiraCompra));
-        if (asientosBloqueados) {
-            for (Entrada e : entradas) {
-                if (e.haExpirado()) {
-                    tiempoVencido = true;
-                }
-            }
+        if (asientos.isBloqueados() && asientos.algunaExpirada()) {
+            tiempoVencido = true;
         }
         if (tiempoVencido) {
             cancelarPorTimeout();
@@ -98,34 +79,18 @@ public class Compra implements Totalizable{
         }
     }
 
+    // ---------- Asientos (delegado en SeleccionAsientos) ----------
     /** Preselecciona una entrada; la butaca aún no se bloquea y no se repite la misma butaca. */
     public void agregarEntrada(Entrada entrada) {
         validarEnProceso();
-        if (asientosBloqueados) {
-            throw new IllegalStateException("Los asientos ya fueron bloqueados; no se pueden agregar más");
-        }
-        if (entrada == null) {
-            throw new IllegalArgumentException("La entrada no puede ser nula");
-        }
-        if (!entrada.getButaca().estaDisponible(entrada.getFuncion())) {
-            throw new IllegalStateException("La butaca " + entrada.getButaca().getCodigoAsiento() + " no está disponible");
-        }
-        for (Entrada existente : entradas) {
-            if (existente.getButaca() == entrada.getButaca() && existente.getFuncion() == entrada.getFuncion()) {
-                return;
-            }
-        }
-        entradas.add(entrada);
+        asientos.agregar(entrada);
         calcularTotal();
     }
 
     /** Quita una selección mientras los asientos sigan sin bloquearse. */
     public boolean quitarEntrada(Entrada entrada) {
         validarEnProceso();
-        if (asientosBloqueados) {
-            throw new IllegalStateException("No se pueden modificar los asientos una vez bloqueados");
-        }
-        boolean removida = entradas.remove(entrada);
+        boolean removida = asientos.quitar(entrada);
         if (removida) {
             calcularTotal();
         }
@@ -136,128 +101,53 @@ public class Compra implements Totalizable{
      * Valida que las butacas sigan libres y las bloquea hasta la hora límite de la compra.
      * Si alguna ya no está disponible lanza un error con su código y no bloquea ninguna:
      * el cliente debe quitar esa entrada, elegir otra butaca y volver a confirmar.
-     * Si ya están bloqueadas, la operación es idempotente y devuelve true.
      */
     public boolean confirmarSeleccionAsientos() {
         validarEnProceso();
-        if (asientosBloqueados) {
-            return true;
-        }
-        if (entradas.isEmpty()) {
-            return false;
-        }
-
-        // 1. Se revisan todas las butacas antes de bloquear alguna.
-        List<String> noDisponibles = new ArrayList<>();
-        for (Entrada e : entradas) {
-            if (!e.getFuncion().estaDisponible()) {
-                throw new IllegalStateException("La función ya no está disponible para la venta (" + e.getFuncion().getEstado() + ")");
-            }
-            if (!e.getFuncion().esButacaDisponible(e.getButaca())) {
-                noDisponibles.add(e.getButaca().getCodigoAsiento());
-            }
-        }
-        if (!noDisponibles.isEmpty()) {
-            throw new IllegalStateException("Butacas no disponibles: " + String.join(", ", noDisponibles)
-                    + ". Quita esas entradas y elige otras butacas.");
-        }
-
-        // 2. Se bloquean todas hasta el límite de la compra; si algo falla, se revierte lo ya bloqueado.
-        List<Entrada> bloqueadas = new ArrayList<>();
-        try {
-            for (Entrada e : entradas) {
-                if (!e.bloquearTemporalmente(this.expiraCompra)) {
-                    throw new IllegalStateException("No se pudo bloquear la butaca " + e.getButaca().getCodigoAsiento());
-                }
-                bloqueadas.add(e);
-            }
-        } catch (RuntimeException ex) {
-            for (Entrada e : bloqueadas) {
-                e.liberarBloqueo();
-            }
-            throw ex;
-        }
-
-        this.asientosBloqueados = true;
-        return true;
+        return asientos.bloquear(this.expiraCompra);
     }
 
     /** Asigna el pedido de dulcería; rechaza productos de oferta si el cliente no tiene el nivel requerido. */
     public void asignarPedido(Pedido pedido) {
         validarEnProceso();
-        validarProductosSocio(pedido);
+        gestorPuntos.validarProductosSocio(cliente, pedido);
         this.pedido = pedido;
         calcularTotal();
     }
 
-    // ---------- Totales ----------
-    /** Suma los puntos que cuestan las entradas válidas que tienen tipo asignado. */
-    private int calcularPuntosRequeridos() {
-        int requeridos = 0;
-        for (Entrada e : entradas) {
-            if (!Entrada.ANULADA.equals(e.getEstado()) && !Entrada.EXPIRADA.equals(e.getEstado())
-                    && e.getTipoEntrada() != null) {
-                requeridos += e.getTipoEntrada().getPuntosCanje();
-            }
-        }
-        return requeridos;
-    }
-
+    // ---------- Totales (delegado en CalculadoraImporte) ----------
     /** Recalcula subtotal, promoción, cupón, IGV y total, y los puntos que cuesta la compra. */
     @Override
     public double calcularTotal() {
-        double sumaEntradas = 0;
-        for (Entrada e : entradas) {
-            if (!Entrada.ANULADA.equals(e.getEstado()) && !Entrada.EXPIRADA.equals(e.getEstado())) {
-                sumaEntradas += e.calculaPrecioFinal();
-            }
-        }
+        List<Entrada> validas = asientos.getEntradasValidas();
         if (EN_PROCESO.equals(estado)) {
-            this.puntosCanjeados = calcularPuntosRequeridos();
+            this.puntosCanjeados = gestorPuntos.calcularPuntosRequeridos(validas);
         }
-        double sumaPedido = (pedido != null) ? pedido.calcularTotal() : 0.0;
-        this.subtotal = sumaEntradas + sumaPedido;
-
-        double descPromo = (promocion != null) ? promocion.calcularDescuento(this.subtotal) : 0.0;
-        double descCupon = (cupon != null) ? cupon.calcularDescuento(this.subtotal - descPromo) : 0.0;
-        this.descuento = Math.min(this.subtotal, descPromo + descCupon);
-
-        double baseImponible = this.subtotal - this.descuento;
-        this.igv = baseImponible * TASA_IGV;
-        this.total = baseImponible + this.igv;
-        return this.total;
+        this.importe = calculadora.calcular(validas, pedido, promocion, cupon);
+        return importe.getTotal();
     }
 
-    /** Suma los puntos base de entradas válidas y combos incluidos en el pedido (sin multiplicador de nivel). */
+    // ---------- Puntos (delegado en GestorPuntos) ----------
+    /** Puntos base de entradas válidas y combos del pedido (sin multiplicador de nivel). */
     public int calcularPuntos() {
-        int puntosGenerados = 0;
-        for (Entrada e : entradas) {
-            if (!Entrada.ANULADA.equals(e.getEstado()) && !Entrada.EXPIRADA.equals(e.getEstado())
-                    && e.getTipoEntrada() != null) {
-                puntosGenerados += e.getTipoEntrada().obtenerPuntos();
-            }
-        }
-        if (pedido != null) {
-            for (DetallePedido d : pedido.getDetalles()) {
-                if (d.getProducto().isEsCombo()) {
-                    puntosGenerados += d.getCantidad() * d.getProducto().obtenerPuntos();
-                }
-            }
-        }
-        return puntosGenerados;
+        return gestorPuntos.calcularPuntosBase(asientos.getEntradasValidas(), pedido);
+    }
+
+    /**
+     * Comprueba que las entradas de socio y los combos de oferta los use un cliente con el nivel requerido,
+     * y que el saldo de puntos alcance para los tipos de entrada que cuestan puntos.
+     */
+    public void validarBeneficiosSocio() {
+        gestorPuntos.validarBeneficiosSocio(cliente, asientos.getEntradasValidas(), pedido);
     }
 
     // ---------- Cupón y promoción ----------
-    /** Busca el cupón por código sin distinguir mayúsculas y lo aplica si sigue vigente. */
-    public boolean aplicarCupon(String codigo) {
+    /** Busca el cupón por código en el catálogo y lo aplica si sigue vigente. */
+    public boolean aplicarCupon(String codigo, CatalogoCupones catalogo) {
         validarEnProceso();
-        if (codigo == null) return false;
-        for (Cupon c : catalogoCupones) {
-            if (codigo.equalsIgnoreCase(c.getCodigo())) {
-                return aplicarCupon(c);
-            }
-        }
-        return false;
+        if (catalogo == null) return false;
+        Cupon encontrado = catalogo.buscarPorCodigo(codigo);
+        return encontrado != null && aplicarCupon(encontrado);
     }
 
     /** Asigna un cupón vigente a la compra y actualiza el total. */
@@ -282,40 +172,6 @@ public class Compra implements Totalizable{
         return false;
     }
 
-    // ---------- Beneficios de socio ----------
-    /**
-     * Comprueba que las entradas de socio y los combos de oferta los use un cliente con el nivel requerido,
-     * y que el saldo de puntos alcance para los tipos de entrada que cuestan puntos.
-     */
-    public void validarBeneficiosSocio() {
-        for (Entrada e : entradas) {
-            if (Entrada.ANULADA.equals(e.getEstado()) || Entrada.EXPIRADA.equals(e.getEstado())) continue;
-            TipoEntrada t = e.getTipoEntrada();
-            if (t != null && !t.validarElegibilidad(cliente)) {
-                throw new IllegalStateException("El cliente no puede usar la entrada '" + t.getNombre()
-                        + "' (es exclusiva para socios o está inactiva)");
-            }
-        }
-        int requeridos = calcularPuntosRequeridos();
-        if (requeridos > cliente.consultarPuntos()) {
-            throw new IllegalStateException("Puntos insuficientes: la compra requiere " + requeridos
-                    + " y el saldo es " + cliente.consultarPuntos());
-        }
-        validarProductosSocio(this.pedido);
-    }
-
-    private void validarProductosSocio(Pedido p) {
-        if (p == null) return;
-        for (DetallePedido d : p.getDetalles()) {
-            Producto prod = d.getProducto();
-            if (!prod.validarElegibilidad(cliente)) {
-                throw new IllegalStateException("El producto '" + prod.getNombre()
-                        + "' no está disponible para este cliente (nivel de socio requerido: "
-                        + prod.getNivelSocioMinimo() + ", o producto inactivo)");
-            }
-        }
-    }
-
     // ---------- Confirmación, cancelación y reembolso ----------
     /**
      * Confirma la venta si el plazo sigue vigente, los asientos ya están bloqueados y los datos son válidos.
@@ -330,26 +186,19 @@ public class Compra implements Totalizable{
         }
 
         // Las butacas deben haberse bloqueado antes con confirmarSeleccionAsientos()
-        if (!entradas.isEmpty() && !asientosBloqueados) {
+        if (!asientos.estaVacia() && !asientos.isBloqueados()) {
             return false;
         }
-
-        List<Entrada> porVender = new ArrayList<>();
-        for (Entrada e : entradas) {
-            if (e.haExpirado()) {
-                cancelarPorTimeout();
-                return false;
-            }
-            if (e.getTipoEntrada() == null) {
-                return false; // Toda entrada debe tener asignado su TipoEntrada
-            }
-            if (Entrada.BLOQUEADA.equals(e.getEstado())) {
-                porVender.add(e);
-            }
+        if (asientos.algunaExpirada()) {
+            cancelarPorTimeout();
+            return false;
+        }
+        if (!asientos.todasConTipo()) {
+            return false; // Toda entrada debe tener asignado su TipoEntrada
         }
 
         // 2. La compra debe tener algo que vender
-        if (porVender.isEmpty() && pedido == null) return false;
+        if (asientos.contarBloqueadas() == 0 && pedido == null) return false;
         // 3. El cupón debe seguir vigente
         if (cupon != null && !cupon.validarVigencia(DateTime.ahora())) return false;
 
@@ -369,9 +218,7 @@ public class Compra implements Totalizable{
         if (pedido != null && !pedido.isRegistrado() && !pedido.registrar(sede)) return false;
 
         // 6. Ya no hay nada que pueda fallar: se confirma todo
-        for (Entrada e : porVender) {
-            e.confirmarVenta();
-        }
+        asientos.venderBloqueadas();
         if (cupon != null) {
             cupon.registrarUso();
         }
@@ -381,9 +228,9 @@ public class Compra implements Totalizable{
         this.estado = CONFIRMADA; // la serie la asigna la base al confirmar (trigger trg_compra_serie)
 
         // Los puntos ganados usan el nivel que tenía el cliente antes de esta compra
-        if (cliente.esSocio()) {
-            this.puntosOtorgados = (int) Math.floor(calcularPuntos() * cliente.obtenerMultiplicadorPuntos());
-            cliente.acumularPuntos(this.puntosOtorgados);
+        this.puntosOtorgados = gestorPuntos.calcularPuntosGanados(cliente, asientos.getEntradasValidas(), pedido);
+        if (puntosOtorgados > 0) {
+            cliente.acumularPuntos(puntosOtorgados);
         }
         cliente.actualizarNivel();
         return true;
@@ -392,12 +239,7 @@ public class Compra implements Totalizable{
     /** Cancela una compra en proceso y libera las butacas que estuvieran bloqueadas. */
     public void cancelar() {
         validarEnProceso();
-        for (Entrada e : entradas) {
-            if (Entrada.BLOQUEADA.equals(e.getEstado())) {
-                e.anular();
-            }
-        }
-        this.asientosBloqueados = false;
+        asientos.anularBloqueadas();
         this.puntosCanjeados = 0; // los puntos nunca se descontaron del saldo
         this.estado = CANCELADA;
     }
@@ -405,16 +247,7 @@ public class Compra implements Totalizable{
     /** Expira la compra por tiempo y libera los bloqueos; no cambia compras ya finalizadas. */
     public void cancelarPorTimeout() {
         if (!EN_PROCESO.equals(estado)) return;
-        for (Entrada e : entradas) {
-            if (Entrada.BLOQUEADA.equals(e.getEstado())) {
-                if (asientosBloqueados) {
-                    e.expirar(); // Libera la butaca en la función y pasa la entrada a EXPIRADA
-                } else {
-                    e.anular();  // Si nunca salió del mapa, solo marca la preselección como no válida
-                }
-            }
-        }
-        this.asientosBloqueados = false;
+        asientos.liberarPorTimeout();
         this.puntosCanjeados = 0; // los puntos nunca se descontaron del saldo
         this.estado = EXPIRADA;
     }
@@ -425,26 +258,18 @@ public class Compra implements Totalizable{
      */
     public boolean reembolsar() {
         if (!CONFIRMADA.equals(estado)) return false;
-        if (entradas.isEmpty()) return false;
-        for (Entrada e : entradas) {
-            if (!Funcion.CANCELADA.equals(e.getFuncion().getEstado())) {
-                return false;
-            }
-        }
+        if (!asientos.todasConFuncionCancelada()) return false;
         if (pedido != null && Pedido.ENTREGADO.equals(pedido.getEstado())) {
             return false;
         }
-        for (Entrada e : entradas) {
-            if (Entrada.VENDIDA.equals(e.getEstado())) {
-                e.anular();
-            }
-        }
+        asientos.anularVendidas();
         this.estado = REEMBOLSADA;
         cliente.devolverPuntos(puntosCanjeados);
         cliente.revertirPuntos(puntosOtorgados);
         return true;
     }
 
+    // ---------- Comprobante (delegado en Comprobante) ----------
     /** Guarda la serie que la base asignó al confirmar la compra (por ejemplo B001-000123); solo se fija una vez. */
     public void asignarSerie(String serieNumero) {
         if (!CONFIRMADA.equals(estado) && !REEMBOLSADA.equals(estado)) {
@@ -459,13 +284,14 @@ public class Compra implements Totalizable{
         this.serieNumero = serieNumero.trim();
     }
 
-    /** Arma el texto del comprobante; exige que la compra ya tenga serie. */
+    /** Arma el comprobante; exige que la compra ya tenga serie. */
+    public Comprobante obtenerComprobante() {
+        return new Comprobante(serieNumero, fechaHora, importe);
+    }
+
+    /** Texto del comprobante; exige que la compra ya tenga serie. */
     public String generarComprobante() {
-        if (serieNumero == null) {
-            throw new IllegalStateException("La compra aún no tiene comprobante (la base asigna la serie al confirmarla)");
-        }
-        return String.format("Comprobante %s | Fecha: %s | Subtotal: S/ %.2f | Desc: S/ %.2f | IGV: S/ %.2f | Total: S/ %.2f",
-                serieNumero, fechaHora, subtotal, descuento, igv, total);
+        return obtenerComprobante().generarTexto();
     }
 
     /** Uso interno del paquete: fija el estado si es uno de los cinco válidos. */
@@ -480,12 +306,13 @@ public class Compra implements Totalizable{
     public int getIdCompra() { return idCompra; }
     public DateTime getFechaHora() { return fechaHora; }
     public DateTime getExpiraCompra() { return expiraCompra; }
-    public boolean isAsientosBloqueados() { return asientosBloqueados; }
+    public boolean isAsientosBloqueados() { return asientos.isBloqueados(); }
     public String getSerieNumero() { return serieNumero; }
-    public double getSubtotal() { return subtotal; }
-    public double getDescuento() { return descuento; }
-    public double getIgv() { return igv; }
-    public double getTotal() { return total; }
+    public ResumenImporte getImporte() { return importe; }
+    public double getSubtotal() { return importe.getSubtotal(); }
+    public double getDescuento() { return importe.getDescuento(); }
+    public double getIgv() { return importe.getIgv(); }
+    public double getTotal() { return importe.getTotal(); }
     public int getPuntosCanjeados() { return puntosCanjeados; }
     public int getPuntosOtorgados() { return puntosOtorgados; }
     public String getEstado() { return estado; }
@@ -494,10 +321,10 @@ public class Compra implements Totalizable{
     public Cupon getCupon() { return cupon; }
     public Promocion getPromocion() { return promocion; }
     public Pedido getPedido() { return pedido; }
-    public List<Entrada> getEntradas() { return new ArrayList<>(entradas); }
+    public List<Entrada> getEntradas() { return asientos.getEntradas(); }
 
     @Override
     public String toString() {
-        return "Compra #" + idCompra + " [" + estado + "] S/ " + String.format("%.2f", total);
+        return "Compra #" + idCompra + " [" + estado + "] S/ " + String.format("%.2f", getTotal());
     }
 }

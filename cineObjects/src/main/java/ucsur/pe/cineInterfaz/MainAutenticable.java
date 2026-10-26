@@ -9,7 +9,9 @@ import ucsur.pe.cineobjects.Empleado;
 import ucsur.pe.cineobjects.Rol;
 import ucsur.pe.cineobjects.Sede;
 
-/** Demuestra polimorfismo: Cliente y Empleado se autentican a través de la interfaz Autenticable. */
+/**
+ * Por qué existe: demo de polimorfismo. Cliente y Empleado inician sesión y cambian sus datos como Autenticable.
+ */
 public class MainAutenticable {
 
     public static void main(String[] args) {

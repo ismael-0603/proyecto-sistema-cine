@@ -2,19 +2,21 @@ package ucsur.pe.cineobjects;
 import ucsur.pe.cineInterfaz.Registrable;
 
 /**
- * Registra reclamos, quejas o solicitudes de reembolso vinculados a una compra.
- * Exige un tipo reconocido, una descripción no vacía y una compra asociada.
+ * Por qué existe: registra un reclamo, queja o pedido de reembolso sobre una compra
+ * y su atención hasta que se cierra.
  */
 public class Reclamo implements Registrable {
-    public static final String RECLAMO = "RECLAMO";
-    public static final String QUEJA = "QUEJA";
-    public static final String REEMBOLSO = "REEMBOLSO";
+    // Tipos de reclamo (constantes: se usan como Reclamo.NOMBRE y su valor no cambia).
+    public static final String RECLAMO = "RECLAMO"; // problema con el servicio o la compra
+    public static final String QUEJA = "QUEJA"; // malestar o inconformidad con la atención
+    public static final String REEMBOLSO = "REEMBOLSO"; // pide que se devuelva el dinero
 
+    // Estados de un reclamo (constantes: se usan como Reclamo.NOMBRE y su valor no cambia).
     public static final String BORRADOR = "BORRADOR"; // solo en memoria hasta registrar(); no existe en la BD
-    public static final String REGISTRADO = "REGISTRADO";
-    public static final String EN_REVISION = "EN_REVISION";
-    public static final String RESUELTO = "RESUELTO";
-    public static final String RECHAZADO = "RECHAZADO";
+    public static final String REGISTRADO = "REGISTRADO"; // formalizado, esperando revisión
+    public static final String EN_REVISION = "EN_REVISION"; // el cine lo está atendiendo
+    public static final String RESUELTO = "RESUELTO"; // cerrado con una respuesta
+    public static final String RECHAZADO = "RECHAZADO"; // cerrado sin aceptarse, con un motivo
 
     private int idReclamo;
     private String tipo;
@@ -55,11 +57,6 @@ public class Reclamo implements Registrable {
         this.estado = REGISTRADO;
         this.registrado = true;
         return true;
-    }
-
-    /** Devuelve el estado actual, como REGISTRADO, EN_REVISION o RESUELTO. */
-    public String consultarEstado() {
-        return this.estado;
     }
 
     /** Pasa de REGISTRADO a EN_REVISION. */

@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Representa al personal de una sede y controla qué pedidos puede preparar o entregar.
- * El empleado requiere un rol y una sede; su rol debe permitir atender pedidos para gestionarlos.
+ * Por qué existe: es el personal de una sede. Según su rol puede preparar y entregar pedidos de dulcería.
  */
 public class Empleado extends Persona {
     private int idEmpleado;
@@ -29,11 +28,6 @@ public class Empleado extends Persona {
         this.rol = rol;
         this.sede = sede;
         this.pedidosAsignados = new ArrayList<>();
-    }
-
-    /** Devuelve el turno asignado. */
-    public String consultarTurno() {
-        return this.turno;
     }
 
     /** Devuelve una copia de la cola con pedidos pendientes o que ya se están preparando. */

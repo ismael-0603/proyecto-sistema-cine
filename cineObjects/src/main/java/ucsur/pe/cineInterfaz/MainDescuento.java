@@ -8,7 +8,9 @@ import ucsur.pe.cineobjects.DateTime;
 import ucsur.pe.cineobjects.DescuentoBase;
 import ucsur.pe.cineobjects.Promocion;
 
-/** Demuestra herencia y polimorfismo: Cupon y Promocion se usan como Descuento. */
+/**
+ * Por qué existe: demo de herencia y polimorfismo. Cupon y Promocion se usan como Descuento.
+ */
 public class MainDescuento {
 
     public static void main(String[] args) {

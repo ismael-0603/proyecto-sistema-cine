@@ -3,9 +3,7 @@ package ucsur.pe.cineobjects;
 import ucsur.pe.cineInterfaz.Registrable;
 
 /**
- * Guarda la puntuación y el comentario de una compra.
- * La puntuación debe estar entre 1 y 5, el comentario no puede superar 255 caracteres
- * y solo se registra cuando la compra está confirmada.
+ * Por qué existe: guarda la nota (1 a 5) y el comentario que el cliente da a una compra confirmada.
  */
 public class Calificacion implements Registrable {
     private int idCalificacion;

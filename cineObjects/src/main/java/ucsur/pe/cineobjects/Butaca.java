@@ -1,13 +1,14 @@
 package ucsur.pe.cineobjects;
 
 /**
- * Representa una butaca física, identificada por su fila y número dentro de una sala.
- * El constructor valida la fila, el número, el tipo permitido y que se indique una sala.
+ * Por qué existe: es un asiento físico de una sala (fila + número, por ejemplo A5).
+ * Sabe su tipo y si está libre en una función.
  */
 public class Butaca {
-    public static final String ESTANDAR = "ESTANDAR";
-    public static final String PREFERENCIAL = "PREFERENCIAL";
-    public static final String DISCAPACIDAD = "DISCAPACIDAD";
+    // Tipos de butaca (constantes: se usan como Butaca.NOMBRE y su valor no cambia).
+    public static final String ESTANDAR = "ESTANDAR"; // asiento normal
+    public static final String PREFERENCIAL = "PREFERENCIAL"; // asiento de mejor ubicación o comodidad
+    public static final String DISCAPACIDAD = "DISCAPACIDAD"; // asiento accesible; no se recomienda automáticamente
 
     private int idButaca;
     private String fila; // de 1 a 3 letras, se guarda en mayúsculas

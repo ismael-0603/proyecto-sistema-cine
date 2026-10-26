@@ -1,8 +1,8 @@
 package ucsur.pe.cineobjects;
 
 /**
- * Representa un cupón de descuento porcentual o de monto fijo.
- * Valida el código, el rango del descuento, las fechas y el límite de usos.
+ * Por qué existe: es un código de descuento que escribe el cliente (por ejemplo CINE10),
+ * con fechas de vigencia y un límite de usos.
  */
 public class Cupon extends DescuentoBase {
     private int idCupon;
@@ -27,11 +27,6 @@ public class Cupon extends DescuentoBase {
         this.usosRealizados = 0;
     }
 
-    /** Indica si el cupón está habilitado; la vigencia también depende de fechas y usos. */
-    public boolean estaActivo() {
-        return this.estado;
-    }
-
     /** Devuelve true si está activo, dentro de fechas y aún tiene usos disponibles. */
     @Override
     public boolean validarVigencia(DateTime fecha) {
@@ -51,9 +46,6 @@ public class Cupon extends DescuentoBase {
         }
         usosRealizados++;
     }
-
-    /** Cambia directamente si el cupón está habilitado. */
-    public void setEstado(boolean estado) { this.estado = estado; }
 
     public int getIdCupon() { return idCupon; }
     public String getCodigo() { return codigo; }

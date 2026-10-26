@@ -5,13 +5,13 @@ import java.util.Map;
 import ucsur.pe.cineInterfaz.Inventariable;
 
 /**
- * Representa un producto de dulcería y administra su estado, su stock por sede y sus puntos si es un combo.
- * Valida nombre, categoría, límites de descripción y precio no negativo; el stock de cada sede nunca baja de cero.
- * Un producto puede ser una oferta disponible solo desde cierto nivel de socio.
+ * Por qué existe: es un producto de dulcería con su precio y su stock en cada sede.
+ * Puede ser combo (da puntos) u oferta solo para cierto nivel de socio.
  */
 public class Producto implements Inventariable {
+    // Valores fijos de los productos (constantes: se usan como Producto.NOMBRE y su valor no cambia).
     public static final int PUNTOS_COMBO = 2; // puntos que da cada combo vendido
-    public static final int NIVEL_SOCIO_MAXIMO = 4;
+    public static final int NIVEL_SOCIO_MAXIMO = 4; // nivel de socio más alto (los niveles van de 1 a 4)
 
     private int idProducto;
     private String nombre;

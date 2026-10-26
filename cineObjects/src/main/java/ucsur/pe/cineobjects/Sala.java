@@ -3,14 +3,14 @@ package ucsur.pe.cineobjects;
 import java.util.ArrayList;
 import java.util.List;
 /**
- * Representa una sala, sus butacas y el horario de funciones asignadas.
- * Exige número y capacidad positivos, sede y tipo de sala; limita las butacas a la capacidad
- * y evita horarios solapados, considerando quince minutos de limpieza.
+ * Por qué existe: es una sala de una sede con sus butacas y funciones.
+ * Evita que dos funciones se crucen, contando 15 minutos de limpieza.
  */
 public class Sala {
-    public static final String ACTIVA = "ACTIVA";
-    public static final String INACTIVA = "INACTIVA";
-    public static final String EN_MANTENIMIENTO = "EN_MANTENIMIENTO";
+    // Estados de una sala (constantes: se usan como Sala.NOMBRE y su valor no cambia).
+    public static final String ACTIVA = "ACTIVA"; // en uso; puede tener funciones
+    public static final String INACTIVA = "INACTIVA"; // fuera de uso
+    public static final String EN_MANTENIMIENTO = "EN_MANTENIMIENTO"; // en reparación temporal
     public static final int BUFFER_LIMPIEZA_MIN = 15; // minutos de limpieza entre el fin de una función y la siguiente
     
     private int idSala;

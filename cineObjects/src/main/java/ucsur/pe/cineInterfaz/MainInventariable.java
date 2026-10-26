@@ -3,7 +3,9 @@ package ucsur.pe.cineInterfaz;
 import ucsur.pe.cineobjects.Producto;
 import ucsur.pe.cineobjects.Sede;
 
-/** Demuestra abstracción: el stock del producto en cada sede se maneja solo a través de Inventariable. */
+/**
+ * Por qué existe: demo de abstracción. El stock por sede se maneja solo con Inventariable.
+ */
 public class MainInventariable {
 
     public static void main(String[] args) {

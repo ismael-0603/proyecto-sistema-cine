@@ -1,6 +1,8 @@
 package ucsur.pe.cineobjects;
 
-/** Representa un género cinematográfico; su nombre es obligatorio y no puede superar 20 caracteres. */
+/**
+ * Por qué existe: es el género de una película (Acción, Comedia...) y sirve para filtrar la cartelera.
+ */
 public class Genero {
     private int idGenero;
     private String nombre;

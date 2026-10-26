@@ -3,9 +3,8 @@ package ucsur.pe.cineobjects;
 import ucsur.pe.cineInterfaz.Autenticable;
 
 /**
- * Clase base para clientes y empleados; centraliza sus datos personales y validaciones comunes.
- * El DNI, cuando se proporciona, debe tener ocho dígitos; también se valida el correo, teléfono,
- * fecha de nacimiento y longitud de la contraseña. Los datos obligatorios se exigen según el tipo de cuenta.
+ * Por qué existe: junta lo común de Cliente y Empleado (datos personales, validaciones e inicio de sesión)
+ * para no repetirlo. Es abstracta: no se crean personas sueltas, solo clientes o empleados.
  */
 public abstract class Persona implements Autenticable {
     protected String dni;

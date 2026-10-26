@@ -1,15 +1,15 @@
 package ucsur.pe.cineobjects;
 
 /**
- * Guarda una fecha y hora, valida días reales del calendario y ofrece operaciones de comparación y suma.
- * La fecha actual se calcula con UTC-5, que corresponde a la hora de Perú.
+ * Por qué existe: es nuestra propia clase de fecha y hora (en lugar de Date), con la hora de Perú (UTC-5).
+ * Es inmutable: una fecha creada no cambia; sumarDias o sumarMinutos devuelven una fecha nueva.
  */
-public class DateTime {
-    private int dia; // Día válido para el mes y año indicados.
-    private int mes; // Mes del año, de 1 a 12.
-    private int anio; // Año positivo.
-    private int hora; // Hora en formato de 24 horas, de 0 a 23.
-    private int minuto; // Minutos, de 0 a 59.
+public final class DateTime {
+    private final int dia; // Día válido para el mes y año indicados.
+    private final int mes; // Mes del año, de 1 a 12.
+    private final int anio; // Año positivo.
+    private final int hora; // Hora en formato de 24 horas, de 0 a 23.
+    private final int minuto; // Minutos, de 0 a 59.
 
     public DateTime(int dia, int mes, int anio, int hora, int minuto) {
         validar(dia, mes, anio, hora, minuto);
@@ -174,16 +174,11 @@ public class DateTime {
         return Long.hashCode(toValorComparable());
     }
 
-    // Cada setter valida el nuevo valor junto con los demás componentes antes de guardarlo.
+    // Solo getters: para "cambiar" una fecha se crea otra (constructor o sumarDias/sumarMinutos).
     public int getDia() { return dia; }
-    public void setDia(int dia) { validar(dia, mes, anio, hora, minuto); this.dia = dia; }
     public int getMes() { return mes; }
-    public void setMes(int mes) { validar(dia, mes, anio, hora, minuto); this.mes = mes; }
     public int getAnio() { return anio; }
-    public void setAnio(int anio) { validar(dia, mes, anio, hora, minuto); this.anio = anio; }
     public int getHora() { return hora; }
-    public void setHora(int hora) { validar(dia, mes, anio, hora, minuto); this.hora = hora; }
     public int getMinuto() { return minuto; }
-    public void setMinuto(int minuto) { validar(dia, mes, anio, hora, minuto); this.minuto = minuto; }
-    
+
 }

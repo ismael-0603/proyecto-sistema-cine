@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Ejemplo ejecutable que recorre las reglas principales del modelo del cine.
- * Cada sección arma datos de prueba y muestra resultados o errores esperados en consola.
+ * Por qué existe: programa de prueba que recorre el flujo completo del cine (cartelera, compra,
+ * dulcería, pago, puntos y reclamos) e imprime los resultados.
  */
 public class CineObjects {
 
@@ -59,7 +59,7 @@ public class CineObjects {
         titulo("2. Compra basica");
         Cliente cliente = new Cliente(1, "12345678", "Ismael", "Chipana",
                 new DateTime(1, 1, 2000), "ismael@mail.com", null, "clave123");
-        TipoEntrada general = new TipoEntradaGeneral(1, "GENERAL", "Entrada general", 20.0, false, true);
+        TipoEntrada general = new TipoEntrada(1, "GENERAL", "Entrada general", 20.0, 2, false, true);
 
         Compra compra = cliente.realizarCompra(sede);
         System.out.println("Asientos recomendados: " + funcion.recomendarMejoresAsientos(2));
@@ -109,7 +109,8 @@ public class CineObjects {
         combo.reponerStock(sede, 10);
         Cupon cupon = new Cupon(1, "CINE10", Cupon.PORCENTAJE, 10,
                 new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 5, true);
-        Compra.registrarCuponEnCatalogo(cupon);
+        CatalogoCupones catalogo = new CatalogoCupones();
+        catalogo.registrar(cupon);
 
         Rol rolDulceria = new Rol(1, "Personal de dulceria", "Prepara y entrega pedidos", Rol.NIVEL_DULCERIA);
         Empleado empleado = new Empleado(1, "87654321", "Ana", "Quispe", new DateTime(5, 5, 1999),
@@ -120,7 +121,7 @@ public class CineObjects {
         Pedido pedido = new Pedido(0);
         pedido.agregarDetalle(new DetallePedido(0, combo, 2, "Sin sal"));
         c3.asignarPedido(pedido);
-        System.out.println("Cupon aplicado: " + c3.aplicarCupon("CINE10"));
+        System.out.println("Cupon aplicado: " + c3.aplicarCupon("CINE10", catalogo));
         System.out.println("Asientos bloqueados: " + c3.confirmarSeleccionAsientos());
 
         TransaccionPago pago3 = new TransaccionPago(0, c3.getTotal(), TransaccionPago.QR, c3);
@@ -165,8 +166,8 @@ public class CineObjects {
         titulo("6. Entradas y combos de socio");
         cliente.acumularPuntos(300); // saldo de prueba
         System.out.println("Saldo de puntos de prueba: " + cliente.consultarPuntos());
-        TipoEntrada normal = new TipoEntradaGeneral(2, "GENERAL", "Entrada general", 30.0, false, true);
-        TipoEntrada socio50 = new TipoEntradaSocio(3, "SOCIO", "Entrada socio a mitad de precio", 15.0, true, true, 40);
+        TipoEntrada normal = new TipoEntrada(2, "GENERAL", "Entrada general", 30.0, 2, false, true);
+        TipoEntrada socio50 = new TipoEntrada(3, "SOCIO", "Entrada socio a mitad de precio", 15.0, 3, true, true, 40);
         Producto comboNivel2 = new Producto(2, "Combo Oferta Nivel 2", "Oferta para socios nivel 2", "Combos", 30.0, true, 2, true);
         comboNivel2.reponerStock(sede, 5);
         Producto comboSocio = new Producto(3, "Combo Socio", "Oferta para socios", "Combos", 25.0, true, 1, true);
@@ -261,6 +262,10 @@ public class CineObjects {
         System.out.println("Visitas del cliente frecuente: " + frecuente.contarVisitasAnioActual());
         System.out.println("Nivel de socio: " + frecuente.getNivelSocio()
                 + " | multiplicador de puntos: " + frecuente.obtenerMultiplicadorPuntos());
+        int base4Entradas = 4 * general.obtenerPuntos();
+        System.out.println("4 entradas GENERAL (base " + base4Entradas + " puntos): nivel "
+                + cliente.getNivelSocio() + " gana " + cliente.aplicarMultiplicador(base4Entradas)
+                + " | nivel " + frecuente.getNivelSocio() + " gana " + frecuente.aplicarMultiplicador(base4Entradas));
         System.out.println("Puntos del cliente frecuente: " + frecuente.consultarPuntos());
 
         // ---------- 8. Promocion por dia, calificacion, reclamo y validaciones ----------

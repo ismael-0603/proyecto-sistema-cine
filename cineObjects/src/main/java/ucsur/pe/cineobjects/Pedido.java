@@ -5,14 +5,15 @@ import ucsur.pe.cineInterfaz.Totalizable;
 import java.util.ArrayList;
 import java.util.List;
 /**
- * Agrupa productos de dulcería y controla el ciclo de preparación y entrega del pedido.
- * Solo registra pedidos con detalles y stock suficiente; los cambios de estado respetan el orden del proceso.
+ * Por qué existe: es el pedido de dulcería. Descuenta el stock de la sede al registrarse y avanza
+ * en orden: PENDIENTE, EN_PREPARACION, LISTO y ENTREGADO.
  */
 public class Pedido implements Totalizable, Registrable{
-    public static final String PENDIENTE = "PENDIENTE";
-    public static final String EN_PREPARACION = "EN_PREPARACION";
-    public static final String LISTO = "LISTO";
-    public static final String ENTREGADO = "ENTREGADO";
+    // Estados de un pedido, en el orden en que avanzan (constantes: se usan como Pedido.NOMBRE y su valor no cambia).
+    public static final String PENDIENTE = "PENDIENTE"; // registrado, esperando a un empleado
+    public static final String EN_PREPARACION = "EN_PREPARACION"; // un empleado lo está preparando
+    public static final String LISTO = "LISTO"; // listo para recoger; se avisa al cliente
+    public static final String ENTREGADO = "ENTREGADO"; // el cliente ya lo recogió
 
     private int idPedido;
     private String codigoQR; // null hasta que el pedido se registra, cuando ya existe su id real.

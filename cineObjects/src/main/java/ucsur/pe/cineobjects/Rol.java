@@ -1,15 +1,15 @@
 package ucsur.pe.cineobjects;
 
 /**
- * Define el nivel de acceso de una persona empleada y los permisos que obtiene con ese nivel.
- * El nombre es obligatorio y el nivel solo puede ser de dulcería o de administración.
+ * Por qué existe: define qué puede hacer un empleado: dulcería (atender pedidos)
+ * o administrador (además, administrar el cine).
  */
 public class Rol {
-    // Acciones que pueden comprobarse con tienePermiso.
+    // Acciones que se comprueban con tienePermiso (constantes: se usan como Rol.NOMBRE y su valor no cambia).
     public static final String ADMINISTRAR = "ADMINISTRAR";       // CRUD de películas, funciones, salas, promociones, etc.
     public static final String ATENDER_PEDIDO = "ATENDER_PEDIDO"; // preparar y entregar pedidos
 
-    // Dulcería puede atender pedidos; administración incluye también las tareas administrativas.
+    // Niveles de acceso (constantes: se usan como Rol.NOMBRE y su valor no cambia).
     public static final int NIVEL_DULCERIA = 1; // Puede preparar y entregar pedidos.
     public static final int NIVEL_ADMIN = 2; // Incluye administración y atención de pedidos.
 

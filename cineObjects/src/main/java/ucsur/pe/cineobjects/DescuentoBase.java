@@ -3,12 +3,13 @@ package ucsur.pe.cineobjects;
 import ucsur.pe.cineInterfaz.Descuento;
 
 /**
- * Base común de los descuentos comerciales (cupones y promociones).
- * Centraliza tipo, valor, periodo y estado; cada subclase define cuándo es aplicable a una compra.
+ * Por qué existe: junta lo común de Cupon y Promocion (tipo, valor, fechas y si está activo)
+ * para no repetirlo. Cada hija decide cuándo se aplica a una compra.
  */
 public abstract class DescuentoBase implements Descuento {
-    public static final String PORCENTAJE = "PORCENTAJE";
-    public static final String MONTO_FIJO = "MONTO_FIJO";
+    // Tipos de descuento (constantes: se usan como DescuentoBase.NOMBRE y su valor no cambia).
+    public static final String PORCENTAJE = "PORCENTAJE"; // el valor es un % del total (por ejemplo 10 = 10%)
+    public static final String MONTO_FIJO = "MONTO_FIJO"; // el valor son soles (por ejemplo 5 = S/ 5.00)
 
     protected final String tipoDescuento;
     protected final double valor; // porcentaje (0 a 100) o monto en soles, según el tipo

@@ -3,13 +3,14 @@ package ucsur.pe.cineobjects;
 import java.util.ArrayList;
 import java.util.List;
 /**
- * Guarda la información de una película y sus géneros para mostrarla en la cartelera.
- * Exige título, duración positiva y clasificación de edad válida; el estado solo admite los valores definidos.
+ * Por qué existe: guarda los datos de una película (título, duración, clasificación y géneros)
+ * para mostrarla en la cartelera.
  */
 public class Pelicula {
-    public static final String PROXIMAMENTE = "PROXIMAMENTE";
-    public static final String EN_CARTELERA = "EN_CARTELERA";
-    public static final String FUERA_DE_CARTELERA = "FUERA_DE_CARTELERA";
+    // Estados de una película (constantes: se usan como Pelicula.NOMBRE y su valor no cambia).
+    public static final String PROXIMAMENTE = "PROXIMAMENTE"; // aún no se estrena
+    public static final String EN_CARTELERA = "EN_CARTELERA"; // se está proyectando
+    public static final String FUERA_DE_CARTELERA = "FUERA_DE_CARTELERA"; // ya no se proyecta
 
     private int idPelicula;
     private String titulo;
@@ -98,7 +99,7 @@ public class Pelicula {
     public String getPoster() { return poster; }
     public DateTime getFechaEstreno() { return fechaEstreno; }
     public String getEstado() { return estado; }
-    public List<Genero> getGeneros() { return generos; }
+    public List<Genero> getGeneros() { return new ArrayList<>(generos); } // copia: la lista interna no se modifica desde fuera
 
     /** Cambia el estado; solo admite PROXIMAMENTE, EN_CARTELERA o FUERA_DE_CARTELERA. */
     public void setEstado(String estado) {

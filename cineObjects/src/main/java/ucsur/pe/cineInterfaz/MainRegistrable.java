@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package ucsur.pe.cineInterfaz;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,15 +16,14 @@ import ucsur.pe.cineobjects.Producto;
 import ucsur.pe.cineobjects.Reclamo;
 import ucsur.pe.cineobjects.Sala;
 import ucsur.pe.cineobjects.Sede;
-import ucsur.pe.cineobjects.TipoEntradaGeneral;
+import ucsur.pe.cineobjects.TipoEntrada;
 import ucsur.pe.cineobjects.TipoSala;
 import ucsur.pe.cineobjects.TransaccionPago;
 
 /**
- *
- * @author Usuario
+ * Por qué existe: demo de polimorfismo. Pedido, Reclamo y Calificacion se registran como Registrable,
+ * incluidos los casos que se rechazan.
  */
-
 public class MainRegistrable {
 
     public static void main(String[] args) {
@@ -138,7 +133,7 @@ public class MainRegistrable {
                 new DateTime(19, 0), "Doblada", null, pelicula, sala);
         sede.agregarFuncion(funcion);
 
-        TipoEntradaGeneral general = new TipoEntradaGeneral(1, "GENERAL", "Entrada general", 20.0, false, true);
+        TipoEntrada general = new TipoEntrada(1, "GENERAL", "Entrada general", 20.0, 2, false, true);
         Compra compra = cliente.realizarCompra(sede);
         compra.agregarEntrada(new Entrada(0, funcion, funcion.recomendarMejoresAsientos(1).get(0), general));
         compra.confirmarSeleccionAsientos();

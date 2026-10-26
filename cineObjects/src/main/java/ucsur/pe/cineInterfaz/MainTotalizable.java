@@ -1,13 +1,5 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package ucsur.pe.cineInterfaz;
 
-/**
- *
- * @author Usuario
- */
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +10,9 @@ import ucsur.pe.cineobjects.Producto;
 import ucsur.pe.cineobjects.DetallePedido;
 import ucsur.pe.cineobjects.Sede;
 
+/**
+ * Por qué existe: demo de polimorfismo. Pedido y Compra calculan su total como Totalizable.
+ */
 public class MainTotalizable {
 
     public static void main(String[] args) {
@@ -93,47 +88,3 @@ public class MainTotalizable {
         }
     }
 }
-
-
-
-/*
-
----------------- Código sin datos(el total saldrá cero por la falta de estos)---------------
-
-public class MainTotalizable {
-
-    public static void main(String[] args) {
-
-        System.out.println("--- PROBANDO TOTALIZABLE ---");
-
-        // 1. Creamos un cliente invitado
-        Cliente cliente1 = Cliente.ingresarComoInvitado("invitado@cine.com");
-
-        // 2. Creamos una compra para ese cliente
-        Compra compra1 = cliente1.realizarCompra();
-
-        // 3. Creamos un pedido de dulceria
-        Pedido pedido1 = new Pedido(1);
-
-        // 4. Asociamos el pedido a la compra
-        compra1.asignarPedido(pedido1);
-
-        // 5. Creamos una lista de objetos Totalizable
-        List<Totalizable> listaTotales = new ArrayList<>();
-
-        listaTotales.add(pedido1);
-        listaTotales.add(compra1);
-
-        // 6. Calculamos los totales mediante polimorfismo
-        System.out.println("\n--- TOTALES ---");
-
-        for (Totalizable t : listaTotales) {
-            System.out.printf(
-                "%s: S/ %.2f%n",
-                t.getClass().getSimpleName(),
-                t.calcularTotal()
-            );
-        }
-    }
-}
-*/

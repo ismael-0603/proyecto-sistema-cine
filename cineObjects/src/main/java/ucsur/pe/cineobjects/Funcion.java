@@ -5,15 +5,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 /**
- * Representa una proyección y administra su horario, estado, disponibilidad y entradas emitidas.
- * Requiere fecha, hora, idioma, película y sala; el estado solo puede ser uno de los estados definidos.
+ * Por qué existe: es la proyección de una película en una sala, en una fecha y hora.
+ * Sabe qué butacas están libres y si todavía se puede vender.
  */
 public class Funcion {
-    public static final String DISPONIBLE = "DISPONIBLE";
-    public static final String AGOTADA = "AGOTADA";
-    public static final String EN_CURSO = "EN_CURSO";
-    public static final String FINALIZADA = "FINALIZADA";
-    public static final String CANCELADA = "CANCELADA";
+    // Estados de una función (constantes: se usan como Funcion.NOMBRE y su valor no cambia).
+    public static final String DISPONIBLE = "DISPONIBLE"; // se pueden vender entradas
+    public static final String AGOTADA = "AGOTADA"; // no quedan butacas libres
+    public static final String EN_CURSO = "EN_CURSO"; // la película ya empezó
+    public static final String FINALIZADA = "FINALIZADA"; // la película ya terminó
+    public static final String CANCELADA = "CANCELADA"; // el cine la canceló; permite reembolsos
 
     private int idFuncion;
     private DateTime fecha;      // solo fecha: DateTime(dia, mes, anio)

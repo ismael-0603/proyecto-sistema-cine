@@ -1,26 +1,28 @@
 package ucsur.pe.cineobjects;
 
 /**
- * Define una tarifa de entrada, sus requisitos de elegibilidad y los puntos que genera.
- * El nombre es obligatorio, la descripción tiene un máximo de 200 caracteres y la tarifa no puede ser negativa.
+ * Por qué existe: es una tarifa de entrada (General, Socio, Niño...) con su precio y los puntos que da.
+ * Los puntos son un dato, así un tipo nuevo no necesita una clase nueva.
  */
-public abstract class TipoEntrada {
+public class TipoEntrada {
     private int idTipoEntrada;
     private String nombre;
     private String descripcion;
     private double tarifa;
+    /** Puntos base que gana el cliente por cada entrada de este tipo, antes del multiplicador de nivel. */
+    private int puntosPorEntrada;
     private boolean requiereSocio; // si es true, solo la compra un cliente socio
     /** Puntos que cuesta canjear esta tarifa; cero significa que no se descuentan puntos. */
     private int puntosCanje;
     private boolean estado;
 
-    protected TipoEntrada(int idTipoEntrada, String nombre, String descripcion,
-                          double tarifa, boolean requiereSocio, boolean estado) {
-        this(idTipoEntrada, nombre, descripcion, tarifa, requiereSocio, estado, 0);
+    public TipoEntrada(int idTipoEntrada, String nombre, String descripcion, double tarifa,
+                       int puntosPorEntrada, boolean requiereSocio, boolean estado) {
+        this(idTipoEntrada, nombre, descripcion, tarifa, puntosPorEntrada, requiereSocio, estado, 0);
     }
 
-    protected TipoEntrada(int idTipoEntrada, String nombre, String descripcion,
-                          double tarifa, boolean requiereSocio, boolean estado, int puntosCanje) {
+    public TipoEntrada(int idTipoEntrada, String nombre, String descripcion, double tarifa,
+                       int puntosPorEntrada, boolean requiereSocio, boolean estado, int puntosCanje) {
         if (nombre == null || nombre.trim().isEmpty() || nombre.trim().length() > 40) {
             throw new IllegalArgumentException("El nombre es obligatorio (máx. 40 caracteres)");
         }
@@ -29,6 +31,9 @@ public abstract class TipoEntrada {
         }
         if (tarifa < 0) {
             throw new IllegalArgumentException("La tarifa no puede ser negativa");
+        }
+        if (puntosPorEntrada < 0) {
+            throw new IllegalArgumentException("Los puntos por entrada no pueden ser negativos");
         }
         if (puntosCanje < 0) {
             throw new IllegalArgumentException("Los puntos de canje no pueden ser negativos");
@@ -40,6 +45,7 @@ public abstract class TipoEntrada {
         this.nombre = nombre.trim();
         this.descripcion = descripcion;
         this.tarifa = tarifa;
+        this.puntosPorEntrada = puntosPorEntrada;
         this.requiereSocio = requiereSocio;
         this.estado = estado;
         this.puntosCanje = puntosCanje;
@@ -63,43 +69,33 @@ public abstract class TipoEntrada {
     }
 
     /** Habilita esta tarifa para nuevas compras. */
-    public void activar() { 
-        this.estado = true; 
-    }
-    
-    /** Deshabilita esta tarifa para nuevas compras. */
-    public void desactivar() { 
-        this.estado = false; 
-    }
-    
-    /** Devuelve los puntos que entrega esta tarifa; si está inactiva, devuelve cero. */
-    public int obtenerPuntos() {
-        return this.estado ? puntosBase() : 0;
+    public void activar() {
+        this.estado = true;
     }
 
-    /** Cada categoría de entrada define cuántos puntos otorga. */
-    protected abstract int puntosBase();
+    /** Deshabilita esta tarifa para nuevas compras. */
+    public void desactivar() {
+        this.estado = false;
+    }
+
+    /** Puntos base que entrega esta tarifa, sin multiplicador; si está inactiva, devuelve cero. */
+    public int obtenerPuntos() {
+        return this.estado ? puntosPorEntrada : 0;
+    }
 
     /**
-     * Crea la categoría adecuada a partir del nombre guardado en la tabla tipo_entrada:
-     * SOCIO, GENERAL/ADULTO o, en cualquier otro caso, entrada reducida.
+     * Puntos que gana este cliente con una entrada de este tipo: los puntos base
+     * multiplicados según su nivel de socio (un invitado no gana puntos).
      */
-    public static TipoEntrada desdeNombre(int idTipoEntrada, String nombre, String descripcion,
-                                          double tarifa, boolean requiereSocio, boolean estado, int puntosCanje) {
-        String n = nombre == null ? "" : nombre.trim().toUpperCase();
-        return switch (n) {
-            case "SOCIO", "ENTRADA SOCIO" ->
-                    new TipoEntradaSocio(idTipoEntrada, nombre, descripcion, tarifa, requiereSocio, estado, puntosCanje);
-            case "GENERAL", "ADULTO", "ENTRADA GENERAL" ->
-                    new TipoEntradaGeneral(idTipoEntrada, nombre, descripcion, tarifa, requiereSocio, estado, puntosCanje);
-            default ->
-                    new TipoEntradaReducida(idTipoEntrada, nombre, descripcion, tarifa, requiereSocio, estado, puntosCanje);
-        };
+    public int calcularPuntos(Cliente cliente) {
+        if (cliente == null) return 0;
+        return cliente.aplicarMultiplicador(obtenerPuntos());
     }
 
     public int getIdTipoEntrada() { return idTipoEntrada; }
     public String getNombre() { return nombre; }
     public String getDescripcion() { return descripcion; }
+    public int getPuntosPorEntrada() { return puntosPorEntrada; }
     public boolean isRequiereSocio() { return requiereSocio; }
     public boolean isEstado() { return estado; }
 

@@ -1,17 +1,19 @@
 package ucsur.pe.cineobjects;
 
 /**
- * Simula el procesamiento de un pago y conserva el resultado asociado a una compra.
- * El monto debe ser no negativo, el medio de pago reconocido y la compra obligatoria.
+ * Por qué existe: simula el pago de una compra (tarjeta, billetera digital o QR):
+ * lo aprueba o lo rechaza y permite reembolsar.
  */
 public class TransaccionPago {
-    public static final String TARJETA = "TARJETA";
-    public static final String BILLETERA_DIGITAL = "BILLETERA_DIGITAL";
-    public static final String QR = "QR";
+    // Medios de pago (constantes: se usan como TransaccionPago.NOMBRE y su valor no cambia).
+    public static final String TARJETA = "TARJETA"; // tarjeta de crédito o débito
+    public static final String BILLETERA_DIGITAL = "BILLETERA_DIGITAL"; // billetera del celular (por ejemplo Yape o Plin)
+    public static final String QR = "QR"; // pago escaneando un código QR
 
-    public static final String PENDIENTE = "PENDIENTE";
-    public static final String APROBADO = "APROBADO";
-    public static final String RECHAZADO = "RECHAZADO";
+    // Estados de un pago (constantes: se usan como TransaccionPago.NOMBRE y su valor no cambia).
+    public static final String PENDIENTE = "PENDIENTE"; // creado, aún sin procesar
+    public static final String APROBADO = "APROBADO"; // pago aceptado; la compra queda confirmada
+    public static final String RECHAZADO = "RECHAZADO"; // pago no aceptado; se guarda el motivo
 
     private static int contadorReferencia = 0; // simula la referencia que daría una pasarela de pago real
 

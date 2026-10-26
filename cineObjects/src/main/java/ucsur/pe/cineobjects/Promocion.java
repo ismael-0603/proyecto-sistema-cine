@@ -3,8 +3,8 @@ package ucsur.pe.cineobjects;
 import java.util.ArrayList;
 import java.util.List;
 /**
- * Define un descuento con vigencia, días permitidos y una regla opcional para clientes socios.
- * Valida el tipo y rango del descuento, el periodo y que cada día esté entre lunes (1) y domingo (7).
+ * Por qué existe: es un descuento que el cine aplica por fechas y días de la semana,
+ * opcionalmente solo para socios.
  */
 public class Promocion extends DescuentoBase {
     private int idPromocion;

@@ -2,7 +2,10 @@ package ucsur.pe.cineInterfaz;
 
 import ucsur.pe.cineobjects.Sede;
 
-/** Define operaciones para consultar, descontar y reponer las existencias de un producto en una sede. */
+/**
+ * Por qué existe: para manejar el stock de un producto en cada sede (consultar, descontar, reponer)
+ * sin depender de cómo lo guarda el producto.
+ */
 public interface Inventariable {
     /** Indica si la sede tiene existencias suficientes para la cantidad solicitada. */
     boolean verificarStock(Sede sede, int cant);

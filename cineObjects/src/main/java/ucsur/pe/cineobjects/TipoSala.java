@@ -1,8 +1,7 @@
 package ucsur.pe.cineobjects;
 
 /**
- * Describe el formato de una sala, sus características y el recargo aplicado a la tarifa.
- * El formato es obligatorio, la descripción tiene un máximo de 150 caracteres y el recargo no puede ser negativo.
+ * Por qué existe: es el formato de una sala (2D, 3D...) y el recargo que suma al precio de la entrada.
  */
 public class TipoSala {
     private int idTipoSala;
