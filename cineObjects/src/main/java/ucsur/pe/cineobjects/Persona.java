@@ -1,11 +1,13 @@
 package ucsur.pe.cineobjects;
 
+import ucsur.pe.cineobjects.cineInterfaz.Autenticable;
+
 /**
  * Clase base para clientes y empleados; centraliza sus datos personales y validaciones comunes.
  * El DNI, cuando se proporciona, debe tener ocho dígitos; también se valida el correo, teléfono,
  * fecha de nacimiento y longitud de la contraseña. Los datos obligatorios se exigen según el tipo de cuenta.
  */
-public abstract class Persona {
+public abstract class Persona implements Autenticable {
     protected String dni;
     protected String nombres;
     protected String apellidos;
@@ -30,6 +32,7 @@ public abstract class Persona {
 
     // Operaciones compartidas de inicio de sesión y datos personales.
     /** Inicia sesión solo si la cuenta está activa y coinciden correo y contraseña. */
+    @Override
     public boolean iniciarSesion(String correo, String contra) {
         if (!estado || this.correo == null || this.contra == null || correo == null || contra == null) {
             return false;
@@ -38,6 +41,7 @@ public abstract class Persona {
     }
 
     /** Valida correo y teléfono antes de guardar; si alguno no sirve, conserva los datos anteriores. */
+    @Override
     public boolean modificarDatos(String telefono, String correo) {
         try {
             String nuevoCorreo = validarCorreo(correo);

@@ -59,7 +59,7 @@ public class CineObjects {
         titulo("2. Compra basica");
         Cliente cliente = new Cliente(1, "12345678", "Ismael", "Chipana",
                 new DateTime(1, 1, 2000), "ismael@mail.com", null, "clave123");
-        TipoEntrada general = new TipoEntrada(1, "GENERAL", "Entrada general", 20.0, false, true);
+        TipoEntrada general = new TipoEntradaGeneral(1, "GENERAL", "Entrada general", 20.0, false, true);
 
         Compra compra = cliente.realizarCompra();
         System.out.println("Asientos recomendados: " + funcion.recomendarMejoresAsientos(2));
@@ -162,8 +162,8 @@ public class CineObjects {
         titulo("6. Entradas y combos de socio");
         cliente.acumularPuntos(300); // saldo de prueba
         System.out.println("Saldo de puntos de prueba: " + cliente.consultarPuntos());
-        TipoEntrada normal = new TipoEntrada(2, "GENERAL", "Entrada general", 30.0, false, true);
-        TipoEntrada socio50 = new TipoEntrada(3, "SOCIO", "Entrada socio a mitad de precio", 15.0, true, true, 40);
+        TipoEntrada normal = new TipoEntradaGeneral(2, "GENERAL", "Entrada general", 30.0, false, true);
+        TipoEntrada socio50 = new TipoEntradaSocio(3, "SOCIO", "Entrada socio a mitad de precio", 15.0, true, true, 40);
         Producto comboNivel2 = new Producto(2, "Combo Oferta Nivel 2", "Oferta para socios nivel 2", "Combos", 30.0, true, 2, 5, true);
         Producto comboSocio = new Producto(3, "Combo Socio", "Oferta para socios", "Combos", 25.0, true, 1, 5, true);
         System.out.println("Tarifa normal: " + normal.getTarifa());

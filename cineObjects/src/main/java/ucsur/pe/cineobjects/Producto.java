@@ -1,11 +1,13 @@
 package ucsur.pe.cineobjects;
 
+import ucsur.pe.cineobjects.cineInterfaz.Inventariable;
+
 /**
  * Representa un producto de dulcería y administra su estado, stock y puntos si es un combo.
  * Valida nombre, categoría, límites de descripción, precio y stock no negativos.
  * Un producto puede ser una oferta disponible solo desde cierto nivel de socio.
  */
-public class Producto {
+public class Producto implements Inventariable {
     public static final int PUNTOS_COMBO = 2;
     public static final int NIVEL_SOCIO_MAXIMO = 4;
 
@@ -57,6 +59,7 @@ public class Producto {
     }
 
     /** Devuelve true si el producto está activo y hay unidades suficientes para la cantidad solicitada. */
+    @Override
     public boolean verificarStock(int cant) {
         return this.estado && cant > 0 && this.stock >= cant;
     }
@@ -71,6 +74,7 @@ public class Producto {
     }
 
     /** Descuenta unidades solo cuando la cantidad es positiva y el producto tiene stock suficiente. */
+    @Override
     public void descontarStock(int cant) {
         if (cant <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
@@ -82,6 +86,7 @@ public class Producto {
     }
 
     /** Aumenta el stock; rechaza cantidades iguales o menores que cero. */
+    @Override
     public void reponerStock(int cant) {
         if (cant <= 0) {
             throw new IllegalArgumentException("La cantidad a reponer debe ser mayor a 0");

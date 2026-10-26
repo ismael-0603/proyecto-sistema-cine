@@ -453,7 +453,7 @@ public class Compra implements Totalizable{
                 serieNumero, fechaHora, subtotal, descuento, igv, total);
     }
 
-    public void setEstado(String estado) {
+    void setEstado(String estado) {
         if (!EN_PROCESO.equals(estado) && !CONFIRMADA.equals(estado) && !CANCELADA.equals(estado)
                 && !EXPIRADA.equals(estado) && !REEMBOLSADA.equals(estado)) {
             throw new IllegalArgumentException("Estado de compra inválido: " + estado);
