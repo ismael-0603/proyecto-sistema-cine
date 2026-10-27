@@ -1,7 +1,8 @@
-package ucsur.pe.cineInterfaz;
+package ucsur.pe.demo;
 
 import java.util.ArrayList;
 import java.util.List;
+import ucsur.pe.cineInterfaz.Autenticable;
 
 import ucsur.pe.cineobjects.Cliente;
 import ucsur.pe.cineobjects.DateTime;

@@ -1,10 +1,13 @@
 package ucsur.pe.cineobjects;
 
+import ucsur.pe.cineInterfaz.CalculoDescuento;
+
 /**
  * Por qué existe: es un código de descuento que escribe el cliente (por ejemplo CINE10),
  * con fechas de vigencia y un límite de usos.
  */
 public class Cupon extends DescuentoBase {
+    public static final int ORDEN_APLICACION = 2; // se aplica después de las promociones
     private int idCupon;
     private String codigo; // el cliente lo escribe para aplicar el cupón; no distingue mayúsculas
     /** Máximo de compras que pueden usar el cupón; cero significa que no se puede usar. */
@@ -12,9 +15,9 @@ public class Cupon extends DescuentoBase {
     /** Cantidad de veces que ya se aplicó en compras confirmadas. */
     private int usosRealizados;
 
-    public Cupon(int idCupon, String codigo, String tipoDescuento, double descuento,
+    public Cupon(int idCupon, String codigo, CalculoDescuento calculo,
                  DateTime fechaInicio, DateTime fechaFin, int limiteUso, boolean estado) {
-        super(tipoDescuento, descuento, fechaInicio, fechaFin, estado);
+        super(calculo, fechaInicio, fechaFin, estado);
         if (codigo == null || codigo.trim().isEmpty() || codigo.trim().length() > 30) {
             throw new IllegalArgumentException("El código es obligatorio (máx. 30 caracteres)");
         }
@@ -39,7 +42,14 @@ public class Cupon extends DescuentoBase {
         return compra != null && validarVigencia(compra.getFechaHora());
     }
 
+    /** El cupón va después de las promociones: descuenta sobre lo que ya quedó. */
+    @Override
+    public int getOrdenAplicacion() {
+        return ORDEN_APLICACION;
+    }
+
     /** Suma un uso al cupón y falla si ya alcanzó el límite configurado. */
+    @Override
     public void registrarUso() {
         if (usosRealizados >= limiteUso) {
             throw new IllegalStateException("El cupón " + codigo + " alcanzó su límite de uso");
@@ -49,8 +59,6 @@ public class Cupon extends DescuentoBase {
 
     public int getIdCupon() { return idCupon; }
     public String getCodigo() { return codigo; }
-    /** Valor del descuento: porcentaje o monto fijo, según el tipo. */
-    public double getDescuento() { return valor; }
     public int getLimiteUso() { return limiteUso; }
     public int getUsosRealizados() { return usosRealizados; }
 

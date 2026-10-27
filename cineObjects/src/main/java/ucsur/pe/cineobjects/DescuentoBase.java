@@ -1,32 +1,21 @@
 package ucsur.pe.cineobjects;
 
+import ucsur.pe.cineInterfaz.CalculoDescuento;
 import ucsur.pe.cineInterfaz.Descuento;
 
 /**
- * Por qué existe: junta lo común de Cupon y Promocion (tipo, valor, fechas y si está activo)
- * para no repetirlo. Cada hija decide cuándo se aplica a una compra.
+ * Por qué existe: junta lo común de Cupon y Promocion (forma de cálculo, fechas y si está activo)
+ * para no repetirlo. Cada hija decide cuándo se aplica a una compra; el cálculo lo hace su CalculoDescuento.
  */
 public abstract class DescuentoBase implements Descuento {
-    // Tipos de descuento (constantes: se usan como DescuentoBase.NOMBRE y su valor no cambia).
-    public static final String PORCENTAJE = "PORCENTAJE"; // el valor es un % del total (por ejemplo 10 = 10%)
-    public static final String MONTO_FIJO = "MONTO_FIJO"; // el valor son soles (por ejemplo 5 = S/ 5.00)
+    private final CalculoDescuento calculo; // porcentaje, monto fijo...: cada forma calcula a su manera
+    private final DateTime fechaInicio; // solo fecha: DateTime(dia, mes, anio)
+    private final DateTime fechaFin;    // solo fecha: DateTime(dia, mes, anio)
+    private boolean estado; // habilitado o no; es independiente de las fechas
 
-    protected final String tipoDescuento;
-    protected final double valor; // porcentaje (0 a 100) o monto en soles, según el tipo
-    protected final DateTime fechaInicio; // solo fecha: DateTime(dia, mes, anio)
-    protected final DateTime fechaFin;    // solo fecha: DateTime(dia, mes, anio)
-    protected boolean estado; // habilitado o no; es independiente de las fechas
-
-    protected DescuentoBase(String tipoDescuento, double valor, DateTime fechaInicio,
-                            DateTime fechaFin, boolean estado) {
-        if (!PORCENTAJE.equals(tipoDescuento) && !MONTO_FIJO.equals(tipoDescuento)) {
-            throw new IllegalArgumentException("Tipo de descuento inválido: " + tipoDescuento);
-        }
-        if (valor < 0) {
-            throw new IllegalArgumentException("El valor del descuento no puede ser negativo");
-        }
-        if (PORCENTAJE.equals(tipoDescuento) && valor > 100) {
-            throw new IllegalArgumentException("Un porcentaje no puede superar 100");
+    protected DescuentoBase(CalculoDescuento calculo, DateTime fechaInicio, DateTime fechaFin, boolean estado) {
+        if (calculo == null) {
+            throw new IllegalArgumentException("La forma de calcular el descuento es obligatoria");
         }
         if (fechaInicio == null || fechaFin == null) {
             throw new IllegalArgumentException("Las fechas de inicio y fin son obligatorias");
@@ -34,11 +23,22 @@ public abstract class DescuentoBase implements Descuento {
         if (fechaFin.esAntesDe(fechaInicio)) {
             throw new IllegalArgumentException("La fecha fin no puede ser menor a la fecha inicio");
         }
-        this.tipoDescuento = tipoDescuento;
-        this.valor = valor;
+        this.calculo = calculo;
         this.fechaInicio = fechaInicio;
         this.fechaFin = fechaFin;
         this.estado = estado;
+    }
+
+    /**
+     * Convierte lo guardado en la BD (columnas tipo_descuento y valor) en su forma de cálculo.
+     * Es el único lugar que traduce ese texto; el resto del código trabaja con el objeto.
+     */
+    public static CalculoDescuento crearCalculo(String tipoDescuento, double valor) {
+        return switch (tipoDescuento == null ? "" : tipoDescuento) {
+            case CalculoPorcentaje.TIPO -> new CalculoPorcentaje(valor);
+            case CalculoMontoFijo.TIPO -> new CalculoMontoFijo(valor);
+            default -> throw new IllegalArgumentException("Tipo de descuento inválido: " + tipoDescuento);
+        };
     }
 
     /** Comprueba que el descuento esté habilitado y que la fecha esté dentro de su periodo. */
@@ -47,18 +47,19 @@ public abstract class DescuentoBase implements Descuento {
         return estado && fecha != null && fecha.estaEnRangoFecha(fechaInicio, fechaFin);
     }
 
-    /** Calcula el descuento; el monto fijo se limita al total y un descuento inactivo no descuenta. */
+    /** Un descuento inactivo no descuenta; si está activo, su forma de cálculo decide cuánto. */
     @Override
     public double calcularDescuento(double total) {
-        if (!estado || total <= 0) return 0.0;
-        if (PORCENTAJE.equals(tipoDescuento)) {
-            return total * (valor / 100.0);
-        }
-        return Math.min(total, valor); // MONTO_FIJO
+        if (!estado) return 0.0;
+        return calculo.calcular(total);
     }
 
-    /** Cada tipo de descuento define sus propias condiciones para aplicarse a una compra. */
-    public abstract boolean esAplicable(Compra compra);
+    // esAplicable y getOrdenAplicacion vienen de la interfaz Descuento y quedan abstractos:
+    // cada hija (Cupon, Promocion) los define a su manera.
+
+    /** Por defecto usar el descuento no cambia nada; Cupon lo redefine para contar sus usos. */
+    @Override
+    public void registrarUso() { }
 
     /** Habilita el descuento. */
     @Override
@@ -68,14 +69,17 @@ public abstract class DescuentoBase implements Descuento {
     @Override
     public void desactivar() { this.estado = false; }
 
-    public String getTipoDescuento() { return tipoDescuento; }
+    public CalculoDescuento getCalculo() { return calculo; }
+    /** Texto para la columna tipo_descuento de la BD, como "PORCENTAJE". */
+    public String getTipoDescuento() { return calculo.getTipo(); }
+    /** Porcentaje o monto en soles, según la forma de cálculo. */
+    public double getValor() { return calculo.getValor(); }
     public DateTime getFechaInicio() { return fechaInicio; }
     public DateTime getFechaFin() { return fechaFin; }
     public boolean isEstado() { return estado; }
 
     /** Texto del valor, como "10%" o "S/ 5.00". */
     protected String describirValor() {
-        return PORCENTAJE.equals(tipoDescuento)
-                ? String.format("%.0f%%", valor) : "S/ " + String.format("%.2f", valor);
+        return calculo.describir();
     }
 }

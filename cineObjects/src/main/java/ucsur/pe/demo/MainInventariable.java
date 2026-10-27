@@ -1,5 +1,6 @@
-package ucsur.pe.cineInterfaz;
+package ucsur.pe.demo;
 
+import ucsur.pe.cineInterfaz.Inventariable;
 import ucsur.pe.cineobjects.Producto;
 import ucsur.pe.cineobjects.Sede;
 

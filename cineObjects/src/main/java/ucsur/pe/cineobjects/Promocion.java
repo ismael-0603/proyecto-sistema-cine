@@ -2,11 +2,14 @@ package ucsur.pe.cineobjects;
 
 import java.util.ArrayList;
 import java.util.List;
+import ucsur.pe.cineInterfaz.CalculoDescuento;
+
 /**
  * Por qué existe: es un descuento que el cine aplica por fechas y días de la semana,
  * opcionalmente solo para socios.
  */
 public class Promocion extends DescuentoBase {
+    public static final int ORDEN_APLICACION = 1; // se aplica primero, sobre el subtotal
     private int idPromocion;
     private String nombre;
     private String descripcion;
@@ -14,10 +17,10 @@ public class Promocion extends DescuentoBase {
     /** Días en que aplica: 1 es lunes y 7 domingo; una lista vacía permite cualquier día. */
     private List<Integer> diasAplicables;
 
-    public Promocion(int idPromocion, String nombre, String descripcion, String tipoDescuento,
-                     double valor, DateTime fechaInicio, DateTime fechaFin,
+    public Promocion(int idPromocion, String nombre, String descripcion, CalculoDescuento calculo,
+                     DateTime fechaInicio, DateTime fechaFin,
                      boolean soloSocios, List<Integer> diasAplicables, boolean estado) {
-        super(tipoDescuento, valor, fechaInicio, fechaFin, estado);
+        super(calculo, fechaInicio, fechaFin, estado);
         if (nombre == null || nombre.trim().isEmpty() || nombre.trim().length() > 40) {
             throw new IllegalArgumentException("El nombre es obligatorio (máx. 40 caracteres)");
         }
@@ -55,10 +58,15 @@ public class Promocion extends DescuentoBase {
         return true;
     }
 
+    /** Las promociones del cine van primero: descuentan sobre el subtotal completo. */
+    @Override
+    public int getOrdenAplicacion() {
+        return ORDEN_APLICACION;
+    }
+
     public int getIdPromocion() { return idPromocion; }
     public String getNombre() { return nombre; }
     public String getDescripcion() { return descripcion; }
-    public double getValor() { return valor; }
     public boolean isSoloSocios() { return soloSocios; }
     public List<Integer> getDiasAplicables() { return new ArrayList<>(diasAplicables); }
 

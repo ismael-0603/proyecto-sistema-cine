@@ -1,6 +1,7 @@
-package ucsur.pe.cineInterfaz;
+package ucsur.pe.demo;
 import java.util.ArrayList;
 import java.util.List;
+import ucsur.pe.cineInterfaz.Registrable;
 
 import ucsur.pe.cineobjects.Butaca;
 import ucsur.pe.cineobjects.Calificacion;

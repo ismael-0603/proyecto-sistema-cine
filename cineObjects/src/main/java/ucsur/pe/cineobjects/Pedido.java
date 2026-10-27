@@ -1,5 +1,6 @@
 package ucsur.pe.cineobjects;
 
+import ucsur.pe.cineInterfaz.Inventariable;
 import ucsur.pe.cineInterfaz.Registrable;
 import ucsur.pe.cineInterfaz.Totalizable;
 import java.util.ArrayList;
@@ -89,17 +90,20 @@ public class Pedido implements Totalizable, Registrable{
     /**
      * Verifica primero el stock de todas las líneas en la sede del pedido y luego lo descuenta.
      * Devuelve false si el pedido no tiene sede o si algo no procede.
+     * Para el stock, el pedido ve cada producto solo como Inventariable: no necesita saber nada más de él.
      */
     @Override
     public boolean registrar() {
         if (registrado || detalles.isEmpty() || sede == null) return false;
         for (DetallePedido d : detalles) {
-            if (!d.getProducto().verificarStock(sede, d.getCantidad())) {
+            Inventariable articulo = d.getProducto();
+            if (!articulo.verificarStock(sede, d.getCantidad())) {
                 return false;
             }
         }
         for (DetallePedido d : detalles) {
-            d.getProducto().descontarStock(sede, d.getCantidad());
+            Inventariable articulo = d.getProducto();
+            articulo.descontarStock(sede, d.getCantidad());
         }
         this.registrado = true;
         this.fechaHora = DateTime.ahora();
@@ -110,6 +114,7 @@ public class Pedido implements Totalizable, Registrable{
     }
 
     /** Suma los subtotales de todas las líneas y guarda el total actualizado. */
+    @Override
     public double calcularTotal() {
         double suma = 0;
         for (DetallePedido d : detalles) {

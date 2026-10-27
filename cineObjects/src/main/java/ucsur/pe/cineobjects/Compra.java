@@ -1,6 +1,8 @@
 package ucsur.pe.cineobjects;
 
+import ucsur.pe.cineInterfaz.Descuento;
 import ucsur.pe.cineInterfaz.Totalizable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,8 +30,8 @@ public class Compra implements Totalizable{
     private String estado;
     private Cliente cliente;
     private Sede sede; // Sede donde se hace la compra; en la BD es compra.id_sede NOT NULL.
-    private Cupon cupon;
-    private Promocion promocion;
+    /** Cupones y promociones aplicados; Compra los trata a todos como Descuento (la interfaz). */
+    private final List<Descuento> descuentos = new ArrayList<>();
     private Pedido pedido;
 
     // Colaboradores: cada uno se encarga de una parte de la compra.
@@ -116,14 +118,14 @@ public class Compra implements Totalizable{
     }
 
     // ---------- Totales (delegado en CalculadoraImporte) ----------
-    /** Recalcula subtotal, promoción, cupón, IGV y total, y los puntos que cuesta la compra. */
+    /** Recalcula subtotal, descuentos, IGV y total, y los puntos que cuesta la compra. */
     @Override
     public double calcularTotal() {
         List<Entrada> validas = asientos.getEntradasValidas();
         if (EN_PROCESO.equals(estado)) {
             this.puntosCanjeados = gestorPuntos.calcularPuntosRequeridos(validas);
         }
-        this.importe = calculadora.calcular(validas, pedido, promocion, cupon);
+        this.importe = calculadora.calcular(validas, pedido, descuentos);
         return importe.getTotal();
     }
 
@@ -141,41 +143,35 @@ public class Compra implements Totalizable{
         gestorPuntos.validarBeneficiosSocio(cliente, asientos.getEntradasValidas(), pedido);
     }
 
-    // ---------- Cupón y promoción ----------
+    // ---------- Descuentos (cupones y promociones vistos como Descuento) ----------
     /** Busca el cupón por código en el catálogo y lo aplica si sigue vigente. */
     public boolean aplicarCupon(String codigo, CatalogoCupones catalogo) {
         validarEnProceso();
         if (catalogo == null) return false;
         Cupon encontrado = catalogo.buscarPorCodigo(codigo);
-        return encontrado != null && aplicarCupon(encontrado);
+        return encontrado != null && aplicarDescuento(encontrado);
     }
 
-    /** Asigna un cupón vigente a la compra y actualiza el total. */
-    public boolean aplicarCupon(Cupon cupon) {
+    /**
+     * Aplica cualquier descuento (cupón, promoción...) si cumple sus condiciones para esta compra.
+     * Como en la BD (columnas id_cupon e id_promocion), hay a lo más uno de cada clase:
+     * uno nuevo de la misma clase reemplaza al anterior.
+     */
+    public boolean aplicarDescuento(Descuento descuento) {
         validarEnProceso();
-        if (cupon != null && cupon.validarVigencia(DateTime.ahora())) {
-            this.cupon = cupon;
-            calcularTotal();
-            return true;
+        if (descuento == null || !descuento.esAplicable(this)) {
+            return false;
         }
-        return false;
-    }
-
-    /** Asigna una promoción aplicable a la compra y actualiza el total. */
-    public boolean aplicarPromocion(Promocion promocion) {
-        validarEnProceso();
-        if (promocion != null && promocion.esAplicable(this)) {
-            this.promocion = promocion;
-            calcularTotal();
-            return true;
-        }
-        return false;
+        descuentos.removeIf(d -> d.getClass() == descuento.getClass());
+        descuentos.add(descuento);
+        calcularTotal();
+        return true;
     }
 
     // ---------- Confirmación, cancelación y reembolso ----------
     /**
      * Confirma la venta si el plazo sigue vigente, los asientos ya están bloqueados y los datos son válidos.
-     * Antes de cambiar estados valida las entradas, los beneficios de socio, los puntos, el cupón y el pedido.
+     * Antes de cambiar estados valida las entradas, los beneficios de socio, los puntos, los descuentos y el pedido.
      */
     public boolean confirmar() {
         if (!EN_PROCESO.equals(estado)) return false;
@@ -199,8 +195,10 @@ public class Compra implements Totalizable{
 
         // 2. La compra debe tener algo que vender
         if (asientos.contarBloqueadas() == 0 && pedido == null) return false;
-        // 3. El cupón debe seguir vigente
-        if (cupon != null && !cupon.validarVigencia(DateTime.ahora())) return false;
+        // 3. Cada descuento debe seguir siendo aplicable (por ejemplo, un cupón que agotó sus usos ya no)
+        for (Descuento d : descuentos) {
+            if (!d.esAplicable(this)) return false;
+        }
 
         calcularTotal();
 
@@ -219,8 +217,8 @@ public class Compra implements Totalizable{
 
         // 6. Ya no hay nada que pueda fallar: se confirma todo
         asientos.venderBloqueadas();
-        if (cupon != null) {
-            cupon.registrarUso();
+        for (Descuento d : descuentos) {
+            d.registrarUso(); // cada descuento sabe qué hacer: el cupón suma un uso, la promoción nada
         }
         if (puntosCanjeados > 0) {
             cliente.canjearPuntos(puntosCanjeados);
@@ -318,8 +316,7 @@ public class Compra implements Totalizable{
     public String getEstado() { return estado; }
     public Cliente getCliente() { return cliente; }
     public Sede getSede() { return sede; }
-    public Cupon getCupon() { return cupon; }
-    public Promocion getPromocion() { return promocion; }
+    public List<Descuento> getDescuentos() { return new ArrayList<>(descuentos); }
     public Pedido getPedido() { return pedido; }
     public List<Entrada> getEntradas() { return asientos.getEntradas(); }
 

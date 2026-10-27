@@ -1,7 +1,31 @@
-package ucsur.pe.cineobjects;
+package ucsur.pe.demo;
 
 import java.util.ArrayList;
 import java.util.List;
+import ucsur.pe.cineobjects.Butaca;
+import ucsur.pe.cineobjects.CalculoPorcentaje;
+import ucsur.pe.cineobjects.Calificacion;
+import ucsur.pe.cineobjects.CatalogoCupones;
+import ucsur.pe.cineobjects.Cliente;
+import ucsur.pe.cineobjects.Compra;
+import ucsur.pe.cineobjects.Cupon;
+import ucsur.pe.cineobjects.DateTime;
+import ucsur.pe.cineobjects.DetallePedido;
+import ucsur.pe.cineobjects.Empleado;
+import ucsur.pe.cineobjects.Entrada;
+import ucsur.pe.cineobjects.Funcion;
+import ucsur.pe.cineobjects.Genero;
+import ucsur.pe.cineobjects.Pedido;
+import ucsur.pe.cineobjects.Pelicula;
+import ucsur.pe.cineobjects.Producto;
+import ucsur.pe.cineobjects.Promocion;
+import ucsur.pe.cineobjects.Reclamo;
+import ucsur.pe.cineobjects.Rol;
+import ucsur.pe.cineobjects.Sala;
+import ucsur.pe.cineobjects.Sede;
+import ucsur.pe.cineobjects.TipoEntrada;
+import ucsur.pe.cineobjects.TipoSala;
+import ucsur.pe.cineobjects.TransaccionPago;
 
 /**
  * Por qué existe: programa de prueba que recorre el flujo completo del cine (cartelera, compra,
@@ -107,7 +131,7 @@ public class CineObjects {
         titulo("4. Entrada + combo + cupon + pedido");
         Producto combo = new Producto(1, "Combo Mediano", "Canchita y gaseosa", "Combos", 25.0, true, true);
         combo.reponerStock(sede, 10);
-        Cupon cupon = new Cupon(1, "CINE10", Cupon.PORCENTAJE, 10,
+        Cupon cupon = new Cupon(1, "CINE10", new CalculoPorcentaje(10),
                 new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 5, true);
         CatalogoCupones catalogo = new CatalogoCupones();
         catalogo.registrar(cupon);
@@ -275,14 +299,14 @@ public class CineObjects {
         soloHoy.add(diaHoy);
         List<Integer> otroDia = new ArrayList<>();
         otroDia.add(diaHoy % 7 + 1);
-        Promocion pHoy = new Promocion(1, "Promo hoy", "20% solo hoy", Promocion.PORCENTAJE, 20,
+        Promocion pHoy = new Promocion(1, "Promo hoy", "20% solo hoy", new CalculoPorcentaje(20),
                 new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), false, soloHoy, true);
-        Promocion pOtro = new Promocion(2, "Promo otro dia", "20% otro dia", Promocion.PORCENTAJE, 20,
+        Promocion pOtro = new Promocion(2, "Promo otro dia", "20% otro dia", new CalculoPorcentaje(20),
                 new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), false, otroDia, true);
         Compra cp = cliente.realizarCompra(sede);
         System.out.println("Hoy es dia " + diaHoy
-                + " | promo de hoy aplicable: " + cp.aplicarPromocion(pHoy)
-                + " | promo de otro dia aplicable: " + cp.aplicarPromocion(pOtro));
+                + " | promo de hoy aplicable: " + cp.aplicarDescuento(pHoy)
+                + " | promo de otro dia aplicable: " + cp.aplicarDescuento(pOtro));
         cp.cancelar();
 
         Calificacion cal = new Calificacion(0, 5, "Excelente atencion", compra);
