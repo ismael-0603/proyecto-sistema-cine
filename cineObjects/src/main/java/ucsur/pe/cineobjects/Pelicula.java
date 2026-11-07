@@ -27,21 +27,14 @@ public class Pelicula {
     public Pelicula(int idPelicula, String titulo, String sinopsis, int duracion,
                     String clasificacionEdad, String trailer, String poster,
                     DateTime fechaEstreno, String estado) {
-        if (titulo == null || titulo.trim().isEmpty()) {
-            throw new IllegalArgumentException("El título es obligatorio");
-        }
         if (duracion <= 0) {
             throw new IllegalArgumentException("La duración debe ser mayor a 0");
         }
-        if (clasificacionEdad == null || clasificacionEdad.trim().isEmpty()
-                || clasificacionEdad.trim().length() > 10) {
-            throw new IllegalArgumentException("Clasificación obligatoria (máx. 10 caracteres)");
-        }
         this.idPelicula = idPelicula;
-        this.titulo = titulo.trim();
+        this.titulo = validarTitulo(titulo);
         this.sinopsis = sinopsis;
         this.duracion = duracion;
-        this.clasificacionEdad = clasificacionEdad.trim();
+        this.clasificacionEdad = validarClasificacion(clasificacionEdad);
         this.trailer = trailer;
         this.poster = poster;
         this.fechaEstreno = fechaEstreno;
@@ -66,6 +59,46 @@ public class Pelicula {
                 generos.isEmpty() ? "N/A" : nombresGeneros.toString(),
                 fechaEstreno != null ? fechaEstreno.soloFecha() : "N/A",
                 estado);
+    }
+
+    /**
+     * Caso de uso "Actualizar película": cambia los datos que se muestran en cartelera, con las mismas
+     * validaciones del constructor. La duración no se cambia aquí porque las funciones ya programadas
+     * dependen de ella para calcular su hora de fin y los cruces de horario.
+     */
+    public void actualizarInformacion(String titulo, String sinopsis, String clasificacionEdad,
+                                      String trailer, String poster, DateTime fechaEstreno) {
+        String nuevoTitulo = validarTitulo(titulo);
+        String nuevaClasificacion = validarClasificacion(clasificacionEdad);
+        this.titulo = nuevoTitulo;
+        this.sinopsis = sinopsis;
+        this.clasificacionEdad = nuevaClasificacion;
+        this.trailer = trailer;
+        this.poster = poster;
+        this.fechaEstreno = fechaEstreno;
+    }
+
+    /** Quita un género de la película; devuelve false si no lo tenía. */
+    public boolean quitarGenero(Genero genero) {
+        if (genero == null) return false;
+        return generos.removeIf(g -> g.getIdGenero() == genero.getIdGenero());
+    }
+
+    /** El título es obligatorio y en la BD es VARCHAR(150). */
+    private static String validarTitulo(String titulo) {
+        if (titulo == null || titulo.trim().isEmpty() || titulo.trim().length() > 150) {
+            throw new IllegalArgumentException("El título es obligatorio (máx. 150 caracteres)");
+        }
+        return titulo.trim();
+    }
+
+    /** La clasificación es obligatoria y en la BD es VARCHAR(10). */
+    private static String validarClasificacion(String clasificacionEdad) {
+        if (clasificacionEdad == null || clasificacionEdad.trim().isEmpty()
+                || clasificacionEdad.trim().length() > 10) {
+            throw new IllegalArgumentException("Clasificación obligatoria (máx. 10 caracteres)");
+        }
+        return clasificacionEdad.trim();
     }
 
     /** Agrega el género si no se había agregado ya; un valor nulo se ignora. */

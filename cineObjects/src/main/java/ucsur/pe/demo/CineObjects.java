@@ -62,7 +62,7 @@ public class CineObjects {
 
         Funcion funcion = new Funcion(1, fechaFuncion, new DateTime(19, 0), "Doblada", null, peli, sala);
         sede.agregarFuncion(funcion);
-        System.out.println("Funcion: " + funcion + " | hora fin: " + funcion.calcularHoraFin().soloHora());
+        System.out.println("Funcion: " + funcion + " | hora fin: " + funcion.obtenerFechaHoraFin().soloHora());
 
         // Solapamiento: empieza a las 20:00 y la anterior termina a las 21:00 (+15 min de limpieza)
         try {
@@ -92,7 +92,7 @@ public class CineObjects {
         }
         System.out.println("Asientos bloqueados: " + compra.confirmarSeleccionAsientos());
 
-        TransaccionPago pago = new TransaccionPago(0, compra.getTotal(), TransaccionPago.TARJETA, compra);
+        TransaccionPago pago = new TransaccionPago(0, compra.getTotal(), TransaccionPago.TARJETA_CREDITO, compra);
         System.out.println("Pago aprobado: " + pago.procesarPago());
         compra.asignarSerie("B001-000001"); // simula la serie que asigna la base al confirmar
         System.out.println(compra.generarComprobante());
@@ -148,7 +148,7 @@ public class CineObjects {
         System.out.println("Cupon aplicado: " + c3.aplicarCupon("CINE10", catalogo));
         System.out.println("Asientos bloqueados: " + c3.confirmarSeleccionAsientos());
 
-        TransaccionPago pago3 = new TransaccionPago(0, c3.getTotal(), TransaccionPago.QR, c3);
+        TransaccionPago pago3 = new TransaccionPago(0, c3.getTotal(), TransaccionPago.YAPE, c3);
         System.out.println("Pago aprobado: " + pago3.procesarPago());
         c3.asignarSerie("B001-000002"); // simula la serie que asigna la base
         System.out.println(c3.generarComprobante());
@@ -157,7 +157,7 @@ public class CineObjects {
 
         empleado.prepararPedido(pedido);
         System.out.println(pedido);
-        pedido.marcarListo();
+        System.out.println(pedido.marcarListo());
         System.out.println("Codigo QR valido: " + pedido.validarCodigo(pedido.getCodigoQR()));
         empleado.entregarPedido(pedido);
         System.out.println(pedido);
@@ -167,7 +167,7 @@ public class CineObjects {
         Compra c5 = cliente.realizarCompra(sede);
         c5.agregarEntrada(new Entrada(0, funcion3, sala.obtenerMapaButacas().get(2), general)); // A3
         c5.confirmarSeleccionAsientos();
-        TransaccionPago pago5 = new TransaccionPago(0, 1.0, TransaccionPago.TARJETA, c5);
+        TransaccionPago pago5 = new TransaccionPago(0, 1.0, TransaccionPago.TARJETA_DEBITO, c5);
         System.out.println("Pago con monto incorrecto: " + pago5.procesarPago()
                 + " | motivo: " + pago5.getMotivoRechazo());
         c5.cancelar();
@@ -176,11 +176,11 @@ public class CineObjects {
         Compra c4 = cliente.realizarCompra(sede);
         c4.agregarEntrada(new Entrada(0, funcion3, sala.obtenerMapaButacas().get(1), general)); // A2
         c4.confirmarSeleccionAsientos();
-        TransaccionPago pago4 = new TransaccionPago(0, c4.getTotal(), TransaccionPago.TARJETA, c4);
+        TransaccionPago pago4 = new TransaccionPago(0, c4.getTotal(), TransaccionPago.TARJETA_CREDITO, c4);
         System.out.println("Pago c4 aprobado: " + pago4.procesarPago());
         System.out.println("Puntos antes del reembolso: " + cliente.consultarPuntos());
         System.out.println("Reembolso con funcion activa: " + pago4.reembolsar());
-        funcion3.setEstado(Funcion.CANCELADA);
+        funcion3.cancelar();
         System.out.println("Reembolso con funcion cancelada: " + pago4.reembolsar());
         System.out.println("Estado c4: " + c4.getEstado());
         System.out.println("Puntos despues del reembolso: " + cliente.consultarPuntos());
@@ -218,7 +218,7 @@ public class CineObjects {
         c6.asignarPedido(pedido6);
         System.out.println("Asientos bloqueados: " + c6.confirmarSeleccionAsientos());
 
-        TransaccionPago pago6 = new TransaccionPago(0, c6.getTotal(), TransaccionPago.TARJETA, c6);
+        TransaccionPago pago6 = new TransaccionPago(0, c6.getTotal(), TransaccionPago.PLIN, c6);
         System.out.println("Pago aprobado: " + pago6.procesarPago());
         c6.asignarSerie("B001-000003"); // simula la serie que asigna la base
         System.out.println(c6.generarComprobante());
@@ -250,7 +250,7 @@ public class CineObjects {
         c8.cancelar();
 
         // Reembolso: la funcion se cancela y los puntos vuelven a su saldo
-        funcion.setEstado(Funcion.CANCELADA);
+        funcion.cancelar();
         System.out.println("Reembolso c6: " + pago6.reembolsar());
         System.out.println("Estado c6: " + c6.getEstado() + " | puntos tras reembolso: " + cliente.consultarPuntos());
 
@@ -281,7 +281,7 @@ public class CineObjects {
             Compra cv = frecuente.realizarCompra(sede);
             cv.agregarEntrada(new Entrada(0, funcion4, sala2.obtenerMapaButacas().get(i), general));
             cv.confirmarSeleccionAsientos();
-            new TransaccionPago(0, cv.getTotal(), TransaccionPago.QR, cv).procesarPago();
+            new TransaccionPago(0, cv.getTotal(), TransaccionPago.PAGO_QR, cv).procesarPago();
         }
         System.out.println("Visitas del cliente frecuente: " + frecuente.contarVisitasAnioActual());
         System.out.println("Nivel de socio: " + frecuente.getNivelSocio()

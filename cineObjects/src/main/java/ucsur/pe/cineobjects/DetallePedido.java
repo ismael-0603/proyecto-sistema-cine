@@ -40,8 +40,11 @@ public class DetallePedido {
         return this.subtotal;
     }
 
-    /** Cambia la cantidad si es positiva; el stock de la sede se comprueba al registrar el pedido. */
-    public void modificarCantidad(int cant) {
+    /**
+     * Cambia la cantidad si es positiva; el stock de la sede se comprueba al registrar el pedido.
+     * No es pública: se cambia con Pedido.modificarCantidad, que impide tocar un pedido ya registrado.
+     */
+    void modificarCantidad(int cant) {
         if (cant <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
         }

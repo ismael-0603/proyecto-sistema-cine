@@ -1,10 +1,12 @@
 package ucsur.pe.cineobjects;
 
+import ucsur.pe.cineInterfaz.Activable;
+
 /**
  * Por qué existe: es una tarifa de entrada (General, Socio, Niño...) con su precio y los puntos que da.
  * Los puntos son un dato, así un tipo nuevo no necesita una clase nueva.
  */
-public class TipoEntrada {
+public class TipoEntrada implements Activable {
     private int idTipoEntrada;
     private String nombre;
     private String descripcion;
@@ -69,11 +71,13 @@ public class TipoEntrada {
     }
 
     /** Habilita esta tarifa para nuevas compras. */
+    @Override
     public void activar() {
         this.estado = true;
     }
 
     /** Deshabilita esta tarifa para nuevas compras. */
+    @Override
     public void desactivar() {
         this.estado = false;
     }
@@ -83,20 +87,13 @@ public class TipoEntrada {
         return this.estado ? puntosPorEntrada : 0;
     }
 
-    /**
-     * Puntos que gana este cliente con una entrada de este tipo: los puntos base
-     * multiplicados según su nivel de socio (un invitado no gana puntos).
-     */
-    public int calcularPuntos(Cliente cliente) {
-        if (cliente == null) return 0;
-        return cliente.aplicarMultiplicador(obtenerPuntos());
-    }
 
     public int getIdTipoEntrada() { return idTipoEntrada; }
     public String getNombre() { return nombre; }
     public String getDescripcion() { return descripcion; }
     public int getPuntosPorEntrada() { return puntosPorEntrada; }
     public boolean isRequiereSocio() { return requiereSocio; }
+    @Override
     public boolean isEstado() { return estado; }
 
     @Override

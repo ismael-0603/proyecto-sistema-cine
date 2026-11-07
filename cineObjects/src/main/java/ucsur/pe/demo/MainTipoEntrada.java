@@ -31,7 +31,8 @@ public class MainTipoEntrada {
                 + " (multiplicador x" + socio.obtenerMultiplicadorPuntos() + ") e invitado:");
         for (TipoEntrada t : tipos) {
             System.out.printf("%s: base %d punto(s) | socio gana %d | invitado gana %d%n",
-                    t, t.obtenerPuntos(), t.calcularPuntos(socio), t.calcularPuntos(invitado));
+                    t, t.obtenerPuntos(), socio.aplicarMultiplicador(t.obtenerPuntos()),
+                    invitado.aplicarMultiplicador(t.obtenerPuntos()));
         }
 
         TipoEntrada inactiva = tipos.get(0);

@@ -11,8 +11,6 @@ public class Entrada {
     public static final String EXPIRADA = "EXPIRADA"; // el bloqueo venció sin pagar; la butaca se libera
     public static final String ANULADA = "ANULADA"; // cancelada o reembolsada; la butaca se libera
 
-    public static final int TIEMPO_BLOQUEO_MIN = 4; // máximo de minutos que una butaca puede quedar bloqueada
-
     private int idEntrada;
     private String codigoQR; // se crea al confirmar la venta
     private double precio; // tarifa del tipo de entrada más el recargo del formato de sala
@@ -65,28 +63,23 @@ public class Entrada {
         this.idEntrada = idEntrada;
     }
 
-    /** Bloquea la butaca hasta la hora límite compartida con la compra. */
-    public boolean bloquearTemporalmente(DateTime fechaExpiracion) {
+    /** Bloquea la butaca hasta la hora límite compartida con la compra; solo la usa SeleccionAsientos. */
+    boolean bloquearTemporalmente(DateTime fechaExpiracion) {
         if (fechaExpiracion == null || !DateTime.ahora().esAntesDe(fechaExpiracion)) {
             return false; // El tiempo de la compra ya venció
         }
         if (!BLOQUEADA.equals(estado) || expiraBloqueo != null) {
             throw new IllegalStateException("La entrada ya fue bloqueada o no está en estado BLOQUEADA");
         }
-        if (!funcion.estaDisponible() || !funcion.esButacaDisponible(butaca)) {
-            return false;
-        }
+        // Si la función no está disponible o la butaca ya está ocupada, Funcion.registrarEntrada lo rechaza.
         this.expiraBloqueo = fechaExpiracion;
-        funcion.registrarEntrada(this);
-        return true;
-    }
-
-    /** Bloquea la butaca durante la cantidad de minutos indicada, hasta un máximo de cuatro. */
-    public boolean bloquearTemporalmente(int minutos) {
-        if (minutos <= 0 || minutos > TIEMPO_BLOQUEO_MIN) {
-            throw new IllegalArgumentException("El tiempo de bloqueo debe estar entre 1 y " + TIEMPO_BLOQUEO_MIN + " minutos");
+        try {
+            funcion.registrarEntrada(this);
+        } catch (RuntimeException ex) {
+            this.expiraBloqueo = null; // si la función la rechaza, la entrada vuelve a ser solo una preselección
+            throw ex;
         }
-        return bloquearTemporalmente(DateTime.ahora().sumarMinutos(minutos));
+        return true;
     }
 
     /** Comprueba si venció el bloqueo y, en ese caso, expira la entrada y libera la butaca. */
@@ -99,7 +92,7 @@ public class Entrada {
     }
 
     /** Marca la entrada como expirada y quita su bloqueo de la función. */
-    public void expirar() {
+    void expirar() {
         if (BLOQUEADA.equals(estado)) {
             this.estado = EXPIRADA;
             this.expiraBloqueo = null;
@@ -117,8 +110,8 @@ public class Entrada {
         return this.precio;
     }
 
-    /** Cambia el bloqueo vigente a venta y crea el código QR de la entrada. */
-    public void confirmarVenta() {
+    /** Cambia el bloqueo vigente a venta y crea el código QR; solo se vende al confirmar la compra pagada. */
+    void confirmarVenta() {
         if (!BLOQUEADA.equals(estado)) {
             throw new IllegalStateException("Solo se puede confirmar una entrada BLOQUEADA (estado actual: " + estado + ")");
         }
@@ -137,8 +130,8 @@ public class Entrada {
         this.codigoQR = generarCodigoQR();
     }
 
-    /** Anula una entrada bloqueada o vendida y actualiza la disponibilidad de la función. */
-    public void anular() {
+    /** Anula una entrada bloqueada o vendida; solo al cancelar o reembolsar la compra. */
+    void anular() {
         if (!BLOQUEADA.equals(estado) && !VENDIDA.equals(estado)) {
             throw new IllegalStateException("No se puede anular una entrada en estado " + estado);
         }
@@ -154,7 +147,7 @@ public class Entrada {
     }
     
     /** Deshace el bloqueo y devuelve la entrada a la preselección. */
-    public void liberarBloqueo() {
+    void liberarBloqueo() {
         if (BLOQUEADA.equals(estado) && expiraBloqueo != null) {
             this.expiraBloqueo = null;
             funcion.liberarEntrada(this);

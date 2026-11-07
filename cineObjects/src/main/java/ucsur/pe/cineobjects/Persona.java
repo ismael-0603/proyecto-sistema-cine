@@ -1,12 +1,12 @@
 package ucsur.pe.cineobjects;
 
-import ucsur.pe.cineInterfaz.Autenticable;
 
 /**
  * Por qué existe: junta lo común de Cliente y Empleado (datos personales, validaciones e inicio de sesión)
  * para no repetirlo. Es abstracta: no se crean personas sueltas, solo clientes o empleados.
  */
-public abstract class Persona implements Autenticable {
+public abstract class Persona {
+    // protected: las subclases (Cliente y Empleado) pueden acceder a estos datos directamente.
     protected String dni;
     protected String nombres;
     protected String apellidos;
@@ -31,7 +31,6 @@ public abstract class Persona implements Autenticable {
 
     // Operaciones compartidas de inicio de sesión y datos personales.
     /** Inicia sesión solo si la cuenta está activa y coinciden correo y contraseña. */
-    @Override
     public boolean iniciarSesion(String correo, String contra) {
         if (!estado || this.correo == null || this.contra == null || correo == null || contra == null) {
             return false;
@@ -40,7 +39,6 @@ public abstract class Persona implements Autenticable {
     }
 
     /** Valida correo y teléfono antes de guardar; si alguno no sirve, conserva los datos anteriores. */
-    @Override
     public boolean modificarDatos(String telefono, String correo) {
         try {
             String nuevoCorreo = validarCorreo(correo);
@@ -65,15 +63,20 @@ public abstract class Persona implements Autenticable {
         return this.fechaNac.calcularAniosHasta(DateTime.ahora());
     }
 
+    /** Indica si están los datos obligatorios de una cuenta registrada; la subclase pregunta sin ver la contraseña. */
+    protected final boolean tieneDatosCompletos() {
+        return dni != null && nombres != null && apellidos != null && correo != null && contra != null;
+    }
+
     // Validaciones comunes del modelo; estos campos son obligatorios para cuentas registradas.
-    protected void exigirDatosCompletos() {
-        if (dni == null || nombres == null || apellidos == null || correo == null || contra == null) {
+    protected final void exigirDatosCompletos() {
+        if (!tieneDatosCompletos()) {
             throw new IllegalArgumentException("DNI, nombres, apellidos, correo y contraseña son obligatorios");
         }
     }
 
     // Un invitado no necesita datos personales, pero sí correo.
-    protected void exigirCorreo() {
+    protected final void exigirCorreo() {
         if (correo == null) {
             throw new IllegalArgumentException("El correo es obligatorio");
         }
@@ -145,7 +148,6 @@ public abstract class Persona implements Autenticable {
     public void setFechaNac(DateTime fechaNac) { this.fechaNac = validarFechaNac(fechaNac); }
 
     public String getCorreo() { return correo; }
-    public void setCorreo(String correo) { this.correo = validarCorreo(correo); }
 
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = validarTelefono(telefono); }

@@ -33,7 +33,6 @@ public class TipoSala {
     public int getIdTipoSala() { return idTipoSala; }
     public String getFormato() { return formato; }
     public String getDescripcion() { return descripcion; }
-    public double getTarifaAdicional() { return tarifaAdicional; }
 
     @Override
     public String toString() {

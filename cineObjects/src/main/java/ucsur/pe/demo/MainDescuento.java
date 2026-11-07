@@ -2,6 +2,7 @@ package ucsur.pe.demo;
 
 import java.util.ArrayList;
 import java.util.List;
+import ucsur.pe.cineInterfaz.Activable;
 import ucsur.pe.cineInterfaz.CalculoDescuento;
 import ucsur.pe.cineInterfaz.Descuento;
 
@@ -46,8 +47,12 @@ public class MainDescuento {
                 desdeBD.getTipo(), desdeBD.getValor(), desdeBD.describir(), desdeBD.calcular(100.0));
 
         System.out.println("\n--- DESACTIVAR ---");
+        // Desactivar es tarea del administrador: se usa la interfaz Activable, no Descuento.
+        List<Activable> administrables = List.of(cupon, promo);
+        for (Activable a : administrables) {
+            a.desactivar();
+        }
         for (Descuento d : descuentos) {
-            d.desactivar();
             System.out.printf("%s: vigente=%b, descuento=S/ %.2f%n",
                     d, d.validarVigencia(hoy), d.calcularDescuento(100.0));
         }

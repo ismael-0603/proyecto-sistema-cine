@@ -1,11 +1,10 @@
 package ucsur.pe.cineobjects;
-import ucsur.pe.cineInterfaz.Registrable;
 
 /**
  * Por qué existe: registra un reclamo, queja o pedido de reembolso sobre una compra
  * y su atención hasta que se cierra.
  */
-public class Reclamo implements Registrable {
+public class Reclamo {
     // Tipos de reclamo (constantes: se usan como Reclamo.NOMBRE y su valor no cambia).
     public static final String RECLAMO = "RECLAMO"; // problema con el servicio o la compra
     public static final String QUEJA = "QUEJA"; // malestar o inconformidad con la atención
@@ -25,7 +24,6 @@ public class Reclamo implements Registrable {
     private String estado;
     private String respuesta; // texto con el que se cierra; si se rechaza, es el motivo
     private Compra compra;
-    private boolean registrado; // evita registrar el mismo reclamo dos veces
 
     public Reclamo(int idReclamo, String tipo, String descripcion, Compra compra) {
         if (!RECLAMO.equals(tipo) && !QUEJA.equals(tipo) && !REEMBOLSO.equals(tipo)) {
@@ -43,19 +41,16 @@ public class Reclamo implements Registrable {
         this.fecha = DateTime.ahora();
         this.estado = BORRADOR;
         this.compra = compra;
-        this.registrado = false;
     }
 
     /** Formaliza el reclamo una sola vez y solo para compras confirmadas o reembolsadas. */
-    @Override
     public boolean registrar() {
-        if (registrado) return false;
+        if (!BORRADOR.equals(estado)) return false; // ya registrado: no se registra dos veces
         if (!Compra.CONFIRMADA.equals(compra.getEstado()) && !Compra.REEMBOLSADA.equals(compra.getEstado())) {
             return false;
         }
         this.fecha = DateTime.ahora();
         this.estado = REGISTRADO;
-        this.registrado = true;
         return true;
     }
 
@@ -91,7 +86,7 @@ public class Reclamo implements Registrable {
 
     /** Impide revisar o responder reclamos que no se registraron o que ya fueron cerrados. */
     private void validarAbierto() {
-        if (!registrado) {
+        if (BORRADOR.equals(estado)) {
             throw new IllegalStateException("El reclamo aún no fue registrado");
         }
         if (RESUELTO.equals(estado) || RECHAZADO.equals(estado)) {

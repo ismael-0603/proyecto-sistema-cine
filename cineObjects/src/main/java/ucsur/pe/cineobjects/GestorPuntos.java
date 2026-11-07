@@ -45,33 +45,51 @@ public class GestorPuntos {
     /**
      * Comprueba que las entradas de socio y los combos de oferta los use un cliente con el nivel requerido,
      * y que el saldo de puntos alcance para los tipos de entrada que cuestan puntos.
+     * Devuelve null si todo está bien, o el motivo si algo no se cumple (no lanza errores).
      */
-    public void validarBeneficiosSocio(Cliente cliente, List<Entrada> entradasValidas, Pedido pedido) {
+    public String motivoBeneficiosSocio(Cliente cliente, List<Entrada> entradasValidas, Pedido pedido) {
         for (Entrada e : entradasValidas) {
             TipoEntrada t = e.getTipoEntrada();
             if (t != null && !t.validarElegibilidad(cliente)) {
-                throw new IllegalStateException("El cliente no puede usar la entrada '" + t.getNombre()
-                        + "' (es exclusiva para socios o está inactiva)");
+                return "El cliente no puede usar la entrada '" + t.getNombre()
+                        + "' (es exclusiva para socios o está inactiva)";
             }
         }
         int requeridos = calcularPuntosRequeridos(entradasValidas);
         if (requeridos > cliente.consultarPuntos()) {
-            throw new IllegalStateException("Puntos insuficientes: la compra requiere " + requeridos
-                    + " y el saldo es " + cliente.consultarPuntos());
+            return "Puntos insuficientes: la compra requiere " + requeridos
+                    + " y el saldo es " + cliente.consultarPuntos();
         }
-        validarProductosSocio(cliente, pedido);
+        return motivoProductosSocio(cliente, pedido);
+    }
+
+    /** Igual que motivoBeneficiosSocio, pero lanza un error con el motivo (para avisar al cliente). */
+    public void validarBeneficiosSocio(Cliente cliente, List<Entrada> entradasValidas, Pedido pedido) {
+        lanzarSiHayMotivo(motivoBeneficiosSocio(cliente, entradasValidas, pedido));
     }
 
     /** Rechaza productos de oferta si el cliente no tiene el nivel de socio requerido. */
     public void validarProductosSocio(Cliente cliente, Pedido pedido) {
-        if (pedido == null) return;
+        lanzarSiHayMotivo(motivoProductosSocio(cliente, pedido));
+    }
+
+    /** Devuelve null si el cliente puede llevar todos los productos del pedido, o el motivo si no. */
+    private String motivoProductosSocio(Cliente cliente, Pedido pedido) {
+        if (pedido == null) return null;
         for (DetallePedido d : pedido.getDetalles()) {
             Producto prod = d.getProducto();
             if (!prod.validarElegibilidad(cliente)) {
-                throw new IllegalStateException("El producto '" + prod.getNombre()
+                return "El producto '" + prod.getNombre()
                         + "' no está disponible para este cliente (nivel de socio requerido: "
-                        + prod.getNivelSocioMinimo() + ", o producto inactivo)");
+                        + prod.getNivelSocioMinimo() + ", o producto inactivo)";
             }
+        }
+        return null;
+    }
+
+    private static void lanzarSiHayMotivo(String motivo) {
+        if (motivo != null) {
+            throw new IllegalStateException(motivo);
         }
     }
 }

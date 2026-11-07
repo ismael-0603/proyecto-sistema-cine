@@ -42,7 +42,9 @@ public class Funcion {
         this.pelicula = pelicula;
         this.sala = sala;
         this.entradasEmitidas = new ArrayList<>();
-        setEstado(estado != null ? estado : DISPONIBLE);
+        String estadoInicial = (estado != null) ? estado : DISPONIBLE;
+        validarEstado(estadoInicial);
+        this.estado = estadoInicial;
     }
 
     /** Combina la fecha y la hora guardadas por separado para comparar el horario completo. */
@@ -54,11 +56,6 @@ public class Funcion {
     /** Suma la duración a la fecha y hora de inicio, incluso si termina al día siguiente. */
     public DateTime obtenerFechaHoraFin() {
         return obtenerFechaHoraInicio().sumarMinutos(pelicula.getDuracion());
-    }
-
-    /** Devuelve solo la hora de fin, sin fecha, para mostrarla en cartelera. */
-    public DateTime calcularHoraFin() {
-        return horaInicio.sumarMinutosAHora(pelicula.getDuracion());
     }
 
     /** Recalcula el estado según la hora y las butacas libres; una función CANCELADA no cambia. */
@@ -82,13 +79,25 @@ public class Funcion {
         return DISPONIBLE.equals(estado);
     }
 
-    /** Fija el estado si es uno de los cinco definidos. */
-    public void setEstado(String estado) {
+    /**
+     * Cancela la función (por ejemplo, por una falla técnica); permite reembolsar sus entradas.
+     * Reemplaza al antiguo setEstado: los demás estados los calcula actualizarEstado() según la hora
+     * y las butacas libres, así que no se ponen a mano.
+     */
+    public void cancelar() {
+        actualizarEstado();
+        if (FINALIZADA.equals(estado)) {
+            throw new IllegalStateException("No se puede cancelar una función que ya terminó");
+        }
+        this.estado = CANCELADA;
+    }
+
+    /** Valida que el estado inicial sea uno de los cinco definidos (en la BD, ck_funcion_estado). */
+    private static void validarEstado(String estado) {
         if (!DISPONIBLE.equals(estado) && !AGOTADA.equals(estado) && !EN_CURSO.equals(estado)
                 && !FINALIZADA.equals(estado) && !CANCELADA.equals(estado)) {
             throw new IllegalArgumentException("Estado de función inválido: " + estado);
         }
-        this.estado = estado;
     }
 
     /** Indica si el idioma de la función incluye subtítulos. */
@@ -130,8 +139,8 @@ public class Funcion {
         return obtenerButacasDisponibles().size();
     }
     
-    /** Quita una entrada de la función para dejar la butaca libre sin marcarla como anulada. */
-    public void liberarEntrada(Entrada entrada) {
+    /** Quita una entrada de la función para dejar la butaca libre sin marcarla como anulada; solo la usa Entrada. */
+    void liberarEntrada(Entrada entrada) {
         entradasEmitidas.remove(entrada);
         actualizarEstado();
     }
@@ -192,16 +201,15 @@ public class Funcion {
         return (min + max) / 2.0;
     }
 
-    /** Registra una entrada solo si pertenece a esta función y su butaca aún está libre. */
-    public void registrarEntrada(Entrada entrada) {
-        if (entrada == null) {
-            throw new IllegalArgumentException("La entrada no puede ser nula");
-        }
-        if (entrada.getFuncion() != this) {
-            throw new IllegalArgumentException("La entrada pertenece a otra función");
-        }
-        if (entrada.getButaca().getSala() != this.sala) {
-            throw new IllegalArgumentException("La butaca no pertenece a la sala de la función");
+    /**
+     * Registra una entrada solo si pertenece a esta función, ya trae su hora de expiración y su butaca
+     * aún está libre. No es pública: solo Entrada la llama al bloquearse, así ninguna butaca queda
+     * bloqueada para siempre por una entrada sin vencimiento.
+     */
+    void registrarEntrada(Entrada entrada) {
+        // Solo la llama Entrada sobre sí misma, y su constructor ya garantiza que es de esta función y sala.
+        if (!Entrada.BLOQUEADA.equals(entrada.getEstado()) || entrada.getExpiraBloqueo() == null) {
+            throw new IllegalStateException("La entrada debe llegar bloqueada y con su hora de expiración");
         }
         actualizarEstado();
         if (!DISPONIBLE.equals(estado)) {

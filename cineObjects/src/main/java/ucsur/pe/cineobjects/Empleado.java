@@ -18,6 +18,7 @@ public class Empleado extends Persona {
                     String correoElectronico, String telefono, String contra,
                     String turno, Rol rol, Sede sede) {
         super(dni, nombres, apellidos, fechaNac, correoElectronico, telefono, contra);
+        exigirDatosCompletos(); // en la BD dni, nombres, apellidos, correo y contra del empleado son NOT NULL
         if (rol == null) throw new IllegalArgumentException("El rol es obligatorio");
         if (sede == null) throw new IllegalArgumentException("La sede es obligatoria");
         if (turno != null && turno.length() > 20) {
@@ -52,13 +53,31 @@ public class Empleado extends Persona {
         }
     }
 
+    /**
+     * Pone en la cola del empleado un pedido registrado y PENDIENTE de su misma sede.
+     * Con esto prepararPedido() y entregarPedido() sin parámetros tienen pedidos que atender.
+     */
+    public void asignarPedido(Pedido pedido) {
+        validarPermisoPedidos();
+        if (pedido == null) {
+            throw new IllegalArgumentException("El pedido es obligatorio");
+        }
+        if (!pedido.isRegistrado() || !Pedido.PENDIENTE.equals(pedido.getEstado())) {
+            throw new IllegalStateException("Solo se asigna un pedido registrado y PENDIENTE (estado actual: " + pedido.getEstado() + ")");
+        }
+        if (pedido.getSede() != this.sede) {
+            throw new IllegalArgumentException("El pedido es de otra sede; el empleado atiende en " + sede.getNombre());
+        }
+        if (!pedidosAsignados.contains(pedido)) {
+            pedidosAsignados.add(pedido);
+        }
+    }
+
     /** Asigna el pedido indicado a la cola y comienza su preparación si está pendiente. */
     public void prepararPedido(Pedido pedido) {
         validarPermisoPedidos();
         if (pedido != null && Pedido.PENDIENTE.equals(pedido.getEstado())) {
-            if (!pedidosAsignados.contains(pedido)) {
-                pedidosAsignados.add(pedido);
-            }
+            asignarPedido(pedido);
             pedido.iniciarPreparacion(this);
         }
     }
@@ -79,6 +98,34 @@ public class Empleado extends Persona {
         validarPermisoPedidos();
         if (pedido != null && Pedido.LISTO.equals(pedido.getEstado())) {
             pedido.entregar();
+        }
+    }
+
+    /** Programa una función en la sede del empleado; solo un administrador puede hacerlo (RF-37 a 42). */
+    public void programarFuncion(Funcion funcion) {
+        validarPermisoAdministrar();
+        if (funcion == null) {
+            throw new IllegalArgumentException("La función es obligatoria");
+        }
+        sede.agregarFuncion(funcion); // la sede rechaza funciones de otra sede o con cruce de horario
+    }
+
+    /** Cancela una función de la sede del empleado; solo un administrador puede hacerlo. */
+    public void cancelarFuncion(Funcion funcion) {
+        validarPermisoAdministrar();
+        if (funcion == null) {
+            throw new IllegalArgumentException("La función es obligatoria");
+        }
+        if (funcion.getSala().getSede() != this.sede) {
+            throw new IllegalArgumentException("La función es de otra sede; el empleado administra " + sede.getNombre());
+        }
+        funcion.cancelar();
+    }
+
+    /** Impide administrar el cine cuando el rol no tiene el permiso ADMINISTRAR. */
+    private void validarPermisoAdministrar() {
+        if (!rol.tienePermiso(Rol.ADMINISTRAR)) {
+            throw new IllegalStateException("El rol " + rol.getNombre() + " no puede administrar el cine");
         }
     }
 

@@ -76,8 +76,11 @@ public class Sala {
         this.estado = estado;
     }
     
-    /** Registra una función si pertenece a esta sala y no cruza otro horario ni su tiempo de limpieza. */
-    public void agregarFuncion(Funcion nuevaFuncion) {
+    /**
+     * Registra una función si pertenece a esta sala y no cruza otro horario ni su tiempo de limpieza.
+     * No es pública: se programa con Sede.agregarFuncion, que además la agrega a la cartelera.
+     */
+    void agregarFuncion(Funcion nuevaFuncion) {
         if (nuevaFuncion == null) {
             throw new IllegalArgumentException("La función no puede ser nula");
         }

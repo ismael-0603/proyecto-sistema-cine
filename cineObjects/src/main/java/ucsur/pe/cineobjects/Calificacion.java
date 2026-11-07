@@ -1,11 +1,10 @@
 package ucsur.pe.cineobjects;
 
-import ucsur.pe.cineInterfaz.Registrable;
 
 /**
  * Por qué existe: guarda la nota (1 a 5) y el comentario que el cliente da a una compra confirmada.
  */
-public class Calificacion implements Registrable {
+public class Calificacion {
     private int idCalificacion;
     private int puntuacion; // Valor permitido: de 1 a 5.
     private String comentario;
@@ -37,13 +36,7 @@ public class Calificacion implements Registrable {
         return p >= 1 && p <= 5;
     }
 
-    /** Permite revisar la puntuación antes de registrar la calificación. */
-    public boolean validarPuntuacion() {
-        return esPuntuacionValida(this.puntuacion);
-    }
-
     /** Registra la calificación una sola vez y únicamente si la compra está confirmada. */
-    @Override
     public boolean registrar() {
         if (registrada) return false;
         if (!Compra.CONFIRMADA.equals(compra.getEstado())) {

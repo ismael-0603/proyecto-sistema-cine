@@ -1,22 +1,21 @@
 package ucsur.pe.demo;
 
-import ucsur.pe.cineInterfaz.Inventariable;
 import ucsur.pe.cineobjects.Producto;
 import ucsur.pe.cineobjects.Sede;
 
 /**
- * Por qué existe: demo de abstracción. El stock por sede se maneja solo con Inventariable.
+ * Por qué existe: prueba del stock por sede de un producto (verificar, descontar y reponer).
  */
-public class MainInventariable {
+public class MainStock {
 
     public static void main(String[] args) {
 
-        System.out.println("=== INTERFAZ INVENTARIABLE ===");
+        System.out.println("=== STOCK POR SEDE ===");
 
         Sede sede = new Sede(1, "Cine Prueba", "Av. Lima 123", "Miraflores", null, null, Sede.ACTIVA);
         Sede otraSede = new Sede(2, "Cine Centro", "Jr. Union 456", "Cercado", null, null, Sede.ACTIVA);
 
-        Inventariable canchita = new Producto(1, "Canchita mediana", "Canchita para compartir",
+        Producto canchita = new Producto(1, "Canchita mediana", "Canchita para compartir",
                 "Canchitas", 17.00, false, true);
         canchita.reponerStock(sede, 5);
 

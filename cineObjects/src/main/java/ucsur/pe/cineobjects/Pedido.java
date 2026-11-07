@@ -1,7 +1,5 @@
 package ucsur.pe.cineobjects;
 
-import ucsur.pe.cineInterfaz.Inventariable;
-import ucsur.pe.cineInterfaz.Registrable;
 import ucsur.pe.cineInterfaz.Totalizable;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +7,7 @@ import java.util.List;
  * Por qué existe: es el pedido de dulcería. Descuenta el stock de la sede al registrarse y avanza
  * en orden: PENDIENTE, EN_PREPARACION, LISTO y ENTREGADO.
  */
-public class Pedido implements Totalizable, Registrable{
+public class Pedido implements Totalizable {
     // Estados de un pedido, en el orden en que avanzan (constantes: se usan como Pedido.NOMBRE y su valor no cambia).
     public static final String PENDIENTE = "PENDIENTE"; // registrado, esperando a un empleado
     public static final String EN_PREPARACION = "EN_PREPARACION"; // un empleado lo está preparando
@@ -62,49 +60,56 @@ public class Pedido implements Totalizable, Registrable{
         if (detalle == null) {
             throw new IllegalArgumentException("El detalle no puede ser nulo");
         }
-        if (registrado) {
-            throw new IllegalStateException("No se pueden agregar productos a un pedido ya registrado");
-        }
+        exigirNoRegistrado();
         detalles.add(detalle);
         calcularTotal();
     }
 
-    /** Fija la sede del pedido; no se puede cambiar una vez registrado. */
-    public void asignarSede(Sede sede) {
-        if (sede == null) {
-            throw new IllegalArgumentException("La sede es obligatoria");
+    /** Cambia la cantidad de una línea mientras el pedido no esté registrado y recalcula el total. */
+    public void modificarCantidad(DetallePedido detalle, int cantidad) {
+        exigirNoRegistrado();
+        if (!detalles.contains(detalle)) {
+            throw new IllegalArgumentException("La línea no pertenece a este pedido");
         }
-        if (registrado) {
-            throw new IllegalStateException("No se puede cambiar la sede de un pedido ya registrado");
-        }
-        this.sede = sede;
+        detalle.modificarCantidad(cantidad);
+        calcularTotal();
     }
 
-    /** Registra el pedido descontando el stock del inventario de la sede indicada. */
-    public boolean registrar(Sede sede) {
-        if (sede == null || registrado) return false;
-        this.sede = sede;
-        return registrar();
+    /** Quita una línea del carrito mientras el pedido no esté registrado (RF-14). */
+    public boolean quitarDetalle(DetallePedido detalle) {
+        exigirNoRegistrado();
+        boolean quitado = detalles.remove(detalle);
+        if (quitado) {
+            calcularTotal();
+        }
+        return quitado;
+    }
+
+    /** Después de registrarlo (stock descontado y cobrado) el pedido ya no se puede cambiar. */
+    private void exigirNoRegistrado() {
+        if (registrado) {
+            throw new IllegalStateException("No se puede modificar un pedido ya registrado");
+        }
     }
 
     /**
-     * Verifica primero el stock de todas las líneas en la sede del pedido y luego lo descuenta.
-     * Devuelve false si el pedido no tiene sede o si algo no procede.
-     * Para el stock, el pedido ve cada producto solo como Inventariable: no necesita saber nada más de él.
+     * Registra el pedido en la sede indicada: verifica primero el stock de todas las líneas
+     * y luego lo descuenta. Devuelve false si no hay sede, si ya estaba registrado,
+     * si no tiene líneas o si falta stock. Es el único camino para fijar la sede y registrar.
      */
-    @Override
-    public boolean registrar() {
-        if (registrado || detalles.isEmpty() || sede == null) return false;
+    public boolean registrar(Sede sede) {
+        if (sede == null || registrado || detalles.isEmpty()) return false;
         for (DetallePedido d : detalles) {
-            Inventariable articulo = d.getProducto();
+            Producto articulo = d.getProducto();
             if (!articulo.verificarStock(sede, d.getCantidad())) {
                 return false;
             }
         }
         for (DetallePedido d : detalles) {
-            Inventariable articulo = d.getProducto();
+            Producto articulo = d.getProducto();
             articulo.descontarStock(sede, d.getCantidad());
         }
+        this.sede = sede;
         this.registrado = true;
         this.fechaHora = DateTime.ahora();
         this.estado = PENDIENTE;
@@ -139,18 +144,18 @@ public class Pedido implements Totalizable, Registrable{
         this.estado = EN_PREPARACION;
     }
 
-    /** Pasa de EN_PREPARACION a LISTO y avisa al cliente. */
-    public void marcarListo() {
+    /** Pasa de EN_PREPARACION a LISTO y devuelve el aviso para el cliente. */
+    public String marcarListo() {
         if (!EN_PREPARACION.equals(estado)) {
             throw new IllegalStateException("Solo se puede marcar LISTO un pedido EN_PREPARACION (estado actual: " + estado + ")");
         }
         this.estado = LISTO;
-        notificarCliente();
+        return notificarCliente();
     }
 
-    /** Simula el aviso que recibiría el cliente cuando el pedido pasa a LISTO. */
-    public void notificarCliente() {
-        System.out.println("Notificación: Pedido #" + idPedido + " listo para recoger. QR: " + codigoQR);
+    /** Arma el aviso que recibe el cliente cuando el pedido pasa a LISTO; quien lo muestra es la vista (los Main). */
+    private String notificarCliente() {
+        return "Notificación: Pedido #" + idPedido + " listo para recoger. QR: " + codigoQR;
     }
 
     /** Compara el código recibido con el QR asociado al pedido. */

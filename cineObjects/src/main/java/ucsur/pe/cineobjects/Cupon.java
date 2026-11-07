@@ -1,5 +1,7 @@
 package ucsur.pe.cineobjects;
 
+import ucsur.pe.cineInterfaz.ContextoDescuento;
+
 import ucsur.pe.cineInterfaz.CalculoDescuento;
 
 /**
@@ -38,8 +40,8 @@ public class Cupon extends DescuentoBase {
 
     /** Un cupón se aplica a una compra mientras esté vigente en la fecha de esa compra. */
     @Override
-    public boolean esAplicable(Compra compra) {
-        return compra != null && validarVigencia(compra.getFechaHora());
+    public boolean esAplicable(ContextoDescuento contexto) {
+        return contexto != null && validarVigencia(contexto.fecha());
     }
 
     /** El cupón va después de las promociones: descuenta sobre lo que ya quedó. */

@@ -46,12 +46,6 @@ public class Butaca {
         return DISCAPACIDAD.equals(tipo);
     }
 
-    /** Consulta la disponibilidad de esta butaca para una función; si no hay función, devuelve false. */
-    public boolean estaDisponible(Funcion funcion) {
-        if (funcion == null) return false;
-        return funcion.esButacaDisponible(this);
-    }
-
     public int getIdButaca() { return idButaca; }
     public String getFila() { return fila; }
     public int getNumero() { return numero; }

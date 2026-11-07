@@ -1,13 +1,14 @@
 package ucsur.pe.cineobjects;
 
 import ucsur.pe.cineInterfaz.CalculoDescuento;
+import ucsur.pe.cineInterfaz.Activable;
 import ucsur.pe.cineInterfaz.Descuento;
 
 /**
  * Por qué existe: junta lo común de Cupon y Promocion (forma de cálculo, fechas y si está activo)
  * para no repetirlo. Cada hija decide cuándo se aplica a una compra; el cálculo lo hace su CalculoDescuento.
  */
-public abstract class DescuentoBase implements Descuento {
+public abstract class DescuentoBase implements Descuento, Activable {
     private final CalculoDescuento calculo; // porcentaje, monto fijo...: cada forma calcula a su manera
     private final DateTime fechaInicio; // solo fecha: DateTime(dia, mes, anio)
     private final DateTime fechaFin;    // solo fecha: DateTime(dia, mes, anio)
@@ -76,6 +77,7 @@ public abstract class DescuentoBase implements Descuento {
     public double getValor() { return calculo.getValor(); }
     public DateTime getFechaInicio() { return fechaInicio; }
     public DateTime getFechaFin() { return fechaFin; }
+    @Override
     public boolean isEstado() { return estado; }
 
     /** Texto del valor, como "10%" o "S/ 5.00". */

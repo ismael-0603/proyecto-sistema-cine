@@ -2,16 +2,15 @@ package ucsur.pe.cineobjects;
 
 import java.util.HashMap;
 import java.util.Map;
-import ucsur.pe.cineInterfaz.Inventariable;
+import ucsur.pe.cineInterfaz.Activable;
 
 /**
  * Por qué existe: es un producto de dulcería con su precio y su stock en cada sede.
  * Puede ser combo (da puntos) u oferta solo para cierto nivel de socio.
  */
-public class Producto implements Inventariable {
+public class Producto implements Activable {
     // Valores fijos de los productos (constantes: se usan como Producto.NOMBRE y su valor no cambia).
     public static final int PUNTOS_COMBO = 2; // puntos que da cada combo vendido
-    public static final int NIVEL_SOCIO_MAXIMO = 4; // nivel de socio más alto (los niveles van de 1 a 4)
 
     private int idProducto;
     private String nombre;
@@ -44,8 +43,8 @@ public class Producto implements Inventariable {
         if (precio < 0) {
             throw new IllegalArgumentException("El precio no puede ser negativo");
         }
-        if (nivelSocioMinimo < 0 || nivelSocioMinimo > NIVEL_SOCIO_MAXIMO) {
-            throw new IllegalArgumentException("El nivel de socio mínimo debe estar entre 0 y " + NIVEL_SOCIO_MAXIMO);
+        if (nivelSocioMinimo < 0 || nivelSocioMinimo > Cliente.NIVEL_MAXIMO) {
+            throw new IllegalArgumentException("El nivel de socio mínimo debe estar entre 0 y " + Cliente.NIVEL_MAXIMO);
         }
         this.idProducto = idProducto;
         this.nombre = nombre.trim();
@@ -58,7 +57,6 @@ public class Producto implements Inventariable {
     }
 
     /** Devuelve true si el producto está activo y la sede tiene unidades suficientes para la cantidad solicitada. */
-    @Override
     public boolean verificarStock(Sede sede, int cant) {
         return this.estado && sede != null && cant > 0 && getStock(sede) >= cant;
     }
@@ -73,7 +71,6 @@ public class Producto implements Inventariable {
     }
 
     /** Descuenta unidades de la sede solo cuando la cantidad es positiva y esa sede tiene stock suficiente. */
-    @Override
     public void descontarStock(Sede sede, int cant) {
         if (cant <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
@@ -85,7 +82,6 @@ public class Producto implements Inventariable {
     }
 
     /** Aumenta el stock de la sede; rechaza una sede nula y cantidades iguales o menores que cero. */
-    @Override
     public void reponerStock(Sede sede, int cant) {
         if (sede == null) {
             throw new IllegalArgumentException("La sede es obligatoria");
@@ -97,11 +93,13 @@ public class Producto implements Inventariable {
     }
 
     /** Habilita el producto para la venta. */
+    @Override
     public void activar() {
         this.estado = true;
     }
 
     /** Retira el producto de la venta. */
+    @Override
     public void desactivar() {
         this.estado = false;
     }
@@ -118,9 +116,9 @@ public class Producto implements Inventariable {
     public double getPrecio() { return precio; }
     public boolean isEsCombo() { return esCombo; }
     public int getNivelSocioMinimo() { return nivelSocioMinimo; }
-    public boolean isRequiereSocio() { return nivelSocioMinimo > 0; }
     /** Unidades disponibles en la sede indicada; cero si la sede no tiene registro de este producto. */
     public int getStock(Sede sede) { return stockPorSede.getOrDefault(sede, 0); }
+    @Override
     public boolean isEstado() { return estado; }
 
     @Override

@@ -2,22 +2,22 @@ package ucsur.pe.demo;
 
 import java.util.ArrayList;
 import java.util.List;
-import ucsur.pe.cineInterfaz.Autenticable;
-
 import ucsur.pe.cineobjects.Cliente;
 import ucsur.pe.cineobjects.DateTime;
 import ucsur.pe.cineobjects.Empleado;
+import ucsur.pe.cineobjects.Persona;
 import ucsur.pe.cineobjects.Rol;
 import ucsur.pe.cineobjects.Sede;
 
 /**
- * Por qué existe: demo de polimorfismo. Cliente y Empleado inician sesión y cambian sus datos como Autenticable.
+ * Por qué existe: prueba de herencia y polimorfismo. Cliente y Empleado inician sesión y cambian
+ * sus datos tratados como Persona (la clase padre abstracta).
  */
-public class MainAutenticable {
+public class MainInicioSesion {
 
     public static void main(String[] args) {
 
-        System.out.println("=== INTERFAZ AUTENTICABLE ===");
+        System.out.println("=== INICIO DE SESION (Persona) ===");
 
         Cliente cliente = new Cliente(1, "12345678", "Ismael", "Chipana",
                 new DateTime(1, 1, 2000), "ismael@mail.com", null, "clave123");
@@ -27,7 +27,7 @@ public class MainAutenticable {
         Empleado empleado = new Empleado(1, "87654321", "Ana", "Perez",
                 new DateTime(1, 1, 1995), "ana@cine.com", null, "empleado1", "MANANA", rol, sede);
 
-        List<Autenticable> cuentas = new ArrayList<>();
+        List<Persona> cuentas = new ArrayList<>();
         cuentas.add(cliente);
         cuentas.add(empleado);
 
@@ -37,7 +37,7 @@ public class MainAutenticable {
         System.out.println("Empleado (clave correcta): " + cuentas.get(1).iniciarSesion("ana@cine.com", "empleado1"));
 
         System.out.println("\n--- MODIFICAR DATOS ---");
-        for (Autenticable cuenta : cuentas) {
+        for (Persona cuenta : cuentas) {
             System.out.println(cuenta.getClass().getSimpleName() + ": "
                     + cuenta.modificarDatos("999888777", "nuevo_" + System.nanoTime() % 1000 + "@mail.com"));
             System.out.println(cuenta.getClass().getSimpleName() + " (correo invalido): "

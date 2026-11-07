@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class Cliente extends Persona {
     private static final int VISITAS_POR_NIVEL = 10; // visitas confirmadas del año que hacen subir un nivel
-    private static final int NIVEL_MAXIMO = 4; // nivel de socio más alto
+    public static final int NIVEL_MAXIMO = 4; // nivel de socio más alto; Producto también lo usa
 
     private int idCliente;
     private DateTime fechaRegistro;
@@ -22,6 +22,7 @@ public class Cliente extends Persona {
     public Cliente(int idCliente, String dni, String nombres, String apellidos, DateTime fechaNac,
                    String correo, String telefono, String contra) {
         super(dni, nombres, apellidos, fechaNac, correo, telefono, contra);
+        exigirDatosCompletos(); // igual que ck_client_registrado en la BD: un socio necesita DNI, nombres, apellidos, correo y clave
         this.idCliente = idCliente;
         this.fechaRegistro = DateTime.ahora();
         this.puntos = 0;
@@ -32,6 +33,7 @@ public class Cliente extends Persona {
 
     private Cliente(String correo) {
         super(null, null, null, null, correo, null, null);
+        exigirCorreo(); // RF-01: el invitado compra sin registrarse, pero necesita su correo (en la BD, correo NOT NULL)
         this.fechaRegistro = DateTime.ahora();
         this.puntos = 0;
         this.nivelSocio = 0;
@@ -44,10 +46,9 @@ public class Cliente extends Persona {
      * @return true si el registro se completó; false si falta algún dato obligatorio.
      */
     public boolean registrarse() {
-        if (this.dni != null && this.dni.length() == 8 && this.nombres != null &&
-            this.apellidos != null && this.contra != null && this.correo != null) {
+        if (tieneDatosCompletos()) { // el DNI ya llega validado con 8 dígitos
             this.esInvitado = false;
-            this.estado = true;
+            setEstado(true);
             this.fechaRegistro = DateTime.ahora();
             if (this.nivelSocio == 0) this.nivelSocio = 1;
             return true;
@@ -62,7 +63,7 @@ public class Cliente extends Persona {
 
     /** Devuelve true solo para clientes registrados, activos y con nivel de socio. */
     public boolean esSocio() {
-        return !this.esInvitado && this.nivelSocio > 0 && this.estado;
+        return !this.esInvitado && this.nivelSocio > 0 && isEstado();
     }
 
     // Los puntos son un saldo canjeable independiente del nivel de socio.
@@ -155,6 +156,6 @@ public class Cliente extends Persona {
 
     @Override
     public String toString() {
-        return esInvitado ? "Invitado (" + correo + ")" : getNombreCompleto() + " - nivel " + nivelSocio;
+        return esInvitado ? "Invitado (" + getCorreo() + ")" : getNombreCompleto() + " - nivel " + nivelSocio;
     }
 }

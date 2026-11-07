@@ -1,40 +1,63 @@
 package ucsur.pe.cineobjects;
 
+import java.util.List;
+import ucsur.pe.cineInterfaz.PasarelaPago;
+import ucsur.pe.cineInterfaz.ResultadoPago;
+
 /**
- * Por qué existe: simula el pago de una compra (tarjeta, billetera digital o QR):
- * lo aprueba o lo rechaza y permite reembolsar.
+ * Por qué existe: es el pago de una compra. Primero cobra en la pasarela y, solo si el cobro se aprueba,
+ * confirma la venta. Si la compra no se puede confirmar después de cobrar, devuelve el dinero.
  */
 public class TransaccionPago {
-    // Medios de pago (constantes: se usan como TransaccionPago.NOMBRE y su valor no cambia).
-    public static final String TARJETA = "TARJETA"; // tarjeta de crédito o débito
-    public static final String BILLETERA_DIGITAL = "BILLETERA_DIGITAL"; // billetera del celular (por ejemplo Yape o Plin)
-    public static final String QR = "QR"; // pago escaneando un código QR
+    // Medios de pago, como en los sistemas de venta en Perú (constantes: se usan como TransaccionPago.NOMBRE).
+    public static final String TARJETA_CREDITO = "TARJETA_CREDITO"; // Visa, Mastercard, Amex, Diners
+    public static final String TARJETA_DEBITO = "TARJETA_DEBITO";   // tarjeta de débito del banco
+    public static final String YAPE = "YAPE";                       // billetera digital del BCP
+    public static final String PLIN = "PLIN";                       // billetera de Interbank, BBVA, Scotiabank...
+    public static final String PAGO_QR = "PAGO_QR";                 // QR interoperable que se escanea con la app del banco
+
+    /** Medios que acepta el kiosko, en el orden en que la vista los muestra. */
+    public static final List<String> MEDIOS_DISPONIBLES =
+            List.of(TARJETA_CREDITO, TARJETA_DEBITO, YAPE, PLIN, PAGO_QR);
 
     // Estados de un pago (constantes: se usan como TransaccionPago.NOMBRE y su valor no cambia).
     public static final String PENDIENTE = "PENDIENTE"; // creado, aún sin procesar
-    public static final String APROBADO = "APROBADO"; // pago aceptado; la compra queda confirmada
-    public static final String RECHAZADO = "RECHAZADO"; // pago no aceptado; se guarda el motivo
+    public static final String APROBADO = "APROBADO"; // cobrado y con la compra confirmada
+    public static final String RECHAZADO = "RECHAZADO"; // no cobrado, o cobrado y devuelto; se guarda el motivo
 
-    private static int contadorReferencia = 0; // simula la referencia que daría una pasarela de pago real
+    private static final int MAX_MOTIVO = 150; // en la BD motivo_rechazo es VARCHAR(150)
+
+    /** Pasarela que se usa si no se indica otra; compartida para que las referencias no se repitan. */
+    private static final PasarelaPago PASARELA_POR_DEFECTO = new PasarelaSimulada();
 
     private int idTransaccion;
     private double monto;
     private String medioPago;
     private String estadoPago;
     private DateTime fechaHora;
-    private String referenciaPasarela; // solo existe si el pago fue aprobado
-    private String motivoRechazo; // solo existe si el pago fue rechazado
+    private String referenciaPasarela; // existe si la pasarela aprobó el cobro
+    private String motivoRechazo; // existe si el pago fue rechazado o devuelto
     private Compra compra;
+    private final PasarelaPago pasarela; // actor externo; llega por el constructor (inversión de dependencias)
 
+    /** Constructor de uso normal: cobra con la pasarela simulada. */
     public TransaccionPago(int idTransaccion, double monto, String medioPago, Compra compra) {
+        this(idTransaccion, monto, medioPago, compra, PASARELA_POR_DEFECTO);
+    }
+
+    /** Recibe la pasarela con la que se cobrará (la real, la simulada o una falsa en pruebas). */
+    public TransaccionPago(int idTransaccion, double monto, String medioPago, Compra compra, PasarelaPago pasarela) {
         if (monto < 0) {
             throw new IllegalArgumentException("El monto no puede ser negativo");
         }
-        if (!TARJETA.equals(medioPago) && !BILLETERA_DIGITAL.equals(medioPago) && !QR.equals(medioPago)) {
-            throw new IllegalArgumentException("Medio de pago inválido: " + medioPago);
+        if (!esMedioValido(medioPago)) {
+            throw new IllegalArgumentException("Medio de pago inválido: " + medioPago + ". Medios aceptados: " + MEDIOS_DISPONIBLES);
         }
         if (compra == null) {
             throw new IllegalArgumentException("La compra es obligatoria");
+        }
+        if (pasarela == null) {
+            throw new IllegalArgumentException("La pasarela de pago es obligatoria");
         }
         this.idTransaccion = idTransaccion;
         this.monto = monto;
@@ -42,10 +65,19 @@ public class TransaccionPago {
         this.estadoPago = PENDIENTE;
         this.fechaHora = DateTime.ahora();
         this.compra = compra;
+        this.pasarela = pasarela;
+    }
+
+    /** Indica si el medio está entre los que acepta el kiosko. */
+    public static boolean esMedioValido(String medioPago) {
+        return medioPago != null && MEDIOS_DISPONIBLES.contains(medioPago);
     }
 
     /**
-     * Procesa una transacción pendiente; aprueba solo si el monto coincide y la compra se confirma.
+     * Procesa una transacción pendiente en este orden:
+     * 1) revisa que la compra siga en proceso y que el monto coincida;
+     * 2) cobra en la pasarela; si se rechaza, la compra sigue EN_PROCESO para reintentar (RF-18);
+     * 3) con el cobro aprobado confirma la compra; si no se puede confirmar, devuelve el dinero.
      * Una transacción procesada no se puede volver a procesar.
      */
     public boolean procesarPago() {
@@ -53,38 +85,64 @@ public class TransaccionPago {
             throw new IllegalStateException("La transacción ya fue procesada (" + estadoPago + ")");
         }
         this.fechaHora = DateTime.ahora();
-        compra.calcularTotal();
 
+        // 1. Validaciones antes de cobrar
+        if (compra.verificarExpiracion()) {
+            return rechazar("La compra expiró: se acabaron los " + Compra.TIEMPO_MAXIMO_COMPRA_MIN + " minutos");
+        }
+        if (!Compra.EN_PROCESO.equals(compra.getEstado())) {
+            return rechazar("La compra no está en proceso (" + compra.getEstado() + ")");
+        }
+        compra.calcularTotal();
         if (monto <= 0) {
             return rechazar("Monto inválido");
         }
         if (Math.abs(monto - compra.getTotal()) > 0.01) {
             return rechazar("El monto no coincide con el total de la compra");
         }
-        if (!compra.confirmar()) {
-            return rechazar("No se pudo confirmar la compra (estado: " + compra.getEstado() + ")");
+
+        // 2. Cobro en la pasarela
+        ResultadoPago resultado = pasarela.cobrar(medioPago, monto, "COMPRA-" + compra.getIdCompra());
+        if (resultado == null || !resultado.aprobado()) {
+            return rechazar(resultado == null ? "La pasarela no respondió" : resultado.motivo());
+        }
+        this.referenciaPasarela = resultado.referencia();
+
+        // 3. Con el dinero cobrado se confirma la venta
+        boolean confirmada;
+        String motivoFallo;
+        try {
+            confirmada = compra.confirmar();
+            motivoFallo = "estado " + compra.getEstado();
+        } catch (RuntimeException ex) {
+            confirmada = false;
+            motivoFallo = ex.getMessage();
+        }
+        if (!confirmada) {
+            // Se cobró pero no se pudo vender (por ejemplo, venció el plazo o faltó stock): se devuelve el dinero.
+            boolean devuelto = pasarela.reembolsar(referenciaPasarela, monto);
+            return rechazar((devuelto ? "Cobro devuelto" : "Cobro NO devuelto, revisar")
+                    + ": la compra no pudo confirmarse (" + motivoFallo + ")");
         }
         this.estadoPago = APROBADO;
-        this.referenciaPasarela = "PAS-" + (++contadorReferencia) + "-" + fechaHora.toValorComparable();
         return true;
     }
 
     /** Marca el pago como RECHAZADO, guarda el motivo y devuelve false. */
     private boolean rechazar(String motivo) {
         this.estadoPago = RECHAZADO;
-        this.motivoRechazo = motivo;
+        this.motivoRechazo = (motivo != null && motivo.length() > MAX_MOTIVO) ? motivo.substring(0, MAX_MOTIVO) : motivo;
         return false;
     }
 
-    /** Devuelve el estado del pago: PENDIENTE, APROBADO o RECHAZADO. */
-    public String verificarEstado() {
-        return this.estadoPago;
-    }
-
-    /** Solicita el reembolso de la compra solo cuando este pago fue aprobado. */
+    /**
+     * Reembolsa un pago aprobado: primero la compra comprueba que se puede (funciones canceladas
+     * y pedido no entregado) y luego la pasarela devuelve el dinero.
+     */
     public boolean reembolsar() {
         if (!APROBADO.equals(estadoPago)) return false;
-        return compra.reembolsar();
+        if (!compra.reembolsar()) return false;
+        return pasarela.reembolsar(referenciaPasarela, monto);
     }
 
     public int getIdTransaccion() { return idTransaccion; }

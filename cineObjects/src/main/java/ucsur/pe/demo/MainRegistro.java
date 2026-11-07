@@ -1,7 +1,7 @@
 package ucsur.pe.demo;
-import java.util.ArrayList;
-import java.util.List;
-import ucsur.pe.cineInterfaz.Registrable;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 import ucsur.pe.cineobjects.Butaca;
 import ucsur.pe.cineobjects.Calificacion;
@@ -22,14 +22,14 @@ import ucsur.pe.cineobjects.TipoSala;
 import ucsur.pe.cineobjects.TransaccionPago;
 
 /**
- * Por qué existe: demo de polimorfismo. Pedido, Reclamo y Calificacion se registran como Registrable,
+ * Por qué existe: prueba del registro de Pedido, Reclamo y Calificacion,
  * incluidos los casos que se rechazan.
  */
-public class MainRegistrable {
+public class MainRegistro {
 
     public static void main(String[] args) {
 
-        System.out.println("=== INTERFAZ REGISTRABLE ===");
+        System.out.println("=== REGISTRO DE PEDIDO, RECLAMO Y CALIFICACION ===");
 
         // 1. Creamos un cliente y una compra confirmada con el flujo real (entrada + pago)
         Cliente cliente = Cliente.ingresarComoInvitado("invitado@cine.com");
@@ -57,7 +57,6 @@ public class MainRegistrable {
 
         // 4. Creamos el pedido y agregamos el detalle
         Pedido pedidoValido = new Pedido(1);
-        pedidoValido.asignarSede(compraPrueba.getSede());
         pedidoValido.agregarDetalle(detalle);
 
         // 5. Creamos un reclamo válido
@@ -76,12 +75,12 @@ public class MainRegistrable {
                 compraPrueba
         );
 
-        // 7. Creamos una lista que acepta objetos Registrable
-        List<Registrable> registrosValidos = new ArrayList<>();
+        // 7. Juntamos cada objeto con la acción que lo registra
+        Map<String, BooleanSupplier> registrosValidos = new LinkedHashMap<>();
 
-        registrosValidos.add(pedidoValido);
-        registrosValidos.add(reclamoValido);
-        registrosValidos.add(calificacionValida);
+        registrosValidos.put("Pedido", () -> pedidoValido.registrar(compraPrueba.getSede()));
+        registrosValidos.put("Reclamo", reclamoValido::registrar);
+        registrosValidos.put("Calificacion", calificacionValida::registrar);
 
         // 8. Intentamos registrar cada objeto
         probarRegistros("REGISTROS VALIDOS", registrosValidos);
@@ -107,10 +106,10 @@ public class MainRegistrable {
         Calificacion calificacionSinCompraConfirmada =
                 new Calificacion(3, 4, "La compra no está confirmada", compraSinConfirmar);
 
-        List<Registrable> registrosRechazados = new ArrayList<>();
+        Map<String, BooleanSupplier> registrosRechazados = new LinkedHashMap<>();
 
-        registrosRechazados.add(pedidoVacio);
-        registrosRechazados.add(calificacionSinCompraConfirmada);
+        registrosRechazados.put("Pedido", () -> pedidoVacio.registrar(compraPrueba.getSede()));
+        registrosRechazados.put("Calificacion", calificacionSinCompraConfirmada::registrar);
 
         probarRegistros("REGISTROS RECHAZADOS", registrosRechazados);
 
@@ -139,22 +138,22 @@ public class MainRegistrable {
         compra.agregarEntrada(new Entrada(0, funcion, funcion.recomendarMejoresAsientos(1).get(0), general));
         compra.confirmarSeleccionAsientos();
 
-        new TransaccionPago(0, compra.getTotal(), TransaccionPago.TARJETA, compra).procesarPago();
+        new TransaccionPago(0, compra.getTotal(), TransaccionPago.TARJETA_CREDITO, compra).procesarPago();
         return compra;
     }
 
     public static void probarRegistros(
         String titulo,
-        List<Registrable> elementos) {
+        Map<String, BooleanSupplier> elementos) {
 
     System.out.println("\n--- " + titulo + " ---");
 
-    for (Registrable elemento : elementos) {
+    for (Map.Entry<String, BooleanSupplier> elemento : elementos.entrySet()) {
 
         boolean resultado;
 
         try {
-            resultado = elemento.registrar();
+            resultado = elemento.getValue().getAsBoolean();
 
         } catch (IllegalArgumentException | IllegalStateException ex) {
             resultado = false;
@@ -162,7 +161,7 @@ public class MainRegistrable {
         }
 
         System.out.println(
-                elemento.getClass().getSimpleName()
+                elemento.getKey()
                 + ": "
                 + resultado
                 + (resultado

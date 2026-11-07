@@ -6,6 +6,8 @@ import java.util.List;
 /**
  * Por qué existe: maneja las entradas que el cliente eligió en una compra:
  * agregarlas, bloquear sus butacas, venderlas o liberarlas.
+ * Vender, anular y liberar no son públicos: solo Compra los usa, para que nadie venda o anule
+ * entradas sin pasar por el pago, la cancelación o el reembolso.
  */
 public class SeleccionAsientos {
     private final List<Entrada> entradas = new ArrayList<>();
@@ -19,7 +21,7 @@ public class SeleccionAsientos {
         if (entrada == null) {
             throw new IllegalArgumentException("La entrada no puede ser nula");
         }
-        if (!entrada.getButaca().estaDisponible(entrada.getFuncion())) {
+        if (!entrada.getFuncion().esButacaDisponible(entrada.getButaca())) {
             throw new IllegalStateException("La butaca " + entrada.getButaca().getCodigoAsiento() + " no está disponible");
         }
         for (Entrada existente : entradas) {
@@ -106,7 +108,7 @@ public class SeleccionAsientos {
     }
 
     /** Pasa a VENDIDA cada entrada bloqueada; devuelve cuántas se vendieron. */
-    public int venderBloqueadas() {
+    int venderBloqueadas() {
         int vendidas = 0;
         for (Entrada e : entradas) {
             if (Entrada.BLOQUEADA.equals(e.getEstado())) {
@@ -127,7 +129,7 @@ public class SeleccionAsientos {
     }
 
     /** Cancelación por el cliente: anula las entradas bloqueadas y libera sus butacas. */
-    public void anularBloqueadas() {
+    void anularBloqueadas() {
         for (Entrada e : entradas) {
             if (Entrada.BLOQUEADA.equals(e.getEstado())) {
                 e.anular();
@@ -140,7 +142,7 @@ public class SeleccionAsientos {
      * Fin del plazo: si las butacas estaban bloqueadas se expiran (se liberan en la función);
      * si nunca se bloquearon, solo se anula la preselección.
      */
-    public void liberarPorTimeout() {
+    void liberarPorTimeout() {
         for (Entrada e : entradas) {
             if (Entrada.BLOQUEADA.equals(e.getEstado())) {
                 if (bloqueados) {
@@ -165,7 +167,7 @@ public class SeleccionAsientos {
     }
 
     /** Anula las entradas vendidas (reembolso). */
-    public void anularVendidas() {
+    void anularVendidas() {
         for (Entrada e : entradas) {
             if (Entrada.VENDIDA.equals(e.getEstado())) {
                 e.anular();

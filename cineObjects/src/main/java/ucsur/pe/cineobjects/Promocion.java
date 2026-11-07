@@ -3,6 +3,7 @@ package ucsur.pe.cineobjects;
 import java.util.ArrayList;
 import java.util.List;
 import ucsur.pe.cineInterfaz.CalculoDescuento;
+import ucsur.pe.cineInterfaz.ContextoDescuento;
 
 /**
  * Por qué existe: es un descuento que el cine aplica por fechas y días de la semana,
@@ -49,11 +50,11 @@ public class Promocion extends DescuentoBase {
 
     /** Comprueba estado, fechas, día de semana y, cuando corresponde, que el cliente sea socio. */
     @Override
-    public boolean esAplicable(Compra compra) {
-        if (compra == null || !validarVigencia(compra.getFechaHora())) return false;
-        if (!aplicaEnDia(compra.getFechaHora())) return false;
+    public boolean esAplicable(ContextoDescuento contexto) {
+        if (contexto == null || !validarVigencia(contexto.fecha())) return false;
+        if (!aplicaEnDia(contexto.fecha())) return false;
         if (soloSocios) {
-            return compra.getCliente().esSocio();
+            return contexto.clienteEsSocio();
         }
         return true;
     }

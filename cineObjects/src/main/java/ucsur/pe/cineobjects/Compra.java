@@ -1,5 +1,6 @@
 package ucsur.pe.cineobjects;
 
+import ucsur.pe.cineInterfaz.ContextoDescuento;
 import ucsur.pe.cineInterfaz.Descuento;
 import ucsur.pe.cineInterfaz.Totalizable;
 import java.util.ArrayList;
@@ -34,12 +35,24 @@ public class Compra implements Totalizable{
     private final List<Descuento> descuentos = new ArrayList<>();
     private Pedido pedido;
 
-    // Colaboradores: cada uno se encarga de una parte de la compra.
-    private final SeleccionAsientos asientos = new SeleccionAsientos();
-    private final CalculadoraImporte calculadora = new CalculadoraImporte();
-    private final GestorPuntos gestorPuntos = new GestorPuntos();
+    // Colaboradores: cada uno se encarga de una parte de la compra. Llegan por el constructor
+    // (inyección de dependencias), así Compra no decide cómo se crean.
+    private final SeleccionAsientos asientos;
+    private final CalculadoraImporte calculadora;
+    private final GestorPuntos gestorPuntos;
 
+    /** Constructor de uso normal: crea los colaboradores por defecto. */
     public Compra(int idCompra, DateTime fechaHora, Cliente cliente, Sede sede) {
+        this(idCompra, fechaHora, cliente, sede,
+                new SeleccionAsientos(), new CalculadoraImporte(), new GestorPuntos());
+    }
+
+    /** Recibe los colaboradores ya creados; sirve para cambiarlos (por ejemplo, en pruebas) sin tocar Compra. */
+    public Compra(int idCompra, DateTime fechaHora, Cliente cliente, Sede sede,
+                  SeleccionAsientos asientos, CalculadoraImporte calculadora, GestorPuntos gestorPuntos) {
+        if (asientos == null || calculadora == null || gestorPuntos == null) {
+            throw new IllegalArgumentException("Los colaboradores de la compra son obligatorios");
+        }
         if (cliente == null) {
             throw new IllegalArgumentException("El cliente es obligatorio");
         }
@@ -52,6 +65,9 @@ public class Compra implements Totalizable{
         this.sede = sede;
         this.estado = EN_PROCESO;
         this.importe = ResumenImporte.VACIO;
+        this.asientos = asientos;
+        this.calculadora = calculadora;
+        this.gestorPuntos = gestorPuntos;
 
         // El plazo comienza al crear la compra, cuando el cliente entra al mapa de asientos.
         this.expiraCompra = this.fechaHora.sumarMinutos(TIEMPO_MAXIMO_COMPRA_MIN);
@@ -82,9 +98,12 @@ public class Compra implements Totalizable{
     }
 
     // ---------- Asientos (delegado en SeleccionAsientos) ----------
-    /** Preselecciona una entrada; la butaca aún no se bloquea y no se repite la misma butaca. */
+    /** Preselecciona una entrada de esta sede; la butaca aún no se bloquea y no se repite la misma butaca. */
     public void agregarEntrada(Entrada entrada) {
         validarEnProceso();
+        if (entrada != null && entrada.getFuncion().getSala().getSede() != this.sede) {
+            throw new IllegalArgumentException("La función pertenece a otra sede; la compra es de " + sede.getNombre());
+        }
         asientos.agregar(entrada);
         calcularTotal();
     }
@@ -112,6 +131,9 @@ public class Compra implements Totalizable{
     /** Asigna el pedido de dulcería; rechaza productos de oferta si el cliente no tiene el nivel requerido. */
     public void asignarPedido(Pedido pedido) {
         validarEnProceso();
+        if (pedido != null && pedido.getSede() != null && pedido.getSede() != this.sede) {
+            throw new IllegalArgumentException("El pedido es de otra sede; la compra es de " + sede.getNombre());
+        }
         gestorPuntos.validarProductosSocio(cliente, pedido);
         this.pedido = pedido;
         calcularTotal();
@@ -130,11 +152,6 @@ public class Compra implements Totalizable{
     }
 
     // ---------- Puntos (delegado en GestorPuntos) ----------
-    /** Puntos base de entradas válidas y combos del pedido (sin multiplicador de nivel). */
-    public int calcularPuntos() {
-        return gestorPuntos.calcularPuntosBase(asientos.getEntradasValidas(), pedido);
-    }
-
     /**
      * Comprueba que las entradas de socio y los combos de oferta los use un cliente con el nivel requerido,
      * y que el saldo de puntos alcance para los tipos de entrada que cuestan puntos.
@@ -159,7 +176,7 @@ public class Compra implements Totalizable{
      */
     public boolean aplicarDescuento(Descuento descuento) {
         validarEnProceso();
-        if (descuento == null || !descuento.esAplicable(this)) {
+        if (descuento == null || !descuento.esAplicable(contextoDescuento())) {
             return false;
         }
         descuentos.removeIf(d -> d.getClass() == descuento.getClass());
@@ -168,12 +185,18 @@ public class Compra implements Totalizable{
         return true;
     }
 
+    /** Datos de esta compra que un descuento necesita para decidir si aplica. */
+    private ContextoDescuento contextoDescuento() {
+        return new ContextoDescuento(fechaHora, cliente.esSocio());
+    }
+
     // ---------- Confirmación, cancelación y reembolso ----------
     /**
      * Confirma la venta si el plazo sigue vigente, los asientos ya están bloqueados y los datos son válidos.
      * Antes de cambiar estados valida las entradas, los beneficios de socio, los puntos, los descuentos y el pedido.
+     * No es pública: solo la llama TransaccionPago al procesar el pago, así nadie confirma una compra sin pagarla.
      */
-    public boolean confirmar() {
+    boolean confirmar() {
         if (!EN_PROCESO.equals(estado)) return false;
 
         // 1. Verificar si los 4 minutos ya expiraron
@@ -185,10 +208,6 @@ public class Compra implements Totalizable{
         if (!asientos.estaVacia() && !asientos.isBloqueados()) {
             return false;
         }
-        if (asientos.algunaExpirada()) {
-            cancelarPorTimeout();
-            return false;
-        }
         if (!asientos.todasConTipo()) {
             return false; // Toda entrada debe tener asignado su TipoEntrada
         }
@@ -197,18 +216,13 @@ public class Compra implements Totalizable{
         if (asientos.contarBloqueadas() == 0 && pedido == null) return false;
         // 3. Cada descuento debe seguir siendo aplicable (por ejemplo, un cupón que agotó sus usos ya no)
         for (Descuento d : descuentos) {
-            if (!d.esAplicable(this)) return false;
+            if (!d.esAplicable(contextoDescuento())) return false;
         }
 
         calcularTotal();
 
         // 4. Entradas de socio, combos por nivel y saldo de puntos
-        try {
-            validarBeneficiosSocio();
-        } catch (IllegalStateException ex) {
-            return false;
-        }
-        if (puntosCanjeados > 0 && (!cliente.esSocio() || cliente.consultarPuntos() < puntosCanjeados)) {
+        if (gestorPuntos.motivoBeneficiosSocio(cliente, asientos.getEntradasValidas(), pedido) != null) {
             return false;
         }
 
@@ -242,8 +256,11 @@ public class Compra implements Totalizable{
         this.estado = CANCELADA;
     }
 
-    /** Expira la compra por tiempo y libera los bloqueos; no cambia compras ya finalizadas. */
-    public void cancelarPorTimeout() {
+    /**
+     * Expira la compra por tiempo y libera los bloqueos; no cambia compras ya finalizadas.
+     * Es privada: solo se expira cuando la propia compra comprueba que el plazo venció.
+     */
+    private void cancelarPorTimeout() {
         if (!EN_PROCESO.equals(estado)) return;
         asientos.liberarPorTimeout();
         this.puntosCanjeados = 0; // los puntos nunca se descontaron del saldo
@@ -282,34 +299,16 @@ public class Compra implements Totalizable{
         this.serieNumero = serieNumero.trim();
     }
 
-    /** Arma el comprobante; exige que la compra ya tenga serie. */
-    public Comprobante obtenerComprobante() {
-        return new Comprobante(serieNumero, fechaHora, importe);
-    }
-
     /** Texto del comprobante; exige que la compra ya tenga serie. */
     public String generarComprobante() {
-        return obtenerComprobante().generarTexto();
-    }
-
-    /** Uso interno del paquete: fija el estado si es uno de los cinco válidos. */
-    void setEstado(String estado) {
-        if (!EN_PROCESO.equals(estado) && !CONFIRMADA.equals(estado) && !CANCELADA.equals(estado)
-                && !EXPIRADA.equals(estado) && !REEMBOLSADA.equals(estado)) {
-            throw new IllegalArgumentException("Estado de compra inválido: " + estado);
-        }
-        this.estado = estado;
+        return new Comprobante(serieNumero, fechaHora, importe).generarTexto();
     }
 
     public int getIdCompra() { return idCompra; }
     public DateTime getFechaHora() { return fechaHora; }
     public DateTime getExpiraCompra() { return expiraCompra; }
-    public boolean isAsientosBloqueados() { return asientos.isBloqueados(); }
     public String getSerieNumero() { return serieNumero; }
     public ResumenImporte getImporte() { return importe; }
-    public double getSubtotal() { return importe.getSubtotal(); }
-    public double getDescuento() { return importe.getDescuento(); }
-    public double getIgv() { return importe.getIgv(); }
     public double getTotal() { return importe.getTotal(); }
     public int getPuntosCanjeados() { return puntosCanjeados; }
     public int getPuntosOtorgados() { return puntosOtorgados; }
