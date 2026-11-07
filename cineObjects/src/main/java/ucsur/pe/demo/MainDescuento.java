@@ -10,7 +10,7 @@ import ucsur.pe.cineobjects.CalculoMontoFijo;
 import ucsur.pe.cineobjects.CalculoPorcentaje;
 import ucsur.pe.cineobjects.Cupon;
 import ucsur.pe.cineobjects.DateTime;
-import ucsur.pe.cineobjects.DescuentoBase;
+import ucsur.pe.cineobjects.FabricaCalculoDescuento;
 import ucsur.pe.cineobjects.Promocion;
 
 /**
@@ -42,7 +42,7 @@ public class MainDescuento {
         }
 
         System.out.println("\n--- FORMA DE CALCULO LEIDA DE LA BD ---");
-        CalculoDescuento desdeBD = DescuentoBase.crearCalculo("PORCENTAJE", 15);
+        CalculoDescuento desdeBD = FabricaCalculoDescuento.crear("PORCENTAJE", 15);
         System.out.printf("tipo_descuento=%s, valor=%.0f -> %s descuenta S/ %.2f de S/ 100.00%n",
                 desdeBD.getTipo(), desdeBD.getValor(), desdeBD.describir(), desdeBD.calcular(100.0));
 

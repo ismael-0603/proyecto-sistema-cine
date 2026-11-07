@@ -56,7 +56,7 @@ public class Sede {
         if (sala == null) {
             throw new IllegalArgumentException("La sala no puede ser nula");
         }
-        if (sala.getSede() != this) {
+        if (!sala.getSede().equals(this)) {
             throw new IllegalArgumentException("La sala pertenece a otra sede");
         }
         for (Sala s : salas) {
@@ -73,7 +73,7 @@ public class Sede {
     if (funcion == null) {
         throw new IllegalArgumentException("La función no puede ser nula");
     }
-    if (funcion.getSala().getSede() != this) {
+    if (!funcion.getSala().getSede().equals(this)) {
         throw new IllegalArgumentException("La función se proyecta en una sala de otra sede");
     }
     if (!cartelera.contains(funcion)) {
@@ -149,6 +149,23 @@ public class Sede {
     public List<Sala> getSalas() { return new ArrayList<>(salas); }
     /** Devuelve una copia de las funciones programadas para proteger la lista interna. */
     public List<Funcion> getCartelera() { return new ArrayList<>(cartelera); }
+
+    /**
+     * Dos sedes son la misma si tienen el mismo id de la BD (por ejemplo, si se cargan dos veces).
+     * Mientras no tengan id (0, aún no guardadas), solo es igual a sí misma.
+     * Así el stock por sede de Producto no se pierde al volver a cargar la sede.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Sede otra)) return false;
+        return this.idSede > 0 && this.idSede == otra.idSede;
+    }
+
+    @Override
+    public int hashCode() {
+        return idSede > 0 ? Integer.hashCode(idSede) : System.identityHashCode(this);
+    }
 
     @Override
     public String toString() {

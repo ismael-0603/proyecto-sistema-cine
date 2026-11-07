@@ -64,10 +64,7 @@ public class TipoEntrada implements Activable {
     /** Rechaza tipos inactivos y exige que el cliente sea socio cuando la tarifa lo requiere. */
     public boolean validarElegibilidad(Cliente cliente) {
         if (!this.estado) return false;
-        if (this.requiereSocio) {
-            return cliente != null && cliente.esSocio();
-        }
-        return true;
+        return !this.requiereSocio || (cliente != null && cliente.cumpleNivelSocio(1));
     }
 
     /** Habilita esta tarifa para nuevas compras. */

@@ -23,4 +23,6 @@ public interface Descuento {
     int getOrdenAplicacion();
     /** Lo que pasa cuando una compra confirmada usa este descuento (por ejemplo, un cupón suma un uso). */
     void registrarUso();
+    /** Deshace un uso registrado (por ejemplo, al reembolsar la compra); un cupón recupera ese uso. */
+    void revertirUso();
 }

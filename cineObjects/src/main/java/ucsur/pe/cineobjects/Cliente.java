@@ -10,6 +10,8 @@ import java.util.List;
 public class Cliente extends Persona {
     private static final int VISITAS_POR_NIVEL = 10; // visitas confirmadas del año que hacen subir un nivel
     public static final int NIVEL_MAXIMO = 4; // nivel de socio más alto; Producto también lo usa
+    /** Multiplicador de puntos por nivel (posición = nivel): 0 = invitado, 1 = x1, 2 = x1.25, 3 = x1.5, 4 = x2. */
+    private static final double[] MULTIPLICADOR_POR_NIVEL = {0.0, 1.0, 1.25, 1.5, 2.0};
 
     private int idCliente;
     private DateTime fechaRegistro;
@@ -48,7 +50,7 @@ public class Cliente extends Persona {
     public boolean registrarse() {
         if (tieneDatosCompletos()) { // el DNI ya llega validado con 8 dígitos
             this.esInvitado = false;
-            setEstado(true);
+            activar();
             this.fechaRegistro = DateTime.ahora();
             if (this.nivelSocio == 0) this.nivelSocio = 1;
             return true;
@@ -59,6 +61,14 @@ public class Cliente extends Persona {
     /** Crea una cuenta temporal con correo, sin datos personales, puntos ni nivel de socio. */
     public static Cliente ingresarComoInvitado(String correo) {
         return new Cliente(correo);
+    }
+
+    /**
+     * Indica si el cliente alcanza un nivel de socio mínimo; 0 significa que no se exige nada.
+     * Lo usan TipoEntrada y Producto para sus ofertas exclusivas, así la regla está en un solo lugar.
+     */
+    public boolean cumpleNivelSocio(int nivelMinimo) {
+        return nivelMinimo <= 0 || (esSocio() && nivelSocio >= nivelMinimo);
     }
 
     /** Devuelve true solo para clientes registrados, activos y con nivel de socio. */
@@ -122,12 +132,7 @@ public class Cliente extends Persona {
     /** Multiplicador de puntos según el nivel de socio: 1 = x1, 2 = x1.25, 3 = x1.5, 4 = x2. */
     public double obtenerMultiplicadorPuntos() {
         if (esInvitado) return 0.0;
-        return switch (nivelSocio) {
-            case 2 -> 1.25;
-            case 3 -> 1.5;
-            case 4 -> 2.0;
-            default -> 1.0;
-        };
+        return MULTIPLICADOR_POR_NIVEL[nivelSocio];
     }
 
     /**
@@ -152,7 +157,7 @@ public class Cliente extends Persona {
     public int getIdCliente() { return idCliente; }
     public DateTime getFechaRegistro() { return fechaRegistro; }
     public int getNivelSocio() { return nivelSocio; }
-    public boolean isEsInvitado() { return esInvitado; }
+    public boolean esInvitado() { return esInvitado; }
 
     @Override
     public String toString() {

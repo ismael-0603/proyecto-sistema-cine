@@ -1,5 +1,6 @@
 package ucsur.pe.cineobjects;
 
+import ucsur.pe.cineInterfaz.Reloj;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,9 +26,17 @@ public class Funcion {
     private Sala sala;
     /** Entradas asociadas a la función; permite detectar butacas ocupadas o bloqueadas. */
     private List<Entrada> entradasEmitidas;
+    private final Reloj reloj; // de dónde sale la hora actual para saber si ya empezó o terminó
 
     public Funcion(int idFuncion, DateTime fecha, DateTime horaInicio, String idioma,
                    String estado, Pelicula pelicula, Sala sala) {
+        this(idFuncion, fecha, horaInicio, idioma, estado, pelicula, sala, new RelojSistema());
+    }
+
+    /** Recibe el reloj (el real o uno fijo en pruebas) para calcular si la función ya empezó o terminó. */
+    public Funcion(int idFuncion, DateTime fecha, DateTime horaInicio, String idioma,
+                   String estado, Pelicula pelicula, Sala sala, Reloj reloj) {
+        if (reloj == null) throw new IllegalArgumentException("El reloj es obligatorio");
         if (fecha == null) throw new IllegalArgumentException("La fecha es obligatoria");
         if (horaInicio == null) throw new IllegalArgumentException("La hora de inicio es obligatoria");
         if (idioma == null || idioma.trim().isEmpty() || idioma.trim().length() > 30) {
@@ -42,6 +51,7 @@ public class Funcion {
         this.pelicula = pelicula;
         this.sala = sala;
         this.entradasEmitidas = new ArrayList<>();
+        this.reloj = reloj;
         String estadoInicial = (estado != null) ? estado : DISPONIBLE;
         validarEstado(estadoInicial);
         this.estado = estadoInicial;
@@ -61,7 +71,7 @@ public class Funcion {
     /** Recalcula el estado según la hora y las butacas libres; una función CANCELADA no cambia. */
     public void actualizarEstado() {
         if (CANCELADA.equals(estado)) return;
-        DateTime ahora = DateTime.ahora();
+        DateTime ahora = reloj.ahora();
         if (ahora.esDespuesDe(obtenerFechaHoraFin())) {
             estado = FINALIZADA;
         } else if (!ahora.esAntesDe(obtenerFechaHoraInicio())) {
@@ -118,7 +128,7 @@ public class Funcion {
         for (Entrada e : entradasEmitidas) {
             if (e.getButaca() != butaca) continue;
             if (Entrada.VENDIDA.equals(e.getEstado())) return false;
-            if (Entrada.BLOQUEADA.equals(e.getEstado()) && !e.haExpirado()) return false;
+            if (Entrada.BLOQUEADA.equals(e.getEstado()) && !e.haExpirado(reloj.ahora())) return false;
         }
         return true;
     }

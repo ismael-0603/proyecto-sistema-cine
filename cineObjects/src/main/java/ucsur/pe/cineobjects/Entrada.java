@@ -64,8 +64,8 @@ public class Entrada {
     }
 
     /** Bloquea la butaca hasta la hora límite compartida con la compra; solo la usa SeleccionAsientos. */
-    boolean bloquearTemporalmente(DateTime fechaExpiracion) {
-        if (fechaExpiracion == null || !DateTime.ahora().esAntesDe(fechaExpiracion)) {
+    boolean bloquearTemporalmente(DateTime ahora, DateTime fechaExpiracion) {
+        if (fechaExpiracion == null || !ahora.esAntesDe(fechaExpiracion)) {
             return false; // El tiempo de la compra ya venció
         }
         if (!BLOQUEADA.equals(estado) || expiraBloqueo != null) {
@@ -82,10 +82,14 @@ public class Entrada {
         return true;
     }
 
+    /** Indica, sin cambiar nada, si la entrada está bloqueada y su bloqueo ya venció en el instante indicado. */
+    public boolean bloqueoVencido(DateTime ahora) {
+        return BLOQUEADA.equals(estado) && expiraBloqueo != null && ahora.esDespuesDe(expiraBloqueo);
+    }
+
     /** Comprueba si venció el bloqueo y, en ese caso, expira la entrada y libera la butaca. */
-    public boolean haExpirado() {
-        if (BLOQUEADA.equals(estado) && expiraBloqueo != null
-                && DateTime.ahora().esDespuesDe(expiraBloqueo)) {
+    boolean haExpirado(DateTime ahora) {
+        if (bloqueoVencido(ahora)) {
             expirar();
         }
         return EXPIRADA.equals(estado);
@@ -111,21 +115,21 @@ public class Entrada {
     }
 
     /** Cambia el bloqueo vigente a venta y crea el código QR; solo se vende al confirmar la compra pagada. */
-    void confirmarVenta() {
+    void confirmarVenta(DateTime ahora) {
         if (!BLOQUEADA.equals(estado)) {
             throw new IllegalStateException("Solo se puede confirmar una entrada BLOQUEADA (estado actual: " + estado + ")");
         }
         if (expiraBloqueo == null) {
             throw new IllegalStateException("Primero se debe bloquear la entrada confirmando la selección de asientos");
         }
-        if (haExpirado()) {
+        if (bloqueoVencido(ahora)) { // se usa el instante del pago, no se vuelve a consultar el reloj
             throw new IllegalStateException("El bloqueo de la entrada expiró");
         }
         if (tipoEntrada == null) {
             throw new IllegalStateException("Debe asignar un tipo de entrada antes de confirmar la venta");
         }
         this.estado = VENDIDA;
-        this.fechaEmision = DateTime.ahora();
+        this.fechaEmision = ahora;
         this.expiraBloqueo = null;
         this.codigoQR = generarCodigoQR();
     }

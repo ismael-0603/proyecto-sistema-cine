@@ -3,6 +3,7 @@ package ucsur.pe.cineobjects;
 /**
  * Por qué existe: es nuestra propia clase de fecha y hora (en lugar de Date), con la hora de Perú (UTC-5).
  * Es inmutable: una fecha creada no cambia; sumarDias o sumarMinutos devuelven una fecha nueva.
+ * Guarda segundos para que plazos como los 4 minutos de una compra sean exactos (en la BD, DATETIME).
  */
 public final class DateTime {
     private final int dia; // Día válido para el mes y año indicados.
@@ -10,14 +11,21 @@ public final class DateTime {
     private final int anio; // Año positivo.
     private final int hora; // Hora en formato de 24 horas, de 0 a 23.
     private final int minuto; // Minutos, de 0 a 59.
+    private final int segundo; // Segundos, de 0 a 59.
 
-    public DateTime(int dia, int mes, int anio, int hora, int minuto) {
-        validar(dia, mes, anio, hora, minuto);
+    public DateTime(int dia, int mes, int anio, int hora, int minuto, int segundo) {
+        validar(dia, mes, anio, hora, minuto, segundo);
         this.dia = dia;
         this.mes = mes;
         this.anio = anio;
         this.hora = hora;
         this.minuto = minuto;
+        this.segundo = segundo;
+    }
+
+    /** Crea una fecha y hora con cero segundos. */
+    public DateTime(int dia, int mes, int anio, int hora, int minuto) {
+        this(dia, mes, anio, hora, minuto, 0);
     }
     
     /** Crea una fecha y asigna medianoche como hora. */
@@ -45,19 +53,20 @@ public final class DateTime {
     }
     
     /** Lanza error si algún componente está fuera de rango o el día no existe en ese mes. */
-    private static void validar(int dia, int mes, int anio, int hora, int minuto) {
+    private static void validar(int dia, int mes, int anio, int hora, int minuto, int segundo) {
         if (anio < 1) throw new IllegalArgumentException("Año inválido");
         if (mes < 1 || mes > 12) throw new IllegalArgumentException("Mes inválido");
         if (dia < 1 || dia > diasDelMes(mes, anio)) throw new IllegalArgumentException("Día inválido");
         if (hora < 0 || hora > 23) throw new IllegalArgumentException("Hora inválida");
         if (minuto < 0 || minuto > 59) throw new IllegalArgumentException("Minuto inválido");
+        if (segundo < 0 || segundo > 59) throw new IllegalArgumentException("Segundo inválido");
     }
     
     /** Devuelve la fecha y hora actual usando el huso horario fijo UTC-5 (Perú). */
     public static DateTime ahora() {
-        long minutosTotales = System.currentTimeMillis() / 60000L - 5 * 60;
-        long dias = minutosTotales / 1440;
-        int minutosDelDia = (int) (minutosTotales % 1440);
+        long segundosTotales = System.currentTimeMillis() / 1000L - 5 * 3600L;
+        long dias = segundosTotales / 86400;
+        int segundosDelDia = (int) (segundosTotales % 86400);
 
         int anio = 1970;
         while (dias >= (esBisiesto(anio) ? 366 : 365)) {
@@ -69,13 +78,15 @@ public final class DateTime {
             dias -= diasDelMes(mes, anio);
             mes++;
         }
-        return new DateTime((int) dias + 1, mes, anio, minutosDelDia / 60, minutosDelDia % 60);
+        return new DateTime((int) dias + 1, mes, anio,
+                segundosDelDia / 3600, (segundosDelDia % 3600) / 60, segundosDelDia % 60);
     }
 
     // Las claves numéricas mantienen el orden cronológico al compararse.
-    /** Convierte fecha y hora en un número ordenable; se usa para comparar y crear referencias. */
+    /** Convierte fecha y hora (con segundos) en un número ordenable: yyyyMMddHHmmss. Sirve para comparar y crear referencias. */
     public long toValorComparable() {
-        return (long) anio * 100000000L + mes * 1000000L + dia * 10000L + hora * 100L + minuto;
+        return (long) anio * 10000000000L + mes * 100000000L + dia * 1000000L
+                + hora * 10000L + minuto * 100L + segundo;
     }
 
     /** Devuelve una clave numérica de año, mes y día, sin considerar la hora. */
@@ -120,7 +131,7 @@ public final class DateTime {
             if (d < 1) { m--; if (m < 1) { m = 12; a--; } d = diasDelMes(m, a); }
             dias++;
         }
-        return new DateTime(d, m, a, this.hora, this.minuto);
+        return new DateTime(d, m, a, this.hora, this.minuto, this.segundo);
     }
 
     /** Devuelve una fecha y hora nuevas con los minutos sumados; al cruzar medianoche cambia el día. */
@@ -128,7 +139,7 @@ public final class DateTime {
         int total = this.hora * 60 + this.minuto + minutosExtra;
         int diasExtra = Math.floorDiv(total, 1440);
         int resto = Math.floorMod(total, 1440);
-        DateTime base = new DateTime(this.dia, this.mes, this.anio, resto / 60, resto % 60);
+        DateTime base = new DateTime(this.dia, this.mes, this.anio, resto / 60, resto % 60, this.segundo);
         return base.sumarDias(diasExtra);
     }
 
@@ -180,5 +191,6 @@ public final class DateTime {
     public int getAnio() { return anio; }
     public int getHora() { return hora; }
     public int getMinuto() { return minuto; }
+    public int getSegundo() { return segundo; }
 
 }

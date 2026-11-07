@@ -30,18 +30,6 @@ public abstract class DescuentoBase implements Descuento, Activable {
         this.estado = estado;
     }
 
-    /**
-     * Convierte lo guardado en la BD (columnas tipo_descuento y valor) en su forma de cálculo.
-     * Es el único lugar que traduce ese texto; el resto del código trabaja con el objeto.
-     */
-    public static CalculoDescuento crearCalculo(String tipoDescuento, double valor) {
-        return switch (tipoDescuento == null ? "" : tipoDescuento) {
-            case CalculoPorcentaje.TIPO -> new CalculoPorcentaje(valor);
-            case CalculoMontoFijo.TIPO -> new CalculoMontoFijo(valor);
-            default -> throw new IllegalArgumentException("Tipo de descuento inválido: " + tipoDescuento);
-        };
-    }
-
     /** Comprueba que el descuento esté habilitado y que la fecha esté dentro de su periodo. */
     @Override
     public boolean validarVigencia(DateTime fecha) {
@@ -61,6 +49,10 @@ public abstract class DescuentoBase implements Descuento, Activable {
     /** Por defecto usar el descuento no cambia nada; Cupon lo redefine para contar sus usos. */
     @Override
     public void registrarUso() { }
+
+    /** Por defecto no hay nada que deshacer; Cupon lo redefine para devolver el uso. */
+    @Override
+    public void revertirUso() { }
 
     /** Habilita el descuento. */
     @Override

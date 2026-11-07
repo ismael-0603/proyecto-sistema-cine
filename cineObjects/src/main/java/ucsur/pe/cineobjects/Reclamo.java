@@ -65,7 +65,7 @@ public class Reclamo {
 
     /** Cierra el reclamo como resuelto y guarda la respuesta no vacía. */
     public void responderReclamo(String respuesta) {
-        validarAbierto();
+        exigirEnRevision();
         validarRespuesta(respuesta);
         this.respuesta = respuesta.trim();
         this.estado = RESUELTO;
@@ -73,7 +73,7 @@ public class Reclamo {
 
     /** Cierra el reclamo como rechazado y guarda el motivo indicado. */
     public void rechazarReclamo(String motivo) {
-        validarAbierto();
+        exigirEnRevision();
         validarRespuesta(motivo);
         this.respuesta = motivo.trim();
         this.estado = RECHAZADO;
@@ -85,6 +85,14 @@ public class Reclamo {
     }
 
     /** Impide revisar o responder reclamos que no se registraron o que ya fueron cerrados. */
+    /** Un reclamo se cierra (respondido o rechazado) solo después de pasar por EN_REVISION. */
+    private void exigirEnRevision() {
+        validarAbierto();
+        if (!EN_REVISION.equals(estado)) {
+            throw new IllegalStateException("Primero se debe iniciar la revisión del reclamo (estado actual: " + estado + ")");
+        }
+    }
+
     private void validarAbierto() {
         if (BORRADOR.equals(estado)) {
             throw new IllegalStateException("El reclamo aún no fue registrado");

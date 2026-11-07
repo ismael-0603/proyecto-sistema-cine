@@ -34,7 +34,9 @@ mvn clean package
 mvn exec:java
 ```
 
-La clase de entrada configurada es `ucsur.pe.cineobjects.CineObjects`.
+La clase de entrada configurada en `pom.xml` es `ucsur.pe.demo.CineObjects`, que recorre el flujo completo
+(cartelera, compra, dulcería, pago, reembolso, socios y postventa). Los demás `Main*` del paquete `demo`
+son pruebas de partes concretas del modelo.
 
 ## Estructura del proyecto
 
@@ -43,15 +45,17 @@ La clase de entrada configurada es `ucsur.pe.cineobjects.CineObjects`.
 ├── README.md
 └── cineObjects/
     ├── pom.xml
-    └── src/main/java/ucsur/pe/cineobjects/
-        ├── Clases del dominio (películas, funciones, compras, entradas, pedidos, etc.)
-        └── cineInterfaz/
-            └── Interfaces del modelo
+    └── src/main/java/ucsur/pe/
+        ├── cineobjects/   Clases del dominio (películas, funciones, compras, entradas, pedidos, etc.)
+        ├── cineInterfaz/  Interfaces del modelo (Descuento, Totalizable, Activable, PasarelaPago, Reloj...)
+        └── demo/          Pruebas por consola (CineObjects y los Main*)
 ```
 
 ## Estado actual
 
-El repositorio implementa principalmente el modelo de dominio y sus reglas de negocio. La clase principal `CineObjects` todavía es un punto de entrada básico que imprime `Hello World!`; aún no incluye una interfaz de usuario ni integración con una base de datos.
+El repositorio implementa el modelo de dominio y sus reglas de negocio, y se prueba por consola con las clases
+del paquete `demo`. Aún no incluye una interfaz de usuario ni integración con la base de datos (el script SQL
+se mantiene aparte).
 
 ## Contexto académico
 

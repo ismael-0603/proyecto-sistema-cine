@@ -2,6 +2,7 @@ package ucsur.pe.cineobjects;
 
 import ucsur.pe.cineInterfaz.ContextoDescuento;
 import ucsur.pe.cineInterfaz.Descuento;
+import ucsur.pe.cineInterfaz.Reloj;
 import ucsur.pe.cineInterfaz.Totalizable;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,17 +41,19 @@ public class Compra implements Totalizable{
     private final SeleccionAsientos asientos;
     private final CalculadoraImporte calculadora;
     private final GestorPuntos gestorPuntos;
+    private final Reloj reloj; // de dónde sale la hora actual (el real o uno fijo en pruebas)
 
     /** Constructor de uso normal: crea los colaboradores por defecto. */
     public Compra(int idCompra, DateTime fechaHora, Cliente cliente, Sede sede) {
         this(idCompra, fechaHora, cliente, sede,
-                new SeleccionAsientos(), new CalculadoraImporte(), new GestorPuntos());
+                new SeleccionAsientos(), new CalculadoraImporte(), new GestorPuntos(), new RelojSistema());
     }
 
     /** Recibe los colaboradores ya creados; sirve para cambiarlos (por ejemplo, en pruebas) sin tocar Compra. */
     public Compra(int idCompra, DateTime fechaHora, Cliente cliente, Sede sede,
-                  SeleccionAsientos asientos, CalculadoraImporte calculadora, GestorPuntos gestorPuntos) {
-        if (asientos == null || calculadora == null || gestorPuntos == null) {
+                  SeleccionAsientos asientos, CalculadoraImporte calculadora, GestorPuntos gestorPuntos,
+                  Reloj reloj) {
+        if (asientos == null || calculadora == null || gestorPuntos == null || reloj == null) {
             throw new IllegalArgumentException("Los colaboradores de la compra son obligatorios");
         }
         if (cliente == null) {
@@ -60,7 +63,8 @@ public class Compra implements Totalizable{
             throw new IllegalArgumentException("La sede es obligatoria");
         }
         this.idCompra = idCompra;
-        this.fechaHora = fechaHora != null ? fechaHora : DateTime.ahora();
+        this.reloj = reloj;
+        this.fechaHora = fechaHora != null ? fechaHora : reloj.ahora();
         this.cliente = cliente;
         this.sede = sede;
         this.estado = EN_PROCESO;
@@ -78,8 +82,9 @@ public class Compra implements Totalizable{
         if (!EN_PROCESO.equals(estado)) {
             return EXPIRADA.equals(estado);
         }
-        boolean tiempoVencido = (expiraCompra != null && DateTime.ahora().esDespuesDe(expiraCompra));
-        if (asientos.isBloqueados() && asientos.algunaExpirada()) {
+        DateTime ahora = reloj.ahora();
+        boolean tiempoVencido = (expiraCompra != null && ahora.esDespuesDe(expiraCompra));
+        if (asientos.isBloqueados() && asientos.algunaExpirada(ahora)) {
             tiempoVencido = true;
         }
         if (tiempoVencido) {
@@ -101,7 +106,7 @@ public class Compra implements Totalizable{
     /** Preselecciona una entrada de esta sede; la butaca aún no se bloquea y no se repite la misma butaca. */
     public void agregarEntrada(Entrada entrada) {
         validarEnProceso();
-        if (entrada != null && entrada.getFuncion().getSala().getSede() != this.sede) {
+        if (entrada != null && !entrada.getFuncion().getSala().getSede().equals(this.sede)) {
             throw new IllegalArgumentException("La función pertenece a otra sede; la compra es de " + sede.getNombre());
         }
         asientos.agregar(entrada);
@@ -125,13 +130,13 @@ public class Compra implements Totalizable{
      */
     public boolean confirmarSeleccionAsientos() {
         validarEnProceso();
-        return asientos.bloquear(this.expiraCompra);
+        return asientos.bloquear(reloj.ahora(), this.expiraCompra);
     }
 
     /** Asigna el pedido de dulcería; rechaza productos de oferta si el cliente no tiene el nivel requerido. */
     public void asignarPedido(Pedido pedido) {
         validarEnProceso();
-        if (pedido != null && pedido.getSede() != null && pedido.getSede() != this.sede) {
+        if (pedido != null && pedido.getSede() != null && !pedido.getSede().equals(this.sede)) {
             throw new IllegalArgumentException("El pedido es de otra sede; la compra es de " + sede.getNombre());
         }
         gestorPuntos.validarProductosSocio(cliente, pedido);
@@ -192,50 +197,61 @@ public class Compra implements Totalizable{
 
     // ---------- Confirmación, cancelación y reembolso ----------
     /**
-     * Confirma la venta si el plazo sigue vigente, los asientos ya están bloqueados y los datos son válidos.
-     * Antes de cambiar estados valida las entradas, los beneficios de socio, los puntos, los descuentos y el pedido.
-     * No es pública: solo la llama TransaccionPago al procesar el pago, así nadie confirma una compra sin pagarla.
+     * Revisa, SIN CAMBIAR NADA, si la compra se puede confirmar en el instante indicado.
+     * Devuelve null si todo está bien, o el motivo por el que no se puede (para mostrárselo al cliente).
+     * TransaccionPago la llama ANTES de cobrar: si hay un motivo, no se cobra.
      */
-    boolean confirmar() {
-        if (!EN_PROCESO.equals(estado)) return false;
-
-        // 1. Verificar si los 4 minutos ya expiraron
-        if (verificarExpiracion()) {
-            return false;
+    public String motivoNoConfirmable(DateTime ahora) {
+        if (!EN_PROCESO.equals(estado)) return "la compra está " + estado;
+        if (ahora == null) return "falta la fecha y hora de la operación";
+        if (ahora.esDespuesDe(expiraCompra)) {
+            return "venció el plazo de " + TIEMPO_MAXIMO_COMPRA_MIN + " minutos";
         }
-
         // Las butacas deben haberse bloqueado antes con confirmarSeleccionAsientos()
-        if (!asientos.estaVacia() && !asientos.isBloqueados()) {
-            return false;
-        }
-        if (!asientos.todasConTipo()) {
-            return false; // Toda entrada debe tener asignado su TipoEntrada
-        }
-
-        // 2. La compra debe tener algo que vender
-        if (asientos.contarBloqueadas() == 0 && pedido == null) return false;
-        // 3. Cada descuento debe seguir siendo aplicable (por ejemplo, un cupón que agotó sus usos ya no)
+        if (!asientos.estaVacia() && !asientos.isBloqueados()) return "falta confirmar la selección de asientos";
+        if (asientos.algunBloqueoVencido(ahora)) return "venció el bloqueo de alguna butaca";
+        if (!asientos.todasConTipo()) return "hay entradas sin tipo de entrada";
+        if (asientos.contarBloqueadas() == 0 && pedido == null) return "no hay entradas ni pedido que vender";
+        // Cada descuento debe seguir siendo aplicable (por ejemplo, un cupón que agotó sus usos ya no)
         for (Descuento d : descuentos) {
-            if (!d.esAplicable(contextoDescuento())) return false;
+            if (!d.esAplicable(contextoDescuento())) return "el descuento " + d + " ya no es válido";
         }
+        String motivoSocio = gestorPuntos.motivoBeneficiosSocio(cliente, asientos.getEntradasValidas(), pedido);
+        if (motivoSocio != null) return motivoSocio;
+        if (pedido != null && !pedido.isRegistrado() && !pedido.hayStock(sede)) {
+            return "no hay stock suficiente en la sede para el pedido de dulcería";
+        }
+        return null;
+    }
 
+    /**
+     * Confirma la venta con el cobro ya aprobado por la pasarela. No es pública: solo la llama TransaccionPago,
+     * así nadie confirma una compra sin pagarla.
+     * Todo o nada (RNF-10): primero vuelve a revisar con el MISMO instante con el que se validó antes de cobrar,
+     * y recién después hace los cambios. Como ya se comprobó que todo procede, ningún cambio puede fallar
+     * a mitad de camino (por ejemplo, dejar el stock descontado con entradas sin vender).
+     */
+    void confirmar(TransaccionPago pago, DateTime ahora) {
+        if (pago == null || pago.getCompra() != this || pago.getReferenciaPasarela() == null) {
+            throw new IllegalStateException("Se requiere un cobro aprobado de esta compra para confirmarla");
+        }
+        String motivo = motivoNoConfirmable(ahora);
+        if (motivo != null) {
+            throw new IllegalStateException("No se puede confirmar la compra: " + motivo);
+        }
         calcularTotal();
 
-        // 4. Entradas de socio, combos por nivel y saldo de puntos
-        if (gestorPuntos.motivoBeneficiosSocio(cliente, asientos.getEntradasValidas(), pedido) != null) {
-            return false;
+        // Desde aquí solo se aplican cambios que ya se sabe que proceden.
+        // Los puntos van primero: si el canje fallara, se corta antes de tocar el stock o las entradas.
+        if (puntosCanjeados > 0 && !cliente.canjearPuntos(puntosCanjeados)) {
+            throw new IllegalStateException("No se pudieron canjear " + puntosCanjeados + " puntos");
         }
-
-        // 5. Registrar el pedido de dulcería (verifica y descuenta stock en la sede de la compra)
-        if (pedido != null && !pedido.isRegistrado() && !pedido.registrar(sede)) return false;
-
-        // 6. Ya no hay nada que pueda fallar: se confirma todo
-        asientos.venderBloqueadas();
+        if (pedido != null && !pedido.isRegistrado()) {
+            pedido.registrar(sede); // descuenta el stock de la sede (ya se verificó que alcanza)
+        }
+        asientos.venderBloqueadas(ahora);
         for (Descuento d : descuentos) {
             d.registrarUso(); // cada descuento sabe qué hacer: el cupón suma un uso, la promoción nada
-        }
-        if (puntosCanjeados > 0) {
-            cliente.canjearPuntos(puntosCanjeados);
         }
         this.estado = CONFIRMADA; // la serie la asigna la base al confirmar (trigger trg_compra_serie)
 
@@ -245,7 +261,6 @@ public class Compra implements Totalizable{
             cliente.acumularPuntos(puntosOtorgados);
         }
         cliente.actualizarNivel();
-        return true;
     }
 
     /** Cancela una compra en proceso y libera las butacas que estuvieran bloqueadas. */
@@ -269,7 +284,8 @@ public class Compra implements Totalizable{
 
     /**
      * Reembolsa solo si todas las funciones fueron canceladas y el pedido no fue entregado.
-     * Devuelve los puntos canjeados y quita los puntos ganados con esta compra.
+     * Devuelve los puntos canjeados, quita los puntos ganados con esta compra, devuelve el uso del cupón
+     * y anula el pedido de dulcería (su stock vuelve solo si nadie lo había empezado a preparar).
      */
     public boolean reembolsar() {
         if (!CONFIRMADA.equals(estado)) return false;
@@ -278,6 +294,12 @@ public class Compra implements Totalizable{
             return false;
         }
         asientos.anularVendidas();
+        for (Descuento d : descuentos) {
+            d.revertirUso(); // el cupón recupera el uso; la promoción no hace nada
+        }
+        if (pedido != null && pedido.isRegistrado()) {
+            pedido.anular();
+        }
         this.estado = REEMBOLSADA;
         cliente.devolverPuntos(puntosCanjeados);
         cliente.revertirPuntos(puntosOtorgados);
@@ -301,8 +323,14 @@ public class Compra implements Totalizable{
 
     /** Texto del comprobante; exige que la compra ya tenga serie. */
     public String generarComprobante() {
+        if (serieNumero == null) {
+            throw new IllegalStateException("La compra aún no tiene comprobante (la base asigna la serie al confirmarla)");
+        }
         return new Comprobante(serieNumero, fechaHora, importe).generarTexto();
     }
+
+    /** Reloj de la compra; TransaccionPago lo usa para que el pago y la compra miren la misma hora. */
+    Reloj getReloj() { return reloj; }
 
     public int getIdCompra() { return idCompra; }
     public DateTime getFechaHora() { return fechaHora; }

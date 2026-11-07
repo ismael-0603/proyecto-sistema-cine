@@ -64,10 +64,7 @@ public class Producto implements Activable {
     /** Rechaza productos inactivos y exige un nivel de socio mínimo cuando el producto es una oferta. */
     public boolean validarElegibilidad(Cliente cliente) {
         if (!this.estado) return false;
-        if (this.nivelSocioMinimo > 0) {
-            return cliente != null && cliente.esSocio() && cliente.getNivelSocio() >= this.nivelSocioMinimo;
-        }
-        return true;
+        return this.nivelSocioMinimo == 0 || (cliente != null && cliente.cumpleNivelSocio(this.nivelSocioMinimo));
     }
 
     /** Descuenta unidades de la sede solo cuando la cantidad es positiva y esa sede tiene stock suficiente. */

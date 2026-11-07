@@ -11,7 +11,7 @@ public class Comprobante {
 
     public Comprobante(String serieNumero, DateTime fecha, ResumenImporte importe) {
         if (serieNumero == null) {
-            throw new IllegalStateException("La compra aún no tiene comprobante (la base asigna la serie al confirmarla)");
+            throw new IllegalArgumentException("La serie del comprobante es obligatoria");
         }
         this.serieNumero = serieNumero;
         this.fecha = fecha;

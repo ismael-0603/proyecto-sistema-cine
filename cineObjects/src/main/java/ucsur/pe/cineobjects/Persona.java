@@ -1,11 +1,13 @@
 package ucsur.pe.cineobjects;
 
+import ucsur.pe.cineInterfaz.Activable;
+
 
 /**
  * Por qué existe: junta lo común de Cliente y Empleado (datos personales, validaciones e inicio de sesión)
  * para no repetirlo. Es abstracta: no se crean personas sueltas, solo clientes o empleados.
  */
-public abstract class Persona {
+public abstract class Persona implements Activable {
     // protected: las subclases (Cliente y Empleado) pueden acceder a estos datos directamente.
     protected String dni;
     protected String nombres;
@@ -136,7 +138,13 @@ public abstract class Persona {
 
     // Los setters vuelven a validar cada dato antes de guardarlo.
     public String getDni() { return dni; }
-    public void setDni(String dni) { this.dni = validarDni(dni); }
+    /** Solo para completar el DNI de un invitado que se registra; una vez registrado, el DNI no cambia. */
+    public void setDni(String dni) {
+        if (this.dni != null) {
+            throw new IllegalStateException("El DNI no se puede cambiar una vez registrado");
+        }
+        this.dni = validarDni(dni);
+    }
 
     public String getNombres() { return nombres; }
     public void setNombres(String nombres) { this.nombres = validarTexto(nombres, "Los nombres", 80); }
@@ -154,8 +162,17 @@ public abstract class Persona {
 
     public void setContra(String contra) { this.contra = validarContra(contra); }
 
+    /** Indica si la cuenta está activa (puede iniciar sesión). */
+    @Override
     public boolean isEstado() { return estado; }
-    public void setEstado(boolean estado) { this.estado = estado; }
+
+    /** Activa la cuenta. */
+    @Override
+    public void activar() { this.estado = true; }
+
+    /** Desactiva la cuenta: ya no puede iniciar sesión. */
+    @Override
+    public void desactivar() { this.estado = false; }
 
     @Override
     public String toString() {

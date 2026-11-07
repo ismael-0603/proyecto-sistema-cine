@@ -1,9 +1,9 @@
 package ucsur.pe.cineInterfaz;
 
 /**
- * Por qué existe: agrupa lo que el administrador hace con cualquier elemento del catálogo que se
- * puede habilitar o retirar de la venta (descuentos, productos y tipos de entrada), sin que la venta
- * tenga que conocer estos métodos. En la BD corresponde a la columna estado (BOOLEAN) de esas tablas.
+ * Por qué existe: agrupa lo que el administrador hace con cualquier elemento que se puede habilitar
+ * o deshabilitar (descuentos, productos, tipos de entrada y cuentas de clientes y empleados), sin que
+ * la venta tenga que conocer estos métodos. En la BD corresponde a la columna estado (BOOLEAN) de esas tablas.
  */
 public interface Activable {
     /** Habilita el elemento para nuevas ventas. */

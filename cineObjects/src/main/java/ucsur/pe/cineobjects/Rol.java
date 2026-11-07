@@ -1,5 +1,8 @@
 package ucsur.pe.cineobjects;
 
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Por qué existe: define qué puede hacer un empleado: dulcería (atender pedidos)
  * o administrador (además, administrar el cine).
@@ -18,11 +21,16 @@ public class Rol {
     private String descripcion;
     private int nivelAcceso; // NIVEL_DULCERIA (1) o NIVEL_ADMIN (2)
 
+    /** Qué puede hacer cada nivel. Un permiso o nivel nuevo se agrega aquí, sin tocar tienePermiso. */
+    private static final Map<Integer, Set<String>> PERMISOS_POR_NIVEL = Map.of(
+            NIVEL_DULCERIA, Set.of(ATENDER_PEDIDO),
+            NIVEL_ADMIN, Set.of(ATENDER_PEDIDO, ADMINISTRAR));
+
     public Rol(int idRol, String nombre, String descripcion, int nivelAcceso) {
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del rol es obligatorio");
         }
-        if (nivelAcceso != NIVEL_DULCERIA && nivelAcceso != NIVEL_ADMIN) {
+        if (!PERMISOS_POR_NIVEL.containsKey(nivelAcceso)) {
             throw new IllegalArgumentException("Nivel de acceso inválido (1 = dulcería, 2 = admin)");
         }
         this.idRol = idRol;
@@ -33,15 +41,7 @@ public class Rol {
 
     /** Comprueba el permiso solicitado; devuelve false para acciones desconocidas o nulas. */
     public boolean tienePermiso(String accion) {
-        if (accion == null) return false;
-        switch (accion.toUpperCase()) {
-            case ADMINISTRAR:
-                return nivelAcceso >= NIVEL_ADMIN;
-            case ATENDER_PEDIDO:
-                return nivelAcceso >= NIVEL_DULCERIA; // dulcería y admin
-            default:
-                return false;
-        }
+        return accion != null && PERMISOS_POR_NIVEL.get(nivelAcceso).contains(accion.toUpperCase());
     }
 
     public int getIdRol() { return idRol; }

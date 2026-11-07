@@ -63,7 +63,7 @@ public class TransaccionPago {
         this.monto = monto;
         this.medioPago = medioPago;
         this.estadoPago = PENDIENTE;
-        this.fechaHora = DateTime.ahora();
+        this.fechaHora = compra.getReloj().ahora();
         this.compra = compra;
         this.pasarela = pasarela;
     }
@@ -75,23 +75,23 @@ public class TransaccionPago {
 
     /**
      * Procesa una transacción pendiente en este orden:
-     * 1) revisa que la compra siga en proceso y que el monto coincida;
+     * 1) revisa, sin cambiar nada, que la compra se pueda confirmar y que el monto coincida;
+     *    si algo falla, se rechaza SIN COBRAR;
      * 2) cobra en la pasarela; si se rechaza, la compra sigue EN_PROCESO para reintentar (RF-18);
-     * 3) con el cobro aprobado confirma la compra; si no se puede confirmar, devuelve el dinero.
+     * 3) con el cobro aprobado confirma la compra usando el mismo instante del paso 1.
      * Una transacción procesada no se puede volver a procesar.
      */
     public boolean procesarPago() {
         if (!PENDIENTE.equals(estadoPago)) {
             throw new IllegalStateException("La transacción ya fue procesada (" + estadoPago + ")");
         }
-        this.fechaHora = DateTime.ahora();
+        // Un único instante para validar y confirmar: lo que se validó no puede vencer a mitad de camino.
+        DateTime ahora = compra.getReloj().ahora(); // el mismo reloj que usa la compra para su plazo
+        this.fechaHora = ahora;
 
         // 1. Validaciones antes de cobrar
         if (compra.verificarExpiracion()) {
             return rechazar("La compra expiró: se acabaron los " + Compra.TIEMPO_MAXIMO_COMPRA_MIN + " minutos");
-        }
-        if (!Compra.EN_PROCESO.equals(compra.getEstado())) {
-            return rechazar("La compra no está en proceso (" + compra.getEstado() + ")");
         }
         compra.calcularTotal();
         if (monto <= 0) {
@@ -99,6 +99,10 @@ public class TransaccionPago {
         }
         if (Math.abs(monto - compra.getTotal()) > 0.01) {
             return rechazar("El monto no coincide con el total de la compra");
+        }
+        String motivo = compra.motivoNoConfirmable(ahora);
+        if (motivo != null) {
+            return rechazar("La compra no puede pagarse: " + motivo); // no se llega a cobrar
         }
 
         // 2. Cobro en la pasarela
@@ -108,21 +112,14 @@ public class TransaccionPago {
         }
         this.referenciaPasarela = resultado.referencia();
 
-        // 3. Con el dinero cobrado se confirma la venta
-        boolean confirmada;
-        String motivoFallo;
+        // 3. Con el dinero cobrado se confirma la venta, con el mismo instante validado en el paso 1
         try {
-            confirmada = compra.confirmar();
-            motivoFallo = "estado " + compra.getEstado();
+            compra.confirmar(this, ahora);
         } catch (RuntimeException ex) {
-            confirmada = false;
-            motivoFallo = ex.getMessage();
-        }
-        if (!confirmada) {
-            // Se cobró pero no se pudo vender (por ejemplo, venció el plazo o faltó stock): se devuelve el dinero.
+            // No debería pasar porque ya se validó todo; si pasa, no se queda con el dinero del cliente.
             boolean devuelto = pasarela.reembolsar(referenciaPasarela, monto);
             return rechazar((devuelto ? "Cobro devuelto" : "Cobro NO devuelto, revisar")
-                    + ": la compra no pudo confirmarse (" + motivoFallo + ")");
+                    + ": " + ex.getMessage());
         }
         this.estadoPago = APROBADO;
         return true;

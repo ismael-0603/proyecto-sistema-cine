@@ -65,7 +65,7 @@ public class Empleado extends Persona {
         if (!pedido.isRegistrado() || !Pedido.PENDIENTE.equals(pedido.getEstado())) {
             throw new IllegalStateException("Solo se asigna un pedido registrado y PENDIENTE (estado actual: " + pedido.getEstado() + ")");
         }
-        if (pedido.getSede() != this.sede) {
+        if (!this.sede.equals(pedido.getSede())) {
             throw new IllegalArgumentException("El pedido es de otra sede; el empleado atiende en " + sede.getNombre());
         }
         if (!pedidosAsignados.contains(pedido)) {
@@ -116,7 +116,7 @@ public class Empleado extends Persona {
         if (funcion == null) {
             throw new IllegalArgumentException("La función es obligatoria");
         }
-        if (funcion.getSala().getSede() != this.sede) {
+        if (!funcion.getSala().getSede().equals(this.sede)) {
             throw new IllegalArgumentException("La función es de otra sede; el empleado administra " + sede.getNombre());
         }
         funcion.cancelar();

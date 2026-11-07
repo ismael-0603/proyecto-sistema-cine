@@ -2,7 +2,9 @@ package ucsur.pe.cineobjects;
 
 import ucsur.pe.cineInterfaz.Totalizable;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 /**
  * Por qué existe: es el pedido de dulcería. Descuenta el stock de la sede al registrarse y avanza
  * en orden: PENDIENTE, EN_PREPARACION, LISTO y ENTREGADO.
@@ -13,6 +15,7 @@ public class Pedido implements Totalizable {
     public static final String EN_PREPARACION = "EN_PREPARACION"; // un empleado lo está preparando
     public static final String LISTO = "LISTO"; // listo para recoger; se avisa al cliente
     public static final String ENTREGADO = "ENTREGADO"; // el cliente ya lo recogió
+    public static final String ANULADO = "ANULADO"; // su compra se reembolsó; ya no se prepara ni se entrega
 
     private int idPedido;
     private String codigoQR; // null hasta que el pedido se registra, cuando ya existe su id real.
@@ -98,13 +101,8 @@ public class Pedido implements Totalizable {
      * si no tiene líneas o si falta stock. Es el único camino para fijar la sede y registrar.
      */
     public boolean registrar(Sede sede) {
-        if (sede == null || registrado || detalles.isEmpty()) return false;
-        for (DetallePedido d : detalles) {
-            Producto articulo = d.getProducto();
-            if (!articulo.verificarStock(sede, d.getCantidad())) {
-                return false;
-            }
-        }
+        if (registrado || !hayStock(sede)) return false;
+        // Ya se verificó el total de cada producto, así que ningún descuento puede fallar a mitad de camino.
         for (DetallePedido d : detalles) {
             Producto articulo = d.getProducto();
             articulo.descontarStock(sede, d.getCantidad());
@@ -116,6 +114,43 @@ public class Pedido implements Totalizable {
         this.codigoQR = generarCodigoQR();
         calcularTotal();
         return true;
+    }
+
+    /**
+     * Revisa, sin descontar nada, si la sede tiene stock para todo el pedido.
+     * Suma las cantidades del mismo producto aunque esté en varias líneas (por ejemplo, 3 + 3 canchitas),
+     * porque el stock se descuenta del mismo producto.
+     */
+    public boolean hayStock(Sede sede) {
+        if (sede == null || detalles.isEmpty()) return false;
+        Map<Producto, Integer> totalPorProducto = new LinkedHashMap<>();
+        for (DetallePedido d : detalles) {
+            totalPorProducto.merge(d.getProducto(), d.getCantidad(), Integer::sum);
+        }
+        for (Map.Entry<Producto, Integer> item : totalPorProducto.entrySet()) {
+            if (!item.getKey().verificarStock(sede, item.getValue())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Anula el pedido cuando se reembolsa su compra. Solo vuelve el stock si el pedido seguía PENDIENTE
+     * (nadie lo preparó); si ya estaba en preparación o listo, los productos ya se usaron.
+     * No es pública: solo la llama Compra.reembolsar().
+     */
+    void anular() {
+        if (ENTREGADO.equals(estado)) {
+            throw new IllegalStateException("No se puede anular un pedido ya entregado");
+        }
+        if (ANULADO.equals(estado)) return;
+        if (registrado && PENDIENTE.equals(estado)) {
+            for (DetallePedido d : detalles) {
+                d.getProducto().reponerStock(sede, d.getCantidad());
+            }
+        }
+        this.estado = ANULADO;
     }
 
     /** Suma los subtotales de todas las líneas y guarda el total actualizado. */

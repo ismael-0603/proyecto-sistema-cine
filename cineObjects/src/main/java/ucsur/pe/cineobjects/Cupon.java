@@ -59,6 +59,14 @@ public class Cupon extends DescuentoBase {
         usosRealizados++;
     }
 
+    /** Devuelve un uso al cupón cuando se reembolsa la compra que lo usó. */
+    @Override
+    public void revertirUso() {
+        if (usosRealizados > 0) {
+            usosRealizados--;
+        }
+    }
+
     public int getIdCupon() { return idCupon; }
     public String getCodigo() { return codigo; }
     public int getLimiteUso() { return limiteUso; }

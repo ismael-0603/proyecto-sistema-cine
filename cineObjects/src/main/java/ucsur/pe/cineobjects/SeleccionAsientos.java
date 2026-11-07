@@ -45,7 +45,7 @@ public class SeleccionAsientos {
      * Si alguna ya no está disponible lanza un error con su código y no bloquea ninguna.
      * Si ya están bloqueadas, la operación es idempotente y devuelve true.
      */
-    public boolean bloquear(DateTime hastaCuando) {
+    public boolean bloquear(DateTime ahora, DateTime hastaCuando) {
         if (bloqueados) {
             return true;
         }
@@ -72,7 +72,7 @@ public class SeleccionAsientos {
         List<Entrada> bloqueadas = new ArrayList<>();
         try {
             for (Entrada e : entradas) {
-                if (!e.bloquearTemporalmente(hastaCuando)) {
+                if (!e.bloquearTemporalmente(ahora, hastaCuando)) {
                     throw new IllegalStateException("No se pudo bloquear la butaca " + e.getButaca().getCodigoAsiento());
                 }
                 bloqueadas.add(e);
@@ -89,14 +89,22 @@ public class SeleccionAsientos {
     }
 
     /** Revisa los bloqueos (los vencidos pasan a EXPIRADA) y devuelve true si alguno venció. */
-    public boolean algunaExpirada() {
+    public boolean algunaExpirada(DateTime ahora) {
         boolean expirada = false;
         for (Entrada e : entradas) {
-            if (e.haExpirado()) {
+            if (e.haExpirado(ahora)) {
                 expirada = true;
             }
         }
         return expirada;
+    }
+
+    /** Revisa, sin cambiar nada, si el bloqueo de alguna entrada ya venció en el instante indicado. */
+    public boolean algunBloqueoVencido(DateTime ahora) {
+        for (Entrada e : entradas) {
+            if (e.bloqueoVencido(ahora)) return true;
+        }
+        return false;
     }
 
     /** Indica si todas las entradas tienen su tipo asignado, requisito para venderlas. */
@@ -108,11 +116,11 @@ public class SeleccionAsientos {
     }
 
     /** Pasa a VENDIDA cada entrada bloqueada; devuelve cuántas se vendieron. */
-    int venderBloqueadas() {
+    int venderBloqueadas(DateTime ahora) {
         int vendidas = 0;
         for (Entrada e : entradas) {
             if (Entrada.BLOQUEADA.equals(e.getEstado())) {
-                e.confirmarVenta();
+                e.confirmarVenta(ahora);
                 vendidas++;
             }
         }
