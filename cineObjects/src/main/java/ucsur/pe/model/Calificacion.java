@@ -1,0 +1,61 @@
+package ucsur.pe.model;
+
+/**
+ * Por qué existe: guarda la nota (1 a 5) y el comentario que el cliente da a una compra confirmada.
+ */
+public class Calificacion {
+    private int idCalificacion;
+    private int puntuacion; // Valor permitido: de 1 a 5.
+    private String comentario;
+    private DateTime fecha; // al crear la calificación; se actualiza al registrarla
+    private Compra compra;
+    /** Evita registrar la misma calificación más de una vez. */
+    private boolean registrada;
+
+    public Calificacion(int idCalificacion, int puntuacion, String comentario, Compra compra) {
+        if (!esPuntuacionValida(puntuacion)) {
+            throw new IllegalArgumentException("La puntuación debe estar entre 1 y 5");
+        }
+        if (comentario != null && comentario.length() > 255) {
+            throw new IllegalArgumentException("El comentario no puede superar 255 caracteres");
+        }
+        if (compra == null) {
+            throw new IllegalArgumentException("La compra es obligatoria");
+        }
+        this.idCalificacion = idCalificacion;
+        this.puntuacion = puntuacion;
+        this.comentario = comentario;
+        this.fecha = DateTime.ahora();
+        this.compra = compra;
+        this.registrada = false;
+    }
+
+    /** Comprueba el mismo rango usado al crear una calificación. */
+    private static boolean esPuntuacionValida(int p) {
+        return p >= 1 && p <= 5;
+    }
+
+    /** Registra la calificación una sola vez y únicamente si la compra está confirmada. */
+    public void registrar() {
+        if (registrada) {
+            throw new IllegalStateException("La calificación ya fue registrada");
+        }
+        if (!Compra.CONFIRMADA.equals(compra.getEstado())) {
+            throw new IllegalStateException("Solo se califica una compra confirmada (estado: " + compra.getEstado() + ")");
+        }
+        this.fecha = DateTime.ahora();
+        this.registrada = true;
+    }
+
+    public int getIdCalificacion() { return idCalificacion; }
+    public int getPuntuacion() { return puntuacion; }
+    public String getComentario() { return comentario; }
+    public DateTime getFecha() { return fecha; }
+    public Compra getCompra() { return compra; }
+    public boolean isRegistrada() { return registrada; }
+
+    @Override
+    public String toString() {
+        return puntuacion + "/5" + (comentario != null && !comentario.isEmpty() ? " - " + comentario : "");
+    }
+}

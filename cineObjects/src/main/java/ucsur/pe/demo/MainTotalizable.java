@@ -1,15 +1,14 @@
 package ucsur.pe.demo;
 
+import ucsur.pe.model.Cliente;
+import ucsur.pe.model.Compra;
+import ucsur.pe.model.DetallePedido;
+import ucsur.pe.model.Pedido;
+import ucsur.pe.model.Producto;
+import ucsur.pe.model.Sede;
+import ucsur.pe.model.Totalizable;
 import java.util.ArrayList;
 import java.util.List;
-import ucsur.pe.cineInterfaz.Totalizable;
-
-import ucsur.pe.cineobjects.Cliente;
-import ucsur.pe.cineobjects.Compra;
-import ucsur.pe.cineobjects.Pedido;
-import ucsur.pe.cineobjects.Producto;
-import ucsur.pe.cineobjects.DetallePedido;
-import ucsur.pe.cineobjects.Sede;
 
 /**
  * Por qué existe: demo de polimorfismo. Pedido y Compra calculan su total como Totalizable.
@@ -64,8 +63,8 @@ public class MainTotalizable {
                 pedido1.calcularTotal()
         );
 
-        // 7. Creamos la compra del cliente en la sede
-        Compra compra1 = cliente1.realizarCompra(sede);
+        // 7. Creamos la compra del cliente en la sede (en el sistema la crea CompraService)
+        Compra compra1 = new Compra(1, null, cliente1, sede);
 
         // 8. Asociamos el pedido a la compra
         compra1.asignarPedido(pedido1);

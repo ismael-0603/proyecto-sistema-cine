@@ -1,17 +1,16 @@
 package ucsur.pe.demo;
 
+import ucsur.pe.model.Activable;
+import ucsur.pe.model.Cupon;
+import ucsur.pe.model.DateTime;
+import ucsur.pe.model.Descuento;
+import ucsur.pe.model.Promocion;
+import ucsur.pe.tipo.CalculoDescuento;
+import ucsur.pe.tipo.CalculoMontoFijo;
+import ucsur.pe.tipo.CalculoPorcentaje;
+import ucsur.pe.tipo.FabricaCalculoDescuento;
 import java.util.ArrayList;
 import java.util.List;
-import ucsur.pe.cineInterfaz.Activable;
-import ucsur.pe.cineInterfaz.CalculoDescuento;
-import ucsur.pe.cineInterfaz.Descuento;
-
-import ucsur.pe.cineobjects.CalculoMontoFijo;
-import ucsur.pe.cineobjects.CalculoPorcentaje;
-import ucsur.pe.cineobjects.Cupon;
-import ucsur.pe.cineobjects.DateTime;
-import ucsur.pe.cineobjects.FabricaCalculoDescuento;
-import ucsur.pe.cineobjects.Promocion;
 
 /**
  * Por qué existe: demo de herencia y polimorfismo. Cupon y Promocion se usan como Descuento,

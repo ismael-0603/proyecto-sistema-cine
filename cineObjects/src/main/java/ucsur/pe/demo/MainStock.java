@@ -1,7 +1,7 @@
 package ucsur.pe.demo;
 
-import ucsur.pe.cineobjects.Producto;
-import ucsur.pe.cineobjects.Sede;
+import ucsur.pe.model.Producto;
+import ucsur.pe.model.Sede;
 
 /**
  * Por qué existe: prueba del stock por sede de un producto (verificar, descontar y reponer).

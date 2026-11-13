@@ -46,16 +46,22 @@ son pruebas de partes concretas del modelo.
 └── cineObjects/
     ├── pom.xml
     └── src/main/java/ucsur/pe/
-        ├── cineobjects/   Clases del dominio (películas, funciones, compras, entradas, pedidos, etc.)
-        ├── cineInterfaz/  Interfaces del modelo (Descuento, Totalizable, Activable, PasarelaPago, Reloj...)
-        └── demo/          Pruebas por consola (CineObjects y los Main*)
+        ├── App.java       Crea y conecta repositorios, servicios y controllers
+        ├── controller/    Recibe las acciones de la vista y llama a los servicios (Respuesta: ok, mensaje, dato)
+        ├── service/       Casos de uso: autenticación, cartelera, compra, pago, dulcería, administración, postventa
+        ├── repository/    Contratos de persistencia y su versión en memoria (luego, Jdbc contra BD_Cine)
+        ├── model/         Entidades y reglas del negocio (Compra, Funcion, Pedido...), DateTime y Reloj
+        ├── tipo/          Formas de calcular un descuento (porcentaje, monto fijo) y su fábrica
+        ├── pasarela/      Pasarela de pagos (interfaz y versión simulada)
+        ├── exception/     ReglaNegocioException y RepositoryException
+        └── demo/          Pruebas por consola (CineObjects y los Main*), que usan los controllers
 ```
 
 ## Estado actual
 
-El repositorio implementa el modelo de dominio y sus reglas de negocio, y se prueba por consola con las clases
-del paquete `demo`. Aún no incluye una interfaz de usuario ni integración con la base de datos (el script SQL
-se mantiene aparte).
+El proyecto está organizado por capas (controller, service, repository, model). Los repositorios guardan en
+memoria y se prueba por consola con las clases del paquete `demo`. Aún no incluye las pantallas (FXML) ni los
+repositorios Jdbc contra la base de datos (el script SQL se mantiene aparte).
 
 ## Contexto académico
 

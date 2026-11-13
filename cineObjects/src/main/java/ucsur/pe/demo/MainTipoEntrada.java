@@ -1,11 +1,11 @@
 package ucsur.pe.demo;
 
+import ucsur.pe.model.Cliente;
+import ucsur.pe.model.DateTime;
+import ucsur.pe.model.Entrada;
+import ucsur.pe.model.TipoEntrada;
 import java.util.ArrayList;
 import java.util.List;
-
-import ucsur.pe.cineobjects.Cliente;
-import ucsur.pe.cineobjects.DateTime;
-import ucsur.pe.cineobjects.TipoEntrada;
 
 /**
  * Por qué existe: demo de puntos. Cada tipo de entrada guarda sus puntos y el cliente aplica
