@@ -16,8 +16,8 @@ public class Empleado extends Persona {
 
     public Empleado(int idEmpleado, String dni, String nombres, String apellidos, DateTime fechaNac,
                     String correoElectronico, String telefono, String contra,
-                    String turno, Rol rol, Sede sede) {
-        super(dni, nombres, apellidos, fechaNac, correoElectronico, telefono, contra);
+                    String turno, Rol rol, Sede sede, Reloj reloj) {
+        super(dni, nombres, apellidos, fechaNac, correoElectronico, telefono, contra, reloj);
         exigirDatosCompletos(); // en la BD dni, nombres, apellidos, correo y contra del empleado son NOT NULL
         if (rol == null) throw new IllegalArgumentException("El rol es obligatorio");
         if (sede == null) throw new IllegalArgumentException("La sede es obligatoria");

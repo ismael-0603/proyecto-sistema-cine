@@ -12,4 +12,5 @@ public interface SedeRepository {
     void guardar(Sede sede);
     Optional<Sede> buscarPorId(int idSede);
     List<Sede> listarTodas();
+    int siguienteId();
 }

@@ -45,7 +45,7 @@ public class SeleccionAsientos {
      * Si alguna ya no está disponible lanza un error con su código y no bloquea ninguna.
      * Si ya están bloqueadas, no hace nada.
      */
-    public void bloquear(DateTime ahora, DateTime hastaCuando) {
+    public void bloquear(DateTime ahora, DateTime hastaCuando, DateTime inicioCompra) {
         if (bloqueados) {
             return; // ya estaban bloqueadas: no hay nada que hacer
         }
@@ -56,8 +56,10 @@ public class SeleccionAsientos {
         // 1. Se revisan todas las butacas antes de bloquear alguna.
         List<String> noDisponibles = new ArrayList<>();
         for (Entrada e : entradas) {
-            if (!e.getFuncion().estaDisponible()) {
-                throw new IllegalStateException("La función ya no está disponible para la venta (" + e.getFuncion().getEstado() + ")");
+            // Cuenta cuándo empezó la compra, no la hora actual (tolerancia de Funcion.TOLERANCIA_VENTA_MIN)
+            String motivo = e.getFuncion().motivoVentaCerrada(inicioCompra);
+            if (motivo != null) {
+                throw new IllegalStateException("No se puede vender: " + motivo);
             }
             if (!e.getFuncion().esButacaDisponible(e.getButaca())) {
                 noDisponibles.add(e.getButaca().getCodigoAsiento());
@@ -72,7 +74,7 @@ public class SeleccionAsientos {
         List<Entrada> bloqueadas = new ArrayList<>();
         try {
             for (Entrada e : entradas) {
-                if (!e.bloquearTemporalmente(ahora, hastaCuando)) {
+                if (!e.bloquearTemporalmente(ahora, hastaCuando, inicioCompra)) {
                     throw new IllegalStateException("No se pudo bloquear la butaca " + e.getButaca().getCodigoAsiento());
                 }
                 bloqueadas.add(e);
@@ -135,10 +137,24 @@ public class SeleccionAsientos {
         return cantidad;
     }
 
-    /** Cancelación por el cliente: anula las entradas bloqueadas y libera sus butacas. */
-    void anularBloqueadas() {
+    /**
+     * El cliente vuelve al mapa para cambiar butacas: las bloqueadas regresan a PRESELECCIONADA y su butaca
+     * queda libre para otros. El plazo de la compra no se reinicia.
+     */
+    void liberarBloqueo() {
+        if (!bloqueados) {
+            return; // nada que liberar
+        }
         for (Entrada e : entradas) {
-            if (Entrada.BLOQUEADA.equals(e.getEstado())) {
+            e.liberarBloqueo();
+        }
+        this.bloqueados = false;
+    }
+
+    /** Cancelación por el cliente: anula las entradas aún no vendidas (preseleccionadas o bloqueadas). */
+    void anularNoVendidas() {
+        for (Entrada e : entradas) {
+            if (Entrada.PRESELECCIONADA.equals(e.getEstado()) || Entrada.BLOQUEADA.equals(e.getEstado())) {
                 e.anular();
             }
         }
@@ -146,17 +162,15 @@ public class SeleccionAsientos {
     }
 
     /**
-     * Fin del plazo: si las butacas estaban bloqueadas se expiran (se liberan en la función);
-     * si nunca se bloquearon, solo se anula la preselección.
+     * Fin del plazo: las entradas bloqueadas se expiran (se liberan en la función)
+     * y las que solo estaban preseleccionadas se anulan.
      */
     void liberarPorTimeout() {
         for (Entrada e : entradas) {
             if (Entrada.BLOQUEADA.equals(e.getEstado())) {
-                if (bloqueados) {
-                    e.expirar();
-                } else {
-                    e.anular();
-                }
+                e.expirar();
+            } else if (Entrada.PRESELECCIONADA.equals(e.getEstado())) {
+                e.anular();
             }
         }
         this.bloqueados = false;

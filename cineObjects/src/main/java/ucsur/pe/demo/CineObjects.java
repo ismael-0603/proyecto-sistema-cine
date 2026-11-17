@@ -1,8 +1,11 @@
 package ucsur.pe.demo;
 
+import ucsur.pe.util.ConversorDinero;
 import ucsur.pe.App;
 import ucsur.pe.controller.Respuesta;
+import ucsur.pe.correo.CorreoSimulado;
 import ucsur.pe.model.Butaca;
+import ucsur.pe.model.CalculadoraImporte;
 import ucsur.pe.model.Cliente;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.Cupon;
@@ -12,6 +15,7 @@ import ucsur.pe.model.Empleado;
 import ucsur.pe.model.Entrada;
 import ucsur.pe.model.Funcion;
 import ucsur.pe.model.Genero;
+import ucsur.pe.model.GestorPuntos;
 import ucsur.pe.model.Pedido;
 import ucsur.pe.model.Pelicula;
 import ucsur.pe.model.Producto;
@@ -20,6 +24,7 @@ import ucsur.pe.model.Reclamo;
 import ucsur.pe.model.Rol;
 import ucsur.pe.model.Sala;
 import ucsur.pe.model.Sede;
+import ucsur.pe.model.SeleccionAsientos;
 import ucsur.pe.model.TipoEntrada;
 import ucsur.pe.model.TipoSala;
 import ucsur.pe.model.TransaccionPago;
@@ -45,6 +50,28 @@ public class CineObjects {
         return r.ok() ? "true" : "false | motivo: " + r.mensaje();
     }
 
+    /** Ultimo correo que "envio" el proveedor simulado. */
+    private static String ultimoCorreo(App app) {
+        List<CorreoSimulado.Mensaje> enviados = ((CorreoSimulado) app.correo()).getEnviados();
+        if (enviados.isEmpty()) return "(ninguno)";
+        CorreoSimulado.Mensaje m = enviados.get(enviados.size() - 1);
+        return m.destinatario() + " | " + m.asunto();
+    }
+
+    /** Dibuja una fila: los pasillos se ven como "||", D = discapacidad, P = preferencial. */
+    private static String filaComoTexto(Sala sala, String fila) {
+        StringBuilder sb = new StringBuilder();
+        String bloqueAnterior = null;
+        for (Butaca b : sala.obtenerMapaButacas()) {
+            if (!b.getFila().equals(fila)) continue;
+            if (bloqueAnterior != null && !bloqueAnterior.equals(b.getBloque())) sb.append("|| ");
+            bloqueAnterior = b.getBloque();
+            String marca = b.esAccesible() ? "D" : Butaca.PREFERENCIAL.equals(b.getTipo()) ? "P" : "";
+            sb.append(b.getNumero()).append(marca).append(' ');
+        }
+        return sb.toString().trim();
+    }
+
     public static void main(String[] args) {
         App app = new App();
 
@@ -61,7 +88,7 @@ public class CineObjects {
 
         Rol rolAdmin = new Rol(1, "Administrador", "Gestiona el cine", Rol.NIVEL_ADMIN);
         Empleado admin = new Empleado(1, "11223344", "Carla", "Rios", new DateTime(3, 3, 1990),
-                "carla@cine.com", null, "admin123", "Manana", rolAdmin, sede);
+                "carla@cine.com", null, "admin123", "Manana", rolAdmin, sede, app.reloj());
         app.empleados().guardar(admin);
 
         Genero accion = new Genero(1, "Accion");
@@ -74,17 +101,17 @@ public class CineObjects {
         DateTime manana = DateTime.ahora().sumarDias(1);
         DateTime fechaFuncion = new DateTime(manana.getDia(), manana.getMes(), manana.getAnio());
 
-        Funcion funcion = new Funcion(1, fechaFuncion, new DateTime(19, 0), "Doblada", null, peli, sala);
+        Funcion funcion = new Funcion(1, fechaFuncion, new DateTime(19, 0), "Doblada", null, peli, sala, app.reloj());
         app.admin().programarFuncion(admin, funcion);
         System.out.println("Funcion: " + funcion + " | hora fin: " + funcion.obtenerFechaHoraFin().soloHora());
 
         // Solapamiento: empieza a las 20:00 y la anterior termina a las 21:00 (+15 min de limpieza)
         Respuesta<Void> cruce = app.admin().programarFuncion(admin,
-                new Funcion(2, fechaFuncion, new DateTime(20, 0), "Doblada", null, peli, sala));
+                new Funcion(2, fechaFuncion, new DateTime(20, 0), "Doblada", null, peli, sala, app.reloj()));
         System.out.println("Solapamiento detectado: " + cruce.mensaje());
 
         // Esta si cabe: empieza a las 21:30, despues de la limpieza (21:15)
-        Funcion funcion3 = new Funcion(3, fechaFuncion, new DateTime(21, 30), "Subtitulada", null, peli, sala);
+        Funcion funcion3 = new Funcion(3, fechaFuncion, new DateTime(21, 30), "Subtitulada", null, peli, sala, app.reloj());
         app.admin().programarFuncion(admin, funcion3);
         System.out.println("Funciones en cartelera: " + app.cartelera().consultarCartelera(sede).dato().size());
         System.out.println("Filtro idioma Doblada + genero Accion: "
@@ -93,26 +120,27 @@ public class CineObjects {
         // Sin permiso ADMINISTRAR no se programan funciones
         Rol rolDulceria = new Rol(2, "Personal de dulceria", "Prepara y entrega pedidos", Rol.NIVEL_DULCERIA);
         Empleado empleado = new Empleado(2, "87654321", "Ana", "Quispe", new DateTime(5, 5, 1999),
-                "ana@mail.com", null, "clave456", "Tarde", rolDulceria, sede);
+                "ana@mail.com", null, "clave456", "Tarde", rolDulceria, sede, app.reloj());
         app.empleados().guardar(empleado);
         System.out.println("Dulceria programa una funcion: "
-                + resultado(app.admin().programarFuncion(empleado, new Funcion(9, fechaFuncion, new DateTime(8, 0), "Doblada", null, peli, sala))));
+                + resultado(app.admin().programarFuncion(empleado, new Funcion(9, fechaFuncion, new DateTime(8, 0), "Doblada", null, peli, sala, app.reloj()))));
 
         // ---------- 2. Compra basica ----------
         titulo("2. Compra basica");
         Cliente cliente = app.login().registrarCliente("12345678", "Ismael", "Chipana",
                 new DateTime(1, 1, 2000), "ismael@mail.com", null, "clave123").dato();
-        TipoEntrada general = new TipoEntrada(1, "GENERAL", "Entrada general", 20.0, 2, false, true);
+        TipoEntrada general = new TipoEntrada(1, "GENERAL", "Entrada general", ConversorDinero.aCentavos("20.00"), 2, false, true);
 
         Compra compra = app.compra().iniciarCompra(cliente, sede).dato();
-        List<Butaca> recomendados = app.compra().recomendarAsientos(funcion, 2).dato();
+        // Al entrar al mapa ya viene la sugerencia marcada (RF-29)
+        List<Butaca> recomendados = app.compra().consultarMapa(compra, funcion, 2, false).dato().sugeridas();
         System.out.println("Asientos recomendados: " + recomendados);
         for (Butaca b : recomendados) {
             app.compra().agregarEntrada(compra, funcion, b, general);
         }
         System.out.println("Asientos bloqueados: " + resultado(app.compra().confirmarAsientos(compra)));
 
-        Respuesta<TransaccionPago> pago = app.pago().pagar(compra, compra.getTotal(), TransaccionPago.TARJETA_CREDITO);
+        Respuesta<TransaccionPago> pago = app.pago().pagar(compra, compra.getTotalCentavos(), TransaccionPago.TARJETA_CREDITO);
         System.out.println("Pago aprobado: " + resultado(pago));
         System.out.println(app.compra().generarComprobante(compra).dato()); // la serie la asigna el repositorio (como el trigger)
         System.out.println("Puntos del cliente: " + cliente.consultarPuntos());
@@ -142,7 +170,7 @@ public class CineObjects {
 
         // ---------- 4. Dulceria, cupon y pedido ----------
         titulo("4. Entrada + combo + cupon + pedido");
-        Producto combo = new Producto(1, "Combo Mediano", "Canchita y gaseosa", "Combos", 25.0, true, true);
+        Producto combo = new Producto(1, "Combo Mediano", "Canchita y gaseosa", "Combos", ConversorDinero.aCentavos("25.00"), true, true);
         app.admin().registrarProducto(admin, combo);
         app.admin().reponerStock(admin, combo, 10);
         Cupon cupon = new Cupon(1, "CINE10", new CalculoPorcentaje(10),
@@ -152,14 +180,14 @@ public class CineObjects {
 
         Compra c3 = app.compra().iniciarCompra(cliente, sede).dato();
         app.compra().agregarEntrada(c3, funcion3, sala.obtenerMapaButacas().get(0), general); // A1
-        Pedido pedido = new Pedido(0);
+        Pedido pedido = new Pedido(0, app.reloj());
         pedido.agregarDetalle(new DetallePedido(0, combo, 2, "Sin sal"));
         app.compra().asignarPedido(c3, pedido);
         System.out.println("Cupon aplicado: " + resultado(app.compra().aplicarCupon(c3, "CINE10")));
         System.out.println("Cupon inexistente: " + resultado(app.compra().aplicarCupon(c3, "NOEXISTE")));
         System.out.println("Asientos bloqueados: " + resultado(app.compra().confirmarAsientos(c3)));
 
-        Respuesta<TransaccionPago> pago3 = app.pago().pagar(c3, c3.getTotal(), TransaccionPago.YAPE);
+        Respuesta<TransaccionPago> pago3 = app.pago().pagar(c3, c3.getTotalCentavos(), TransaccionPago.YAPE);
         System.out.println("Pago aprobado: " + resultado(pago3));
         System.out.println(app.compra().generarComprobante(c3).dato());
         System.out.println("Stock del combo: " + combo.getStock(sede));
@@ -174,24 +202,26 @@ public class CineObjects {
         System.out.println(pedido);
 
         // ---------- 5. Pago rechazado y reembolso ----------
-        titulo("5. Pago rechazado y reembolso");
+        titulo("5. Pago rechazado y reembolso automatico al cancelar la funcion");
         Compra c5 = app.compra().iniciarCompra(cliente, sede).dato();
         app.compra().agregarEntrada(c5, funcion3, sala.obtenerMapaButacas().get(2), general); // A3
         app.compra().confirmarAsientos(c5);
-        System.out.println("Pago con monto incorrecto: " + resultado(app.pago().pagar(c5, 1.0, TransaccionPago.TARJETA_DEBITO)));
+        System.out.println("Pago con monto incorrecto: " + resultado(app.pago().pagar(c5, ConversorDinero.aCentavos("1.00"), TransaccionPago.TARJETA_DEBITO)));
         app.compra().cancelar(c5);
         System.out.println("Estado c5: " + c5.getEstado());
 
         Compra c4 = app.compra().iniciarCompra(cliente, sede).dato();
         app.compra().agregarEntrada(c4, funcion3, sala.obtenerMapaButacas().get(1), general); // A2
         app.compra().confirmarAsientos(c4);
-        Respuesta<TransaccionPago> pago4 = app.pago().pagar(c4, c4.getTotal(), TransaccionPago.TARJETA_CREDITO);
+        Respuesta<TransaccionPago> pago4 = app.pago().pagar(c4, c4.getTotalCentavos(), TransaccionPago.TARJETA_CREDITO);
         System.out.println("Pago c4 aprobado: " + resultado(pago4));
         System.out.println("Puntos antes del reembolso: " + cliente.consultarPuntos());
-        System.out.println("Reembolso con funcion activa: " + resultado(app.pago().reembolsar(pago4.dato())));
-        app.admin().cancelarFuncion(admin, funcion3);
-        System.out.println("Reembolso con funcion cancelada: " + resultado(app.pago().reembolsar(pago4.dato())));
-        System.out.println("Estado c4: " + c4.getEstado());
+        // El cliente no pide nada: al cancelar la funcion se reembolsan solas c3 y c4.
+        // c3 ya recogio su combo, asi que solo se le devuelven las entradas.
+        System.out.println(app.admin().cancelarFuncion(admin, funcion3).mensaje());
+        System.out.println("Estado c4: " + c4.getEstado() + " | devuelto: " + ConversorDinero.formatear(c4.getMontoReembolsadoCentavos()));
+        System.out.println("Estado c3: " + c3.getEstado() + " | pagado: " + ConversorDinero.formatear(c3.getTotalCentavos())
+                + " | devuelto (sin la dulceria entregada): " + ConversorDinero.formatear(c3.getMontoReembolsadoCentavos()));
         System.out.println("Puntos despues del reembolso: " + cliente.consultarPuntos());
         System.out.println("Butacas libres en funcion 3: " + funcion3.consultarDisponibilidad());
 
@@ -199,32 +229,32 @@ public class CineObjects {
         titulo("6. Entradas y combos de socio");
         cliente.acumularPuntos(300); // saldo de prueba
         System.out.println("Saldo de puntos de prueba: " + cliente.consultarPuntos());
-        TipoEntrada normal = new TipoEntrada(2, "GENERAL", "Entrada general", 30.0, 2, false, true);
-        TipoEntrada socio50 = new TipoEntrada(3, "SOCIO", "Entrada socio a mitad de precio", 15.0, 3, true, true, 40);
-        Producto comboNivel2 = new Producto(2, "Combo Oferta Nivel 2", "Oferta para socios nivel 2", "Combos", 30.0, true, 2, true);
-        Producto comboSocio = new Producto(3, "Combo Socio", "Oferta para socios", "Combos", 25.0, true, 1, true);
+        TipoEntrada normal = new TipoEntrada(2, "GENERAL", "Entrada general", ConversorDinero.aCentavos("30.00"), 2, false, true);
+        TipoEntrada socio50 = new TipoEntrada(3, "SOCIO", "Entrada socio a mitad de precio", ConversorDinero.aCentavos("15.00"), 3, true, true, 40);
+        Producto comboNivel2 = new Producto(2, "Combo Oferta Nivel 2", "Oferta para socios nivel 2", "Combos", ConversorDinero.aCentavos("30.00"), true, 2, true);
+        Producto comboSocio = new Producto(3, "Combo Socio", "Oferta para socios", "Combos", ConversorDinero.aCentavos("25.00"), true, 1, true);
         app.admin().registrarProducto(admin, comboNivel2);
         app.admin().reponerStock(admin, comboNivel2, 5);
         app.admin().registrarProducto(admin, comboSocio);
         app.admin().reponerStock(admin, comboSocio, 5);
-        System.out.println("Tarifa normal: " + normal.getTarifa());
-        System.out.println("Tarifa socio (mitad): " + socio50.getTarifa());
+        System.out.println("Tarifa normal: " + ConversorDinero.formatear(normal.getTarifaCentavos()));
+        System.out.println("Tarifa socio (mitad): " + ConversorDinero.formatear(socio50.getTarifaCentavos()));
         System.out.println("Puntos que cuesta: " + socio50.getPuntosCanje());
 
         Compra c6 = app.compra().iniciarCompra(cliente, sede).dato();
         app.compra().agregarEntrada(c6, funcion, sala.obtenerMapaButacas().get(0), socio50); // A1
 
         // Un combo de nivel 2 no esta disponible para un cliente de nivel 1
-        Pedido pedidoFallido = new Pedido(0);
+        Pedido pedidoFallido = new Pedido(0, app.reloj());
         pedidoFallido.agregarDetalle(new DetallePedido(0, comboNivel2, 1, null));
         System.out.println("Error esperado: " + app.compra().asignarPedido(c6, pedidoFallido).mensaje());
 
-        Pedido pedido6 = new Pedido(0);
+        Pedido pedido6 = new Pedido(0, app.reloj());
         pedido6.agregarDetalle(new DetallePedido(0, comboSocio, 1, null));
         app.compra().asignarPedido(c6, pedido6);
         System.out.println("Asientos bloqueados: " + resultado(app.compra().confirmarAsientos(c6)));
 
-        Respuesta<TransaccionPago> pago6 = app.pago().pagar(c6, c6.getTotal(), TransaccionPago.PLIN);
+        Respuesta<TransaccionPago> pago6 = app.pago().pagar(c6, c6.getTotalCentavos(), TransaccionPago.PLIN);
         System.out.println("Pago aprobado: " + resultado(pago6));
         System.out.println(app.compra().generarComprobante(c6).dato());
         System.out.println("Puntos del cliente: " + cliente.consultarPuntos());
@@ -244,9 +274,8 @@ public class CineObjects {
         System.out.println("Socio sin puntos - error esperado: " + app.compra().validarBeneficiosSocio(c8).mensaje());
         app.compra().cancelar(c8);
 
-        // Reembolso: la funcion se cancela y los puntos vuelven a su saldo
-        app.admin().cancelarFuncion(admin, funcion);
-        System.out.println("Reembolso c6: " + resultado(app.pago().reembolsar(pago6.dato())));
+        // Reembolso automatico: la funcion se cancela y los puntos vuelven a su saldo
+        System.out.println(app.admin().cancelarFuncion(admin, funcion).mensaje());
         System.out.println("Estado c6: " + c6.getEstado() + " | puntos tras reembolso: " + cliente.consultarPuntos());
 
         // ---------- 7. Expiracion de los 4 minutos y subida de nivel ----------
@@ -256,11 +285,12 @@ public class CineObjects {
         for (int i = 1; i <= 10; i++) {
             sala2.agregarButaca(new Butaca(0, "B", i, Butaca.ESTANDAR, sala2));
         }
-        Funcion funcion4 = new Funcion(4, fechaFuncion, new DateTime(10, 0), "Doblada", null, peli, sala2);
+        Funcion funcion4 = new Funcion(4, fechaFuncion, new DateTime(10, 0), "Doblada", null, peli, sala2, app.reloj());
         app.admin().programarFuncion(admin, funcion4);
 
         // Una compra creada hace 10 minutos ya vencio su plazo de 4 (se arma a mano solo para la prueba)
-        Compra vencida = new Compra(0, DateTime.ahora().sumarMinutos(-10), cliente, sede);
+        Compra vencida = new Compra(0, app.reloj().ahora().sumarMinutos(-10), cliente, sede,
+                new SeleccionAsientos(), new CalculadoraImporte(), new GestorPuntos(), app.reloj());
         System.out.println("Error esperado: "
                 + app.compra().agregarEntrada(vencida, funcion4, sala2.obtenerMapaButacas().get(0), general).mensaje());
         System.out.println("Estado de la compra vencida: " + vencida.getEstado());
@@ -268,11 +298,13 @@ public class CineObjects {
         // 10 compras confirmadas en el anio suben al nivel 2
         Cliente frecuente = app.login().registrarCliente("33334444", "Rosa", "Diaz", new DateTime(10, 10, 1990),
                 "rosa@mail.com", null, "clave000").dato();
+        Compra ultimaFrecuente = null;
         for (int i = 0; i < 10; i++) {
             Compra cv = app.compra().iniciarCompra(frecuente, sede).dato();
+            ultimaFrecuente = cv;
             app.compra().agregarEntrada(cv, funcion4, sala2.obtenerMapaButacas().get(i), general);
             app.compra().confirmarAsientos(cv);
-            app.pago().pagar(cv, cv.getTotal(), TransaccionPago.PAGO_QR);
+            app.pago().pagar(cv, cv.getTotalCentavos(), TransaccionPago.PAGO_QR);
         }
         System.out.println("Visitas del cliente frecuente: " + frecuente.contarVisitasAnioActual());
         System.out.println("Nivel de socio: " + frecuente.getNivelSocio()
@@ -303,26 +335,125 @@ public class CineObjects {
                 + " | promo de otro dia aplicable: " + app.compra().aplicarPromocion(cp, pOtro).ok());
         app.compra().cancelar(cp);
 
-        System.out.println("Calificacion registrada: " + resultado(app.postventa().calificar(compra, 5, "Excelente atencion"))
-                + " | repetida: " + resultado(app.postventa().calificar(compra, 4, "Otra vez")));
+        System.out.println("Calificacion registrada: " + resultado(app.postventa().calificar(ultimaFrecuente, 5, "Excelente atencion"))
+                + " | repetida: " + resultado(app.postventa().calificar(ultimaFrecuente, 4, "Otra vez"))
+                + " | compra reembolsada: " + resultado(app.postventa().calificar(compra, 5, null)));
         Compra compraSinCalificar = c3;
         System.out.println("Calificacion con puntuacion 9 - error esperado: "
                 + app.postventa().calificar(compraSinCalificar, 9, null).mensaje());
 
-        Reclamo rec = app.postventa().presentarReclamo(compra, Reclamo.QUEJA, "Demora en la dulceria").dato();
+        Reclamo rec = app.postventa().presentarReclamo(compra, Reclamo.ATENCION, "Demora en la dulceria").dato();
         System.out.println("Responder sin revisar: " + resultado(app.postventa().responderReclamo(rec, "Disculpas")));
         app.postventa().iniciarRevision(rec);
         app.postventa().responderReclamo(rec, "Se ofrecen disculpas");
         System.out.println("Reclamo: " + rec);
         Compra pendiente = app.compra().iniciarCompra(cliente, sede).dato();
         System.out.println("Reclamo sobre compra en proceso: "
-                + resultado(app.postventa().presentarReclamo(pendiente, Reclamo.RECLAMO, "Prueba")));
+                + resultado(app.postventa().presentarReclamo(pendiente, Reclamo.SALA_PROYECCION, "Prueba")));
         app.compra().cancelar(pendiente);
 
         System.out.println("Cliente con DNI de 3 digitos - error esperado: " + app.login().registrarCliente(
                 "123", "Ana", "Lopez", new DateTime(1, 1, 2000), "ana.lopez@mail.com", null, "clave").mensaje());
         System.out.println("Correo ya registrado - error esperado: " + app.login().registrarCliente(
                 "55556666", "Otro", "Ismael", null, "ismael@mail.com", null, "clave").mensaje());
+
+        System.out.println("Correo enviado al cliente: " + ultimoCorreo(app));
+
+        // ---------- 9. Sala con pasillos, recomendacion y volver a elegir butacas ----------
+        titulo("9. Sala con pasillos (4 | 10 | 4), recomendacion y volver a elegir");
+        TipoSala tipo3d = new TipoSala(2, "3D", "Sala 3D", ConversorDinero.aCentavos("5.00"));
+        Sala grande = app.admin().registrarSala(admin, sede, 3, tipo3d, 9, 4, 10).dato();
+        System.out.println(grande + " | capacidad: " + grande.getCapacidad() + " | filas: " + grande.obtenerFilas());
+        System.out.println("Fila A: " + filaComoTexto(grande, "A"));
+        System.out.println("Fila G: " + filaComoTexto(grande, "G"));
+        Funcion funcion5 = new Funcion(5, fechaFuncion, new DateTime(16, 0), "Subtitulada", null, peli, grande, app.reloj());
+        app.admin().programarFuncion(admin, funcion5);
+
+        Compra cg = app.compra().iniciarCompra(cliente, sede).dato();
+        System.out.println("Sugerencia para 2 en sala vacia: " + app.compra().consultarMapa(cg, funcion5, 2, false).dato().sugeridas());
+        System.out.println("Sugerencia para 4: " + app.compra().consultarMapa(cg, funcion5, 4, false).dato().sugeridas());
+        System.out.println("Sugerencia para 12 (no caben en el bloque central): "
+                + app.compra().consultarMapa(cg, funcion5, 12, false).dato().sugeridas());
+        System.out.println("Sugerencia para 2 con butacas accesibles: "
+                + app.compra().consultarMapa(cg, funcion5, 2, true).dato().sugeridas());
+        System.out.println("Pedir 500: " + app.compra().consultarMapa(cg, funcion5, 500, false).mensaje());
+
+        for (Butaca b : app.compra().consultarMapa(cg, funcion5, 2, false).dato().sugeridas()) {
+            app.compra().agregarEntrada(cg, funcion5, b, general);
+        }
+        System.out.println("Estado al elegir: " + cg.getEntradas().get(0).getEstado());
+        app.compra().confirmarAsientos(cg);
+        System.out.println("Estado al confirmar: " + cg.getEntradas().get(0).getEstado()
+                + " | libres: " + funcion5.consultarDisponibilidad());
+        System.out.println("Quitar sin liberar - error esperado: "
+                + app.compra().quitarEntrada(cg, cg.getEntradas().get(0)).mensaje());
+        System.out.println(app.compra().liberarAsientos(cg).mensaje() + " | estado: " + cg.getEntradas().get(0).getEstado()
+                + " | libres: " + funcion5.consultarDisponibilidad());
+        System.out.println("Nueva sugerencia (sin repetir las ya elegidas): "
+                + app.compra().consultarMapa(cg, funcion5, 2, false).dato().sugeridas());
+        app.compra().cancelar(cg);
+
+        // ---------- 10. Mis compras: Ver, imprimir, enviar al correo y recuperar ----------
+        titulo("10. Mis compras: Ver, imprimir, correo y recuperar entradas");
+        System.out.println(app.emision().verDetalle(ultimaFrecuente).dato());
+        System.out.println("Ver una compra reembolsada (sin QR):");
+        System.out.println(app.emision().verDetalle(compra).dato());
+        System.out.println(app.emision().enviarPorCorreo(ultimaFrecuente, null).mensaje() + " -> " + ultimoCorreo(app));
+        System.out.println("Recuperar con el codigo " + ultimaFrecuente.getSerieNumero() + ": "
+                + resultado(app.emision().recuperarPorCodigo(ultimaFrecuente.getSerieNumero())));
+        System.out.println("Recuperar por correo: " + app.emision().recuperarPorCorreo("rosa@mail.com").mensaje());
+        System.out.println("Recuperar por correo sin compras vigentes: " + app.emision().recuperarPorCorreo("ismael@mail.com").mensaje());
+        System.out.println("Imprimir: " + resultado(app.emision().imprimir(ultimaFrecuente)));
+        System.out.println("Codigo inexistente: " + resultado(app.emision().recuperarPorCodigo("B001-999999")));
+
+        // ---------- 11. Administracion: sedes, salas, productos, cupones y funciones ----------
+        titulo("11. Administracion");
+        Sede nueva = app.admin().registrarSede(admin, "Cineplanet Norte", "Av. Tupac Amaru 500", "Independencia", null, "10:00 - 23:00").dato();
+        app.admin().actualizarSede(admin, nueva, "Cineplanet Norte Plaza", "Av. Tupac Amaru 500", "Independencia", "01-555-0000", "10:00 - 23:00");
+        System.out.println("Sedes: " + app.admin().listarSedes(admin).dato());
+        System.out.println("Sala con numero repetido: " + resultado(app.admin().registrarSala(admin, sede, 3, tipo, 5, 2, 6)));
+        System.out.println("Redistribuir sala con funciones: " + resultado(app.admin().redistribuirSala(admin, grande, 10, 4, 12)));
+        System.out.println("Dar de baja sala con funciones pendientes: " + resultado(app.admin().darDeBajaSala(admin, grande)));
+        System.out.println("Editar combo: " + resultado(app.admin().actualizarProducto(admin, combo, "Combo Mediano",
+                "Canchita salada y gaseosa", "Combos", ConversorDinero.aCentavos("27.50"), true, 0)) + " | " + combo);
+        System.out.println("Bajar limite del cupon por debajo de sus usos: " + resultado(app.admin().actualizarCupon(admin, cupon,
+                "CINE10", new CalculoPorcentaje(10), new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 0)));
+        System.out.println("Editar funcion con entradas vendidas: " + resultado(app.admin().editarFuncion(admin, funcion4,
+                fechaFuncion, new DateTime(11, 0), "Doblada")));
+        System.out.println("Reactivar funcion 3: " + resultado(app.admin().reactivarFuncion(admin, funcion3))
+                + " | estado: " + funcion3.getEstado());
+        System.out.println("Retirar pelicula con funciones pendientes: " + resultado(app.admin().retirarPelicula(admin, peli)));
+
+        // ---------- 12. Tolerancia de 20 minutos despues del inicio ----------
+        titulo("12. Venta hasta " + Funcion.TOLERANCIA_VENTA_MIN + " minutos despues de iniciada la funcion");
+        DateTime haceDiez = app.reloj().ahora().sumarMinutos(-10);
+        DateTime haceVeinticinco = app.reloj().ahora().sumarMinutos(-25);
+        Sala sala4 = app.admin().registrarSala(admin, sede, 4, tipo, 3, 2, 4).dato();
+        Sala sala5 = app.admin().registrarSala(admin, sede, 5, tipo, 3, 2, 4).dato();
+        Funcion empezoHace10 = new Funcion(6,
+                new DateTime(haceDiez.getDia(), haceDiez.getMes(), haceDiez.getAnio()),
+                new DateTime(haceDiez.getHora(), haceDiez.getMinuto()), "Doblada", null, peli, sala4, app.reloj());
+        Funcion empezoHace25 = new Funcion(7,
+                new DateTime(haceVeinticinco.getDia(), haceVeinticinco.getMes(), haceVeinticinco.getAnio()),
+                new DateTime(haceVeinticinco.getHora(), haceVeinticinco.getMinuto()), "Doblada", null, peli, sala5, app.reloj());
+        app.admin().programarFuncion(admin, empezoHace10);
+        app.admin().programarFuncion(admin, empezoHace25);
+        List<Funcion> enCartelera = app.cartelera().consultarCartelera(sede).dato();
+        System.out.println("Empezo hace 10 min: " + empezoHace10.getEstado() + " | cierre de venta: "
+                + empezoHace10.obtenerCierreVenta().soloHora() + " | en cartelera: " + enCartelera.contains(empezoHace10));
+        System.out.println("Empezo hace 25 min: " + empezoHace25.getEstado() + " | cierre de venta: "
+                + empezoHace25.obtenerCierreVenta().soloHora() + " | en cartelera: " + enCartelera.contains(empezoHace25));
+
+        Compra tarde = app.compra().iniciarCompra(cliente, sede).dato();
+        app.compra().agregarEntrada(tarde, empezoHace10, sala4.obtenerMapaButacas().get(0), general);
+        System.out.println("Comprar la que empezo hace 10 min: " + resultado(app.compra().confirmarAsientos(tarde)));
+        System.out.println("Pago: " + resultado(app.pago().pagar(tarde, tarde.getTotalCentavos(), TransaccionPago.YAPE)));
+
+        Compra muyTarde = app.compra().iniciarCompra(cliente, sede).dato();
+        app.compra().agregarEntrada(muyTarde, empezoHace25, sala5.obtenerMapaButacas().get(0), general);
+        System.out.println("Comprar la que empezo hace 25 min - error esperado: "
+                + app.compra().confirmarAsientos(muyTarde).mensaje());
+        app.compra().cancelar(muyTarde);
 
         titulo("Resumen del cliente");
         System.out.println(cliente + " | puntos: " + cliente.consultarPuntos()

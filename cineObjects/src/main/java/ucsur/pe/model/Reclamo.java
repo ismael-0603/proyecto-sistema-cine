@@ -1,14 +1,18 @@
 package ucsur.pe.model;
 
+import java.util.List;
+
 /**
- * Por qué existe: registra un reclamo, queja o pedido de reembolso sobre una compra
- * y su atención hasta que se cierra.
+ * Por qué existe: registra un reclamo sobre una compra (atención, dulcería o sala) y su atención
+ * hasta que se cierra. No hay reclamos de reembolso: si el cine cancela una función,
+ * el dinero se devuelve automáticamente.
  */
 public class Reclamo {
     // Tipos de reclamo (constantes: se usan como Reclamo.NOMBRE y su valor no cambia).
-    public static final String RECLAMO = "RECLAMO"; // problema con el servicio o la compra
-    public static final String QUEJA = "QUEJA"; // malestar o inconformidad con la atención
-    public static final String REEMBOLSO = "REEMBOLSO"; // pide que se devuelva el dinero
+    public static final String ATENCION = "ATENCION"; // trato del personal o del servicio
+    public static final String PRODUCTO_DULCERIA = "PRODUCTO_DULCERIA"; // producto incompleto, frío o equivocado
+    public static final String SALA_PROYECCION = "SALA_PROYECCION"; // imagen, sonido, limpieza o butaca de la sala
+    public static final List<String> TIPOS = List.of(ATENCION, PRODUCTO_DULCERIA, SALA_PROYECCION);
 
     // Estados de un reclamo (constantes: se usan como Reclamo.NOMBRE y su valor no cambia).
     public static final String BORRADOR = "BORRADOR"; // solo en memoria hasta registrar(); no existe en la BD
@@ -26,7 +30,7 @@ public class Reclamo {
     private Compra compra;
 
     public Reclamo(int idReclamo, String tipo, String descripcion, Compra compra) {
-        if (!RECLAMO.equals(tipo) && !QUEJA.equals(tipo) && !REEMBOLSO.equals(tipo)) {
+        if (!TIPOS.contains(tipo)) {
             throw new IllegalArgumentException("Tipo de reclamo inválido: " + tipo);
         }
         if (descripcion == null || descripcion.trim().isEmpty()) {
@@ -38,9 +42,20 @@ public class Reclamo {
         this.idReclamo = idReclamo;
         this.tipo = tipo;
         this.descripcion = descripcion.trim();
-        this.fecha = DateTime.ahora();
+        this.fecha = compra.getReloj().ahora(); // el mismo reloj de la compra reclamada
         this.estado = BORRADOR;
         this.compra = compra;
+    }
+
+    /** Asigna el id real generado por la base tras el INSERT (en memoria, lo simula el repositorio). */
+    public void asignarId(int idReclamo) {
+        if (this.idReclamo > 0) {
+            throw new IllegalStateException("El reclamo ya tiene id asignado");
+        }
+        if (idReclamo <= 0) {
+            throw new IllegalArgumentException("El id del reclamo debe ser mayor a 0");
+        }
+        this.idReclamo = idReclamo;
     }
 
     /** Formaliza el reclamo una sola vez y solo para compras confirmadas o reembolsadas. */
@@ -52,7 +67,7 @@ public class Reclamo {
             throw new IllegalStateException("Solo se reclama sobre una compra confirmada o reembolsada (estado: "
                     + compra.getEstado() + ")");
         }
-        this.fecha = DateTime.ahora();
+        this.fecha = compra.getReloj().ahora();
         this.estado = REGISTRADO;
     }
 
@@ -79,11 +94,6 @@ public class Reclamo {
         validarRespuesta(motivo);
         this.respuesta = motivo.trim();
         this.estado = RECHAZADO;
-    }
-
-    /** Indica si el reclamo pide un reembolso. */
-    public boolean esReembolso() {
-        return REEMBOLSO.equals(this.tipo);
     }
 
     /** Impide revisar o responder reclamos que no se registraron o que ya fueron cerrados. */

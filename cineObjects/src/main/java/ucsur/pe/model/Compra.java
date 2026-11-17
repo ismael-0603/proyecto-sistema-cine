@@ -1,5 +1,6 @@
 package ucsur.pe.model;
 
+import ucsur.pe.util.ConversorDinero;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,11 +26,14 @@ public class Compra implements Totalizable{
     private ResumenImporte importe; // subtotal, descuento, IGV y total del último cálculo
     private int puntosCanjeados; // Puntos que cuestan los tipos de entrada elegidos; se descuentan solo al confirmar.
     private int puntosOtorgados; // Puntos ganados al confirmar; se revierten si se reembolsa.
+    private long montoReembolsadoCentavos; // Lo devuelto al cliente; si ya recogió su dulcería, solo las entradas.
     private String estado;
     private Cliente cliente;
     private Sede sede; // Sede donde se hace la compra; en la BD es compra.id_sede NOT NULL.
     /** Cupones y promociones aplicados; Compra los trata a todos como Descuento (la interfaz). */
     private final List<Descuento> descuentos = new ArrayList<>();
+    /** Los descuentos de la lista anterior que además cuentan usos (hoy, el cupón). */
+    private final List<DescuentoConUsos> descuentosConUsos = new ArrayList<>();
     private Pedido pedido;
 
     // Colaboradores: cada uno se encarga de una parte de la compra. Llegan por el constructor
@@ -39,13 +43,10 @@ public class Compra implements Totalizable{
     private final GestorPuntos gestorPuntos;
     private final Reloj reloj; // de dónde sale la hora actual (el real o uno fijo en pruebas)
 
-    /** Constructor de uso normal: crea los colaboradores por defecto. */
-    public Compra(int idCompra, DateTime fechaHora, Cliente cliente, Sede sede) {
-        this(idCompra, fechaHora, cliente, sede,
-                new SeleccionAsientos(), new CalculadoraImporte(), new GestorPuntos(), new RelojSistema());
-    }
-
-    /** Recibe los colaboradores ya creados; sirve para cambiarlos (por ejemplo, en pruebas) sin tocar Compra. */
+    /**
+     * Recibe los colaboradores ya creados (inyección de dependencias): Compra no decide cuáles se usan,
+     * así se pueden cambiar (por ejemplo, un reloj fijo en pruebas) sin tocar esta clase.
+     */
     public Compra(int idCompra, DateTime fechaHora, Cliente cliente, Sede sede,
                   SeleccionAsientos asientos, CalculadoraImporte calculadora, GestorPuntos gestorPuntos,
                   Reloj reloj) {
@@ -126,7 +127,25 @@ public class Compra implements Totalizable{
      */
     public void confirmarSeleccionAsientos() {
         validarEnProceso();
-        asientos.bloquear(reloj.ahora(), this.expiraCompra);
+        asientos.bloquear(reloj.ahora(), this.expiraCompra, this.fechaHora);
+    }
+
+    /**
+     * El cliente vuelve al mapa de butacas para cambiarlas: se liberan los bloqueos y las entradas
+     * vuelven a ser una preselección que se puede quitar o cambiar. El plazo de 4 minutos sigue corriendo.
+     */
+    public void liberarSeleccionAsientos() {
+        validarEnProceso();
+        asientos.liberarBloqueo();
+    }
+
+    /** Butacas que esta compra ya eligió en una función (para no recomendarlas otra vez). */
+    public List<Butaca> butacasElegidas(Funcion funcion) {
+        List<Butaca> elegidas = new ArrayList<>();
+        for (Entrada e : asientos.getEntradasValidas()) {
+            if (e.getFuncion() == funcion) elegidas.add(e.getButaca());
+        }
+        return elegidas;
     }
 
     /** Asigna el pedido de dulcería; rechaza productos de oferta si el cliente no tiene el nivel requerido. */
@@ -143,8 +162,8 @@ public class Compra implements Totalizable{
     // ---------- Totales (delegado en CalculadoraImporte) ----------
     /** Recalcula subtotal, descuentos, IGV y total, y los puntos que cuesta la compra. */
     @Override
-    public double calcularTotal() {
-        return calculadora.calcular(asientos.getEntradasValidas(), pedido, descuentos).getTotal();
+    public long calcularTotalCentavos() {
+        return calculadora.calcular(asientos.getEntradasValidas(), pedido, descuentos).getTotalCentavos();
     }
 
     /** Guarda el importe y los puntos que cuesta la compra; se llama cada vez que cambia algo. */
@@ -172,6 +191,25 @@ public class Compra implements Totalizable{
      * uno nuevo de la misma categoría reemplaza al anterior.
      */
     public void aplicarDescuento(Descuento descuento) {
+        agregarDescuento(descuento);
+        recalcularImporte();
+    }
+
+    /**
+     * Sobrecarga para los descuentos con límite de usos (como un cupón): al confirmar la compra se le
+     * suma un uso y al reembolsarla se le devuelve.
+     * Lleva el mismo nombre a propósito: Java elige este método cuando el argumento es un Cupon
+     * (o cualquier DescuentoConUsos), así que no hay forma de olvidarse de contar el uso.
+     * Solo se escaparía si el cupón se guarda antes en una variable declarada como Descuento.
+     */
+    public void aplicarDescuento(DescuentoConUsos descuento) {
+        agregarDescuento(descuento);
+        descuentosConUsos.add(descuento);
+        recalcularImporte();
+    }
+
+    /** Valida el descuento y reemplaza al anterior de su misma categoría (en ambas listas). */
+    private void agregarDescuento(Descuento descuento) {
         validarEnProceso();
         if (descuento == null) {
             throw new IllegalArgumentException("El descuento es obligatorio");
@@ -180,8 +218,8 @@ public class Compra implements Totalizable{
             throw new IllegalStateException("El descuento " + descuento + " no aplica a esta compra (fechas, día, usos o solo socios)");
         }
         descuentos.removeIf(d -> d.getCategoria().equals(descuento.getCategoria()));
+        descuentosConUsos.removeIf(d -> d.getCategoria().equals(descuento.getCategoria()));
         descuentos.add(descuento);
-        recalcularImporte();
     }
 
     /** Datos de esta compra que un descuento necesita para decidir si aplica. */
@@ -205,6 +243,12 @@ public class Compra implements Totalizable{
         if (!asientos.estaVacia() && !asientos.isBloqueados()) return "falta confirmar la selección de asientos";
         if (asientos.algunBloqueoVencido(ahora)) return "venció el bloqueo de alguna butaca";
         if (!asientos.todasConTipo()) return "hay entradas sin tipo de entrada";
+        // La función pudo cancelarse mientras el cliente pagaba. El cierre de venta se mide con la hora en que
+        // EMPEZÓ la compra: si empezó antes del cierre, puede terminar de pagar aunque el cierre ya pasó.
+        for (Entrada e : asientos.getEntradasValidas()) {
+            String motivoFuncion = e.getFuncion().motivoVentaCerrada(fechaHora);
+            if (motivoFuncion != null) return motivoFuncion;
+        }
         if (asientos.contarBloqueadas() == 0 && pedido == null) return "no hay entradas ni pedido que vender";
         // Cada descuento debe seguir siendo aplicable (por ejemplo, un cupón que agotó sus usos ya no)
         for (Descuento d : descuentos) {
@@ -246,8 +290,8 @@ public class Compra implements Totalizable{
             pedido.registrar(sede); // descuenta el stock de la sede (ya se verificó que alcanza)
         }
         asientos.venderBloqueadas(ahora);
-        for (Descuento d : descuentos) {
-            d.registrarUso(); // cada descuento sabe qué hacer: el cupón suma un uso, la promoción nada
+        for (DescuentoConUsos d : descuentosConUsos) {
+            d.registrarUso(); // solo los que tienen límite de usos (el cupón suma uno)
         }
         this.estado = CONFIRMADA; // la serie la asigna la base al confirmar (trigger trg_compra_serie)
 
@@ -262,9 +306,20 @@ public class Compra implements Totalizable{
     /** Cancela una compra en proceso y libera las butacas que estuvieran bloqueadas. */
     public void cancelar() {
         validarEnProceso();
-        asientos.anularBloqueadas();
+        asientos.anularNoVendidas();
+        anularPedidoSinConfirmar();
         this.puntosCanjeados = 0; // los puntos nunca se descontaron del saldo
         this.estado = CANCELADA;
+    }
+
+    /**
+     * Si la compra no llega a confirmarse, su pedido de dulcería tampoco se prepara: pasa a ANULADO
+     * (igual que el evento ev_expirar_compras de la BD). No vuelve stock porque aún no se había descontado.
+     */
+    private void anularPedidoSinConfirmar() {
+        if (pedido != null) {
+            pedido.anular();
+        }
     }
 
     /**
@@ -274,35 +329,63 @@ public class Compra implements Totalizable{
     private void cancelarPorTimeout() {
         if (!EN_PROCESO.equals(estado)) return;
         asientos.liberarPorTimeout();
+        anularPedidoSinConfirmar();
         this.puntosCanjeados = 0; // los puntos nunca se descontaron del saldo
         this.estado = EXPIRADA;
     }
 
     /**
-     * Reembolsa solo si todas las funciones fueron canceladas y el pedido no fue entregado.
-     * Devuelve los puntos canjeados, quita los puntos ganados con esta compra, devuelve el uso del cupón
-     * y anula el pedido de dulcería (su stock vuelve solo si nadie lo había empezado a preparar).
+     * Revisa, sin cambiar nada, si la compra se puede reembolsar (RF-24): debe estar CONFIRMADA y todas
+     * sus funciones canceladas por el cine. Devuelve null si procede o el motivo si no.
+     */
+    public String motivoNoReembolsable() {
+        if (!CONFIRMADA.equals(estado)) return "solo se reembolsa una compra CONFIRMADA (estado actual: " + estado + ")";
+        if (!asientos.todasConFuncionCancelada()) return "solo se reembolsa si el cine canceló la función";
+        return null;
+    }
+
+    /** Indica si el cliente ya recogió su pedido de dulcería: esa parte ya se consumió y no se devuelve. */
+    private boolean dulceriaEntregada() {
+        return pedido != null && Pedido.ENTREGADO.equals(pedido.getEstado());
+    }
+
+    /**
+     * Monto a devolver, sin cambiar nada: el total pagado o, si la dulcería ya se entregó, solo lo que
+     * costaron las entradas (con sus descuentos e IGV), sin pasar nunca del total pagado.
+     */
+    public long calcularMontoReembolsoCentavos() {
+        if (!dulceriaEntregada()) return importe.getTotalCentavos();
+        long soloEntradas = calculadora.calcular(asientos.getEntradasValidas(), null, descuentos).getTotalCentavos();
+        return Math.min(soloEntradas, importe.getTotalCentavos());
+    }
+
+    /**
+     * Reembolsa la compra cuando el cine cancela la función (lo llama PagoService después de que la
+     * pasarela devolvió el dinero). Anula las entradas, devuelve los puntos canjeados y el uso del cupón,
+     * y quita los puntos ganados. Si la dulcería ya se entregó, esa parte no se devuelve: el pedido se queda
+     * como está y el cliente conserva los puntos que ganó por ella.
      */
     public void reembolsar() {
-        if (!CONFIRMADA.equals(estado)) {
-            throw new IllegalStateException("Solo se reembolsa una compra CONFIRMADA (estado actual: " + estado + ")");
+        String motivo = motivoNoReembolsable();
+        if (motivo != null) {
+            throw new IllegalStateException("No se puede reembolsar: " + motivo);
         }
-        if (!asientos.todasConFuncionCancelada()) {
-            throw new IllegalStateException("Solo se reembolsa si todas las funciones de la compra fueron canceladas");
-        }
-        if (pedido != null && Pedido.ENTREGADO.equals(pedido.getEstado())) {
-            throw new IllegalStateException("No se reembolsa una compra cuyo pedido de dulcería ya fue entregado");
+        this.montoReembolsadoCentavos = calcularMontoReembolsoCentavos();
+        int puntosARevertir = puntosOtorgados;
+        if (dulceriaEntregada()) {
+            int baseTotal = gestorPuntos.calcularPuntosBase(asientos.getEntradasValidas(), pedido);
+            int baseEntradas = gestorPuntos.calcularPuntosBase(asientos.getEntradasValidas(), null);
+            puntosARevertir = (baseTotal == 0) ? 0 : puntosOtorgados * baseEntradas / baseTotal;
+        } else if (pedido != null && pedido.isRegistrado()) {
+            pedido.anular(); // el stock vuelve solo si nadie lo había empezado a preparar
         }
         asientos.anularVendidas();
-        for (Descuento d : descuentos) {
-            d.revertirUso(); // el cupón recupera el uso; la promoción no hace nada
-        }
-        if (pedido != null && pedido.isRegistrado()) {
-            pedido.anular();
+        for (DescuentoConUsos d : descuentosConUsos) {
+            d.revertirUso(); // el cupón recupera el uso
         }
         this.estado = REEMBOLSADA;
         cliente.devolverPuntos(puntosCanjeados);
-        cliente.revertirPuntos(puntosOtorgados);
+        cliente.revertirPuntos(puntosARevertir);
     }
 
     // ---------- Comprobante (delegado en Comprobante) ----------
@@ -328,6 +411,17 @@ public class Compra implements Totalizable{
         return new Comprobante(serieNumero, fechaHora, importe).generarTexto();
     }
 
+    /**
+     * Resumen para «Ver» en Mis compras, imprimir o enviar por correo (RF-20 a RF-22, RF-33).
+     * Solo existe para compras pagadas: confirmadas o reembolsadas (estas ya sin QR válidos).
+     */
+    public DetalleCompra obtenerDetalle() {
+        if (serieNumero == null || (!CONFIRMADA.equals(estado) && !REEMBOLSADA.equals(estado))) {
+            throw new IllegalStateException("Solo se puede ver el detalle de una compra pagada");
+        }
+        return new DetalleCompra(this);
+    }
+
     /** Reloj de la compra; TransaccionPago lo usa para que el pago y la compra miren la misma hora. */
     Reloj getReloj() { return reloj; }
 
@@ -336,9 +430,10 @@ public class Compra implements Totalizable{
     public DateTime getExpiraCompra() { return expiraCompra; }
     public String getSerieNumero() { return serieNumero; }
     public ResumenImporte getImporte() { return importe; }
-    public double getTotal() { return importe.getTotal(); }
+    public long getTotalCentavos() { return importe.getTotalCentavos(); }
     public int getPuntosCanjeados() { return puntosCanjeados; }
     public int getPuntosOtorgados() { return puntosOtorgados; }
+    public long getMontoReembolsadoCentavos() { return montoReembolsadoCentavos; }
     public String getEstado() { return estado; }
     public Cliente getCliente() { return cliente; }
     public Sede getSede() { return sede; }
@@ -348,6 +443,6 @@ public class Compra implements Totalizable{
 
     @Override
     public String toString() {
-        return "Compra #" + idCompra + " [" + estado + "] S/ " + String.format("%.2f", getTotal());
+        return "Compra #" + idCompra + " [" + estado + "] " + ConversorDinero.formatear(getTotalCentavos());
     }
 }

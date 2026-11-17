@@ -1,5 +1,6 @@
 package ucsur.pe.model;
 
+import ucsur.pe.util.ConversorDinero;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +16,7 @@ public class Producto implements Activable {
     private String nombre;
     private String descripcion;
     private String categoria;
-    private double precio;
+    private long precioCentavos; // en céntimos: S/ 12.50 -> 1250 (ver ConversorDinero)
     private boolean esCombo;
     private int nivelSocioMinimo; // 0 = todos; 1 = cualquier socio; 2 a 4 = ofertas de ese nivel o superior
     /** Unidades disponibles en cada sede; equivale a las filas de inventario_sede de este producto. */
@@ -24,12 +25,40 @@ public class Producto implements Activable {
 
     /** Crea un producto abierto para cualquier cliente, sin stock en ninguna sede. */
     public Producto(int idProducto, String nombre, String descripcion, String categoria,
-                    double precio, boolean esCombo, boolean estado) {
-        this(idProducto, nombre, descripcion, categoria, precio, esCombo, 0, estado);
+                    long precioCentavos, boolean esCombo, boolean estado) {
+        this(idProducto, nombre, descripcion, categoria, precioCentavos, esCombo, 0, estado);
     }
 
     public Producto(int idProducto, String nombre, String descripcion, String categoria,
-                    double precio, boolean esCombo, int nivelSocioMinimo, boolean estado) {
+                    long precioCentavos, boolean esCombo, int nivelSocioMinimo, boolean estado) {
+        validarDatos(nombre, descripcion, categoria, precioCentavos, nivelSocioMinimo);
+        this.idProducto = idProducto;
+        this.nombre = nombre.trim();
+        this.descripcion = descripcion;
+        this.categoria = categoria.trim();
+        this.precioCentavos = precioCentavos;
+        this.esCombo = esCombo;
+        this.nivelSocioMinimo = nivelSocioMinimo;
+        this.estado = estado;
+    }
+
+    /**
+     * El administrador edita el producto (wireframe 20). El nuevo precio vale para pedidos futuros:
+     * los ya registrados guardan su precio unitario en DetallePedido.
+     */
+    public void actualizar(String nombre, String descripcion, String categoria, long precioCentavos,
+                           boolean esCombo, int nivelSocioMinimo) {
+        validarDatos(nombre, descripcion, categoria, precioCentavos, nivelSocioMinimo);
+        this.nombre = nombre.trim();
+        this.descripcion = descripcion;
+        this.categoria = categoria.trim();
+        this.precioCentavos = precioCentavos;
+        this.esCombo = esCombo;
+        this.nivelSocioMinimo = nivelSocioMinimo;
+    }
+
+    private static void validarDatos(String nombre, String descripcion, String categoria,
+                                     long precioCentavos, int nivelSocioMinimo) {
         if (nombre == null || nombre.trim().isEmpty() || nombre.trim().length() > 100) {
             throw new IllegalArgumentException("El nombre es obligatorio (máx. 100 caracteres)");
         }
@@ -39,20 +68,12 @@ public class Producto implements Activable {
         if (categoria == null || categoria.trim().isEmpty() || categoria.trim().length() > 40) {
             throw new IllegalArgumentException("La categoría es obligatoria (máx. 40 caracteres)");
         }
-        if (precio < 0) {
+        if (precioCentavos < 0) {
             throw new IllegalArgumentException("El precio no puede ser negativo");
         }
         if (nivelSocioMinimo < 0 || nivelSocioMinimo > Cliente.NIVEL_MAXIMO) {
             throw new IllegalArgumentException("El nivel de socio mínimo debe estar entre 0 y " + Cliente.NIVEL_MAXIMO);
         }
-        this.idProducto = idProducto;
-        this.nombre = nombre.trim();
-        this.descripcion = descripcion;
-        this.categoria = categoria.trim();
-        this.precio = precio;
-        this.esCombo = esCombo;
-        this.nivelSocioMinimo = nivelSocioMinimo;
-        this.estado = estado;
     }
 
     /** Devuelve true si el producto está activo y la sede tiene unidades suficientes para la cantidad solicitada. */
@@ -109,7 +130,7 @@ public class Producto implements Activable {
     public String getNombre() { return nombre; }
     public String getDescripcion() { return descripcion; }
     public String getCategoria() { return categoria; }
-    public double getPrecio() { return precio; }
+    public long getPrecioCentavos() { return precioCentavos; }
     public boolean isEsCombo() { return esCombo; }
     public int getNivelSocioMinimo() { return nivelSocioMinimo; }
     /** Unidades disponibles en la sede indicada; cero si la sede no tiene registro de este producto. */
@@ -119,6 +140,6 @@ public class Producto implements Activable {
 
     @Override
     public String toString() {
-        return nombre + " (S/ " + String.format("%.2f", precio) + ")";
+        return nombre + " (" + ConversorDinero.formatear(precioCentavos) + ")";
     }
 }

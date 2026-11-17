@@ -1,11 +1,17 @@
 package ucsur.pe.demo;
 
+import ucsur.pe.util.ConversorDinero;
+import ucsur.pe.model.CalculadoraImporte;
 import ucsur.pe.model.Cliente;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.DetallePedido;
+import ucsur.pe.model.GestorPuntos;
 import ucsur.pe.model.Pedido;
 import ucsur.pe.model.Producto;
+import ucsur.pe.model.Reloj;
+import ucsur.pe.model.RelojSistema;
 import ucsur.pe.model.Sede;
+import ucsur.pe.model.SeleccionAsientos;
 import ucsur.pe.model.Totalizable;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,23 +26,24 @@ public class MainTotalizable {
         System.out.println("=== INTERFAZ TOTALIZABLE ===");
 
         // 1. Creamos un cliente invitado
-        Cliente cliente1 = Cliente.ingresarComoInvitado("invitado@cine.com");
+        Reloj reloj = new RelojSistema(); // en la demo no hay App: se crea el reloj aquí
+        Cliente cliente1 = Cliente.ingresarComoInvitado("invitado@cine.com", reloj);
 
         // 2. Creamos un pedido de dulceria
-        Pedido pedido1 = new Pedido(1);
+        Pedido pedido1 = new Pedido(1, reloj);
 
         // 3. Creamos la sede y los productos con sus precios y stock en esa sede
         Sede sede = new Sede(1, "Cine Prueba", "Av. Lima 123", "Miraflores", null, null, Sede.ACTIVA);
 
         Producto producto1 = new Producto(
                 1, "Canchita mediana(Salado)", "Canchita Mediana",
-                "Canchitas", 17.00, false, true
+                "Canchitas", ConversorDinero.aCentavos("17.00"), false, true
         );
         producto1.reponerStock(sede, 20);
 
         Producto producto2 = new Producto(
                 2, "CCBebida Mediana", "CCBebida Mediana(21oz)",
-                "Bebidas", 13.00, false, true
+                "Bebidas", ConversorDinero.aCentavos("13.00"), false, true
         );
         producto2.reponerStock(sede, 30);
 
@@ -59,12 +66,13 @@ public class MainTotalizable {
         System.out.println(detalle2);
 
         System.out.printf(
-                "Total del pedido: S/ %.2f%n",
-                pedido1.calcularTotal()
+                "Total del pedido: %s%n",
+                ConversorDinero.formatear(pedido1.calcularTotalCentavos())
         );
 
         // 7. Creamos la compra del cliente en la sede (en el sistema la crea CompraService)
-        Compra compra1 = new Compra(1, null, cliente1, sede);
+        Compra compra1 = new Compra(1, null, cliente1, sede,
+                new SeleccionAsientos(), new CalculadoraImporte(), new GestorPuntos(), reloj);
 
         // 8. Asociamos el pedido a la compra
         compra1.asignarPedido(pedido1);
@@ -81,9 +89,9 @@ public class MainTotalizable {
         for (Totalizable t : listaTotales) {
 
             System.out.printf(
-                    "Total de %s: S/ %.2f%n",
+                    "Total de %s: %s%n",
                     t.getClass().getSimpleName(),
-                    t.calcularTotal()
+                    ConversorDinero.formatear(t.calcularTotalCentavos())
             );
         }
     }

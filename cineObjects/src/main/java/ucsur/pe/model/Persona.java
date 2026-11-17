@@ -14,10 +14,13 @@ public abstract class Persona implements Activable {
     protected String telefono;
     protected String contra;
     protected boolean estado = true; // cuenta activa; si es false no puede iniciar sesión
+    private final Reloj reloj; // de dónde sale la fecha de hoy (el real o uno fijo en pruebas)
 
     // Se permiten datos incompletos para invitados; clientes registrados y empleados validan lo requerido.
     protected Persona(String dni, String nombres, String apellidos, DateTime fechaNac,
-                      String correo, String telefono, String contra) {
+                      String correo, String telefono, String contra, Reloj reloj) {
+        if (reloj == null) throw new IllegalArgumentException("El reloj es obligatorio");
+        this.reloj = reloj; // va primero: validarFechaNac lo necesita
         this.dni = validarDni(dni);
         this.nombres = validarTexto(nombres, "Los nombres", 80);
         this.apellidos = validarTexto(apellidos, "Los apellidos", 80);
@@ -60,7 +63,7 @@ public abstract class Persona implements Activable {
     /** Calcula la edad a la fecha de hoy; si no se conoce el nacimiento, devuelve cero. */
     public int calcularEdad() {
         if (this.fechaNac == null) return 0;
-        return this.fechaNac.calcularAniosHasta(DateTime.ahora());
+        return this.fechaNac.calcularAniosHasta(reloj.ahora());
     }
 
     /** Indica si están los datos obligatorios de una cuenta registrada; la subclase pregunta sin ver la contraseña. */
@@ -101,8 +104,8 @@ public abstract class Persona implements Activable {
     }
 
     /** Rechaza fechas de nacimiento posteriores al momento actual. */
-    private static DateTime validarFechaNac(DateTime fecha) {
-        if (fecha != null && fecha.esDespuesDe(DateTime.ahora())) {
+    private DateTime validarFechaNac(DateTime fecha) {
+        if (fecha != null && fecha.esDespuesDe(reloj.ahora())) {
             throw new IllegalArgumentException("La fecha de nacimiento no puede ser futura");
         }
         return fecha;
@@ -159,6 +162,9 @@ public abstract class Persona implements Activable {
     public void setTelefono(String telefono) { this.telefono = validarTelefono(telefono); }
 
     public void setContra(String contra) { this.contra = validarContra(contra); }
+
+    /** Reloj de la cuenta; Cliente lo usa para su fecha de registro y sus visitas del año. */
+    protected Reloj getReloj() { return reloj; }
 
     /** Indica si la cuenta está activa (puede iniciar sesión). */
     @Override

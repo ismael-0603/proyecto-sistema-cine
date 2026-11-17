@@ -2,10 +2,12 @@ package ucsur.pe.model;
 
 /**
  * Por qué existe: es el boleto de una butaca para una función.
- * Pasa de BLOQUEADA a VENDIDA, o se libera como EXPIRADA o ANULADA.
+ * Nace PRESELECCIONADA (el cliente la eligió en el mapa), pasa a BLOQUEADA al confirmar los asientos
+ * y luego a VENDIDA al pagar; si no se paga, termina EXPIRADA o ANULADA.
  */
 public class Entrada {
     // Estados de una entrada (constantes: se usan como Entrada.NOMBRE y su valor no cambia).
+    public static final String PRESELECCIONADA = "PRESELECCIONADA"; // elegida en el mapa; todavía no ocupa la butaca
     public static final String BLOQUEADA = "BLOQUEADA"; // butaca reservada temporalmente, aún sin pagar
     public static final String VENDIDA = "VENDIDA"; // pagada; ya tiene código QR
     public static final String EXPIRADA = "EXPIRADA"; // el bloqueo venció sin pagar; la butaca se libera
@@ -13,7 +15,7 @@ public class Entrada {
 
     private int idEntrada;
     private String codigoQR; // se crea al confirmar la venta
-    private double precio; // tarifa del tipo de entrada más el recargo del formato de sala
+    private long precioCentavos; // tarifa del tipo de entrada más el recargo del formato de sala, en céntimos
     private DateTime fechaEmision;
     private DateTime expiraBloqueo; // Momento en que debe liberarse el asiento si no se confirma la venta.
     private String estado;
@@ -31,7 +33,7 @@ public class Entrada {
         this.idEntrada = idEntrada;
         this.funcion = funcion;
         this.butaca = butaca;
-        this.estado = BLOQUEADA;
+        this.estado = PRESELECCIONADA;
     }
 
     /** Crea una entrada con su tipo, calculando el precio base y validando sus asociaciones. */
@@ -45,11 +47,11 @@ public class Entrada {
         if (tipoEntrada == null) {
             throw new IllegalArgumentException("El tipo de entrada es obligatorio");
         }
-        if (VENDIDA.equals(estado)) {
-            throw new IllegalStateException("No se puede cambiar el tipo de una entrada ya vendida");
+        if (!PRESELECCIONADA.equals(estado) && !BLOQUEADA.equals(estado)) {
+            throw new IllegalStateException("No se puede cambiar el tipo de una entrada " + estado);
         }
         this.tipoEntrada = tipoEntrada;
-        this.precio = calculaPrecioFinal(); // se guarda el precio del momento de elegir el tipo
+        this.precioCentavos = calculaPrecioFinalCentavos(); // se guarda el precio del momento de elegir el tipo
     }
 
     /** Asigna el id real generado por la base tras el INSERT; el QR se crea después, al confirmar la venta. */
@@ -63,20 +65,25 @@ public class Entrada {
         this.idEntrada = idEntrada;
     }
 
-    /** Bloquea la butaca hasta la hora límite compartida con la compra; solo la usa SeleccionAsientos. */
-    boolean bloquearTemporalmente(DateTime ahora, DateTime fechaExpiracion) {
+    /**
+     * Bloquea la butaca hasta la hora límite compartida con la compra; solo la usa SeleccionAsientos.
+     * {@code inicioCompra} es cuándo empezó la compra: la función lo usa para saber si su venta seguía abierta.
+     */
+    boolean bloquearTemporalmente(DateTime ahora, DateTime fechaExpiracion, DateTime inicioCompra) {
         if (fechaExpiracion == null || !ahora.esAntesDe(fechaExpiracion)) {
             return false; // El tiempo de la compra ya venció
         }
-        if (!BLOQUEADA.equals(estado) || expiraBloqueo != null) {
-            throw new IllegalStateException("La entrada ya fue bloqueada o no está en estado BLOQUEADA");
+        if (!PRESELECCIONADA.equals(estado)) {
+            throw new IllegalStateException("Solo se bloquea una entrada PRESELECCIONADA (estado actual: " + estado + ")");
         }
         // Si la función no está disponible o la butaca ya está ocupada, Funcion.registrarEntrada lo rechaza.
+        this.estado = BLOQUEADA;
         this.expiraBloqueo = fechaExpiracion;
         try {
-            funcion.registrarEntrada(this);
+            funcion.registrarEntrada(this, inicioCompra);
         } catch (RuntimeException ex) {
-            this.expiraBloqueo = null; // si la función la rechaza, la entrada vuelve a ser solo una preselección
+            this.estado = PRESELECCIONADA; // si la función la rechaza, la entrada vuelve a ser solo una preselección
+            this.expiraBloqueo = null;
             throw ex;
         }
         return true;
@@ -103,10 +110,10 @@ public class Entrada {
         }
     }
 
-    /** Suma la tarifa de entrada y el recargo por formato de sala; sin tipo, el precio es cero. */
-    public double calculaPrecioFinal() {
-        if (tipoEntrada == null) return 0.0;
-        return tipoEntrada.getTarifa() + funcion.getSala().getTipoSala().obtenerRecargoFormato();
+    /** Suma la tarifa de entrada y el recargo por formato de sala, en céntimos; sin tipo, el precio es cero. */
+    public long calculaPrecioFinalCentavos() {
+        if (tipoEntrada == null) return 0;
+        return tipoEntrada.getTarifaCentavos() + funcion.getSala().getTipoSala().obtenerRecargoFormatoCentavos();
     }
 
     /** Cambia el bloqueo vigente a venta y crea el código QR; solo se vende al confirmar la compra pagada. */
@@ -129,9 +136,9 @@ public class Entrada {
         this.codigoQR = generarCodigoQR();
     }
 
-    /** Anula una entrada bloqueada o vendida; solo al cancelar o reembolsar la compra. */
+    /** Anula una entrada preseleccionada, bloqueada o vendida; solo al cancelar o reembolsar la compra. */
     void anular() {
-        if (!BLOQUEADA.equals(estado) && !VENDIDA.equals(estado)) {
+        if (!PRESELECCIONADA.equals(estado) && !BLOQUEADA.equals(estado) && !VENDIDA.equals(estado)) {
             throw new IllegalStateException("No se puede anular una entrada en estado " + estado);
         }
         this.estado = ANULADA;
@@ -144,9 +151,10 @@ public class Entrada {
         return (fechaEmision != null) ? base + "-" + fechaEmision.toValorComparable() : base;
     }
     
-    /** Deshace el bloqueo y devuelve la entrada a la preselección. */
+    /** Deshace el bloqueo y devuelve la entrada a la preselección: la butaca queda libre para otros. */
     void liberarBloqueo() {
-        if (BLOQUEADA.equals(estado) && expiraBloqueo != null) {
+        if (BLOQUEADA.equals(estado)) {
+            this.estado = PRESELECCIONADA;
             this.expiraBloqueo = null;
             funcion.liberarEntrada(this);
         }
@@ -154,7 +162,7 @@ public class Entrada {
 
     public int getIdEntrada() { return idEntrada; }
     public String getCodigoQR() { return codigoQR; }
-    public double getPrecio() { return precio; }
+    public long getPrecioCentavos() { return precioCentavos; }
     public DateTime getFechaEmision() { return fechaEmision; }
     public DateTime getExpiraBloqueo() { return expiraBloqueo; }
     public String getEstado() { return estado; }

@@ -22,21 +22,21 @@ public class Cliente extends Persona {
     private List<Compra> historialCompras;
 
     public Cliente(int idCliente, String dni, String nombres, String apellidos, DateTime fechaNac,
-                   String correo, String telefono, String contra) {
-        super(dni, nombres, apellidos, fechaNac, correo, telefono, contra);
+                   String correo, String telefono, String contra, Reloj reloj) {
+        super(dni, nombres, apellidos, fechaNac, correo, telefono, contra, reloj);
         exigirDatosCompletos(); // igual que ck_client_registrado en la BD: un socio necesita DNI, nombres, apellidos, correo y clave
         this.idCliente = idCliente;
-        this.fechaRegistro = DateTime.ahora();
+        this.fechaRegistro = getReloj().ahora();
         this.puntos = 0;
         this.nivelSocio = 1; // Todo cliente registrado comienza en el primer nivel.
         this.esInvitado = false;
         this.historialCompras = new ArrayList<>();
     }
 
-    private Cliente(String correo) {
-        super(null, null, null, null, correo, null, null);
+    private Cliente(String correo, Reloj reloj) {
+        super(null, null, null, null, correo, null, null, reloj);
         exigirCorreo(); // RF-01: el invitado compra sin registrarse, pero necesita su correo (en la BD, correo NOT NULL)
-        this.fechaRegistro = DateTime.ahora();
+        this.fechaRegistro = getReloj().ahora();
         this.puntos = 0;
         this.nivelSocio = 0;
         this.esInvitado = true;
@@ -51,13 +51,13 @@ public class Cliente extends Persona {
         exigirDatosCompletos(); // el DNI ya llega validado con 8 dígitos
         this.esInvitado = false;
         activar();
-        this.fechaRegistro = DateTime.ahora();
+        this.fechaRegistro = getReloj().ahora();
         if (this.nivelSocio == 0) this.nivelSocio = 1;
     }
 
     /** Crea una cuenta temporal con correo, sin datos personales, puntos ni nivel de socio. */
-    public static Cliente ingresarComoInvitado(String correo) {
-        return new Cliente(correo);
+    public static Cliente ingresarComoInvitado(String correo, Reloj reloj) {
+        return new Cliente(correo, reloj);
     }
 
     /**
@@ -94,7 +94,7 @@ public class Cliente extends Persona {
 
     // Una visita cuenta cuando la compra está confirmada y pertenece al año calendario actual.
     public int contarVisitasAnioActual() {
-        int anioActual = DateTime.ahora().getAnio();
+        int anioActual = getReloj().ahora().getAnio();
         int visitas = 0;
         for (Compra c : historialCompras) {
             if (Compra.CONFIRMADA.equals(c.getEstado()) && c.getFechaHora().getAnio() == anioActual) {

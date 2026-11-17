@@ -7,27 +7,27 @@ public class TipoSala {
     private int idTipoSala;
     private String formato;
     private String descripcion;
-    private double tarifaAdicional; // recargo en soles que se suma a la tarifa de entrada
+    private long tarifaAdicionalCentavos; // recargo en céntimos que se suma a la tarifa de entrada
 
-    public TipoSala(int idTipoSala, String formato, String descripcion, double tarifaAdicional) {
+    public TipoSala(int idTipoSala, String formato, String descripcion, long tarifaAdicionalCentavos) {
         if (formato == null || formato.trim().isEmpty() || formato.trim().length() > 30) {
             throw new IllegalArgumentException("El formato es obligatorio (máx. 30 caracteres)");
         }
         if (descripcion != null && descripcion.length() > 150) {
             throw new IllegalArgumentException("La descripción no puede superar 150 caracteres");
         }
-        if (tarifaAdicional < 0) {
+        if (tarifaAdicionalCentavos < 0) {
             throw new IllegalArgumentException("La tarifa adicional no puede ser negativa");
         }
         this.idTipoSala = idTipoSala;
         this.formato = formato.trim();
         this.descripcion = descripcion;
-        this.tarifaAdicional = tarifaAdicional;
+        this.tarifaAdicionalCentavos = tarifaAdicionalCentavos;
     }
 
-    /** Devuelve el recargo que este formato añade al precio de la entrada. */
-    public double obtenerRecargoFormato() {
-        return this.tarifaAdicional;
+    /** Devuelve el recargo en céntimos que este formato añade al precio de la entrada. */
+    public long obtenerRecargoFormatoCentavos() {
+        return this.tarifaAdicionalCentavos;
     }
 
     public int getIdTipoSala() { return idTipoSala; }

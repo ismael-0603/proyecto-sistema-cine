@@ -1,5 +1,6 @@
 package ucsur.pe.model;
 
+import ucsur.pe.util.ConversorDinero;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -7,9 +8,11 @@ import java.util.List;
 /**
  * Por qué existe: para que el cálculo del dinero (subtotal, descuentos, IGV y total) esté en un solo lugar.
  * Si cambia el IGV o cómo se combinan los descuentos, solo se toca esta clase.
+ * Todo se calcula en céntimos (long): las sumas son exactas y solo el IGV y los porcentajes redondean,
+ * siempre al céntimo más cercano (ConversorDinero.aplicarPorcentaje).
  */
 public class CalculadoraImporte {
-    private static final double TASA_IGV = 0.18; // IGV de Perú: 18%
+    private static final int PORCENTAJE_IGV = 18; // IGV de Perú: 18%
 
     /**
      * Aplica los descuentos uno tras otro según su orden de aplicación (las promociones antes que los cupones):
@@ -18,23 +21,23 @@ public class CalculadoraImporte {
      * @param dulceria el pedido de dulcería, o null; solo se necesita su total, por eso basta un Totalizable
      */
     public ResumenImporte calcular(List<Entrada> entradasValidas, Totalizable dulceria, List<Descuento> descuentos) {
-        double sumaEntradas = 0;
+        long sumaEntradas = 0;
         for (Entrada e : entradasValidas) {
-            sumaEntradas += e.calculaPrecioFinal();
+            sumaEntradas += e.calculaPrecioFinalCentavos();
         }
-        double sumaDulceria = (dulceria != null) ? dulceria.calcularTotal() : 0.0;
-        double subtotal = sumaEntradas + sumaDulceria;
+        long sumaDulceria = (dulceria != null) ? dulceria.calcularTotalCentavos() : 0;
+        long subtotal = sumaEntradas + sumaDulceria;
 
         List<Descuento> enOrden = new ArrayList<>(descuentos);
         enOrden.sort(Comparator.comparingInt(Descuento::getOrdenAplicacion));
-        double restante = subtotal;
+        long restante = subtotal;
         for (Descuento d : enOrden) {
-            restante -= d.calcularDescuento(restante);
+            restante -= d.calcularDescuentoCentavos(restante);
         }
-        double descuento = subtotal - restante;
+        long descuento = subtotal - restante;
 
-        double baseImponible = subtotal - descuento;
-        double igv = baseImponible * TASA_IGV;
+        long baseImponible = subtotal - descuento;
+        long igv = ConversorDinero.aplicarPorcentaje(baseImponible, PORCENTAJE_IGV);
         return new ResumenImporte(subtotal, descuento, igv, baseImponible + igv);
     }
 }

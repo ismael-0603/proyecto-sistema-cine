@@ -25,6 +25,29 @@ public class Sede {
 
     public Sede(int idSede, String nombre, String direccion, String distrito,
                 String telefono, String horarioAtencion, String estado) {
+        validarDatos(nombre, direccion, distrito, telefono, horarioAtencion);
+        this.idSede = idSede;
+        this.nombre = nombre.trim();
+        this.direccion = direccion.trim();
+        this.distrito = distrito.trim();
+        this.telefono = telefono;
+        this.horarioAtencion = horarioAtencion;
+        this.salas = new ArrayList<>();
+        this.cartelera = new ArrayList<>();
+        setEstado(estado != null ? estado : ACTIVA);
+    }
+
+    /** El administrador corrige los datos de la sede (RF-42); se validan igual que al crearla. */
+    public void actualizarDatos(String nombre, String direccion, String distrito, String telefono, String horarioAtencion) {
+        validarDatos(nombre, direccion, distrito, telefono, horarioAtencion);
+        this.nombre = nombre.trim();
+        this.direccion = direccion.trim();
+        this.distrito = distrito.trim();
+        this.telefono = telefono;
+        this.horarioAtencion = horarioAtencion;
+    }
+
+    private static void validarDatos(String nombre, String direccion, String distrito, String telefono, String horarioAtencion) {
         if (nombre == null || nombre.trim().isEmpty() || nombre.trim().length() > 60) {
             throw new IllegalArgumentException("El nombre es obligatorio (máx. 60 caracteres)");
         }
@@ -40,15 +63,6 @@ public class Sede {
         if (horarioAtencion != null && horarioAtencion.length() > 100) {
             throw new IllegalArgumentException("El horario no puede superar 100 caracteres");
         }
-        this.idSede = idSede;
-        this.nombre = nombre.trim();
-        this.direccion = direccion.trim();
-        this.distrito = distrito.trim();
-        this.telefono = telefono;
-        this.horarioAtencion = horarioAtencion;
-        this.salas = new ArrayList<>();
-        this.cartelera = new ArrayList<>();
-        setEstado(estado != null ? estado : ACTIVA);
     }
 
     /** Agrega una sala propia y evita repetirla o duplicar su número dentro de la sede. */
@@ -66,6 +80,27 @@ public class Sede {
             }
         }
         salas.add(sala);
+    }
+
+    /** Cambia número y formato de una sala propia sin repetir el número de otra sala de la sede (RF-39). */
+    public void actualizarSala(Sala sala, int numero, TipoSala tipoSala) {
+        if (sala == null || !salas.contains(sala)) {
+            throw new IllegalArgumentException("La sala no pertenece a esta sede");
+        }
+        for (Sala s : salas) {
+            if (s != sala && s.getNumero() == numero) {
+                throw new IllegalArgumentException("Ya existe la sala número " + numero + " en esta sede");
+            }
+        }
+        sala.actualizarDatos(numero, tipoSala);
+    }
+
+    /** Indica si alguna sala tiene funciones que aún no terminan ni fueron canceladas. */
+    public boolean tieneFuncionesPendientes() {
+        for (Sala s : salas) {
+            if (s.tieneFuncionesPendientes()) return true;
+        }
+        return false;
     }
 
     /** Agrega una función propia después de validar el horario en su sala. */

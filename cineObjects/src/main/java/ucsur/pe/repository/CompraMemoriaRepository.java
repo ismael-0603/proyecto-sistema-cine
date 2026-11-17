@@ -1,6 +1,7 @@
 package ucsur.pe.repository;
 
 import ucsur.pe.model.Compra;
+import ucsur.pe.model.Funcion;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,5 +17,16 @@ public class CompraMemoriaRepository extends RepositorioMemoria<Compra> implemen
     }
     @Override public Optional<Compra> buscarPorId(int idCompra) { return buscarPrimero(c -> c.getIdCompra() == idCompra); }
     @Override public List<Compra> listarTodas() { return todos(); }
+    @Override public Optional<Compra> buscarPorSerie(String serie) {
+        return serie == null ? Optional.empty()
+                : buscarPrimero(c -> c.getSerieNumero() != null && c.getSerieNumero().equalsIgnoreCase(serie.trim()));
+    }
+    @Override public List<Compra> listarPorCorreo(String correo) {
+        return correo == null ? List.of()
+                : filtrar(c -> c.getCliente().getCorreo() != null && c.getCliente().getCorreo().equalsIgnoreCase(correo.trim()));
+    }
+    @Override public List<Compra> listarPorFuncion(Funcion funcion) {
+        return filtrar(c -> c.getEntradas().stream().anyMatch(e -> e.getFuncion() == funcion));
+    }
     @Override public int siguienteId() { return generarId(); }
 }

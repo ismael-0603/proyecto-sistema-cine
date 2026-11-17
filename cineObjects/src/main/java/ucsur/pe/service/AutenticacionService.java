@@ -5,6 +5,7 @@ import ucsur.pe.model.Cliente;
 import ucsur.pe.model.DateTime;
 import ucsur.pe.model.Empleado;
 import ucsur.pe.model.Persona;
+import ucsur.pe.model.Reloj;
 import ucsur.pe.repository.ClienteRepository;
 import ucsur.pe.repository.EmpleadoRepository;
 import java.util.Optional;
@@ -17,15 +18,17 @@ import java.util.Optional;
 public class AutenticacionService {
     private final ClienteRepository clientes;
     private final EmpleadoRepository empleados;
+    private final Reloj reloj;
 
-    public AutenticacionService(ClienteRepository clientes, EmpleadoRepository empleados) {
+    public AutenticacionService(ClienteRepository clientes, EmpleadoRepository empleados, Reloj reloj) {
         this.clientes = clientes;
         this.empleados = empleados;
+        this.reloj = reloj;
     }
 
     /** El cliente compra sin registrarse; solo deja su correo (RF-01). */
     public Cliente ingresarComoInvitado(String correo) {
-        Cliente invitado = Cliente.ingresarComoInvitado(correo);
+        Cliente invitado = Cliente.ingresarComoInvitado(correo, reloj);
         clientes.guardar(invitado);
         return invitado;
     }
@@ -34,7 +37,7 @@ public class AutenticacionService {
     public Cliente registrarCliente(String dni, String nombres, String apellidos, DateTime fechaNac,
                                     String correo, String telefono, String contra) {
         exigirCorreoLibre(correo, null);
-        Cliente cliente = new Cliente(clientes.siguienteId(), dni, nombres, apellidos, fechaNac, correo, telefono, contra);
+        Cliente cliente = new Cliente(clientes.siguienteId(), dni, nombres, apellidos, fechaNac, correo, telefono, contra, reloj);
         clientes.guardar(cliente);
         return cliente;
     }

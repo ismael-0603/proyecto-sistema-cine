@@ -10,8 +10,8 @@ package ucsur.pe.model;
 public interface Descuento {
     /** Comprueba si el descuento puede usarse en la fecha indicada. */
     boolean validarVigencia(DateTime fecha);
-    /** Calcula cuánto se descuenta del importe recibido. */
-    double calcularDescuento(double total);
+    /** Calcula cuántos céntimos se descuentan del importe recibido (también en céntimos). */
+    long calcularDescuentoCentavos(long totalCentavos);
     /** Indica si se puede usar con esos datos de la compra (fecha, socio...: cada descuento pone sus reglas). */
     boolean esAplicable(ContextoDescuento contexto);
     /**
@@ -24,8 +24,6 @@ public interface Descuento {
      * (en la BD, columnas id_cupon e id_promocion); así la compra pregunta al descuento en vez de mirar su clase.
      */
     String getCategoria();
-    /** Lo que pasa cuando una compra confirmada usa este descuento (por ejemplo, un cupón suma un uso). */
-    void registrarUso();
-    /** Deshace un uso registrado (por ejemplo, al reembolsar la compra); un cupón recupera ese uso. */
-    void revertirUso();
+    // registrarUso y revertirUso ya no están aquí: solo los necesitan los descuentos con límite de usos,
+    // y esos implementan DescuentoConUsos (ISP: nadie depende de métodos que no usa).
 }

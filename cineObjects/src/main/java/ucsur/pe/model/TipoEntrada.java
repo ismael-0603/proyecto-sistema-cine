@@ -1,5 +1,7 @@
 package ucsur.pe.model;
 
+import ucsur.pe.util.ConversorDinero;
+
 /**
  * Por qué existe: es una tarifa de entrada (General, Socio, Niño...) con su precio y los puntos que da.
  * Los puntos son un dato, así un tipo nuevo no necesita una clase nueva.
@@ -8,7 +10,7 @@ public class TipoEntrada implements Activable {
     private int idTipoEntrada;
     private String nombre;
     private String descripcion;
-    private double tarifa;
+    private long tarifaCentavos; // en céntimos: S/ 20.00 -> 2000 (ver ConversorDinero)
     /** Puntos base que gana el cliente por cada entrada de este tipo, antes del multiplicador de nivel. */
     private int puntosPorEntrada;
     private boolean requiereSocio; // si es true, solo la compra un cliente socio
@@ -16,12 +18,12 @@ public class TipoEntrada implements Activable {
     private int puntosCanje;
     private boolean estado;
 
-    public TipoEntrada(int idTipoEntrada, String nombre, String descripcion, double tarifa,
+    public TipoEntrada(int idTipoEntrada, String nombre, String descripcion, long tarifaCentavos,
                        int puntosPorEntrada, boolean requiereSocio, boolean estado) {
-        this(idTipoEntrada, nombre, descripcion, tarifa, puntosPorEntrada, requiereSocio, estado, 0);
+        this(idTipoEntrada, nombre, descripcion, tarifaCentavos, puntosPorEntrada, requiereSocio, estado, 0);
     }
 
-    public TipoEntrada(int idTipoEntrada, String nombre, String descripcion, double tarifa,
+    public TipoEntrada(int idTipoEntrada, String nombre, String descripcion, long tarifaCentavos,
                        int puntosPorEntrada, boolean requiereSocio, boolean estado, int puntosCanje) {
         if (nombre == null || nombre.trim().isEmpty() || nombre.trim().length() > 40) {
             throw new IllegalArgumentException("El nombre es obligatorio (máx. 40 caracteres)");
@@ -29,7 +31,7 @@ public class TipoEntrada implements Activable {
         if (descripcion != null && descripcion.length() > 200) {
             throw new IllegalArgumentException("La descripción no puede superar 200 caracteres");
         }
-        if (tarifa < 0) {
+        if (tarifaCentavos < 0) {
             throw new IllegalArgumentException("La tarifa no puede ser negativa");
         }
         if (puntosPorEntrada < 0) {
@@ -44,7 +46,7 @@ public class TipoEntrada implements Activable {
         this.idTipoEntrada = idTipoEntrada;
         this.nombre = nombre.trim();
         this.descripcion = descripcion;
-        this.tarifa = tarifa;
+        this.tarifaCentavos = tarifaCentavos;
         this.puntosPorEntrada = puntosPorEntrada;
         this.requiereSocio = requiereSocio;
         this.estado = estado;
@@ -54,9 +56,9 @@ public class TipoEntrada implements Activable {
     /** Puntos que se descuentan del saldo del cliente al usar esta tarifa. */
     public int getPuntosCanje() { return puntosCanje; }
 
-    /** Precio base de la entrada, sin el recargo del formato de sala. */
-    public double getTarifa() {
-        return this.tarifa;
+    /** Precio base de la entrada en céntimos, sin el recargo del formato de sala. */
+    public long getTarifaCentavos() {
+        return this.tarifaCentavos;
     }
 
     /** Rechaza tipos inactivos y exige que el cliente sea socio cuando la tarifa lo requiere. */
@@ -92,6 +94,6 @@ public class TipoEntrada implements Activable {
 
     @Override
     public String toString() {
-        return nombre + " (S/ " + String.format("%.2f", tarifa) + ")";
+        return nombre + " (" + ConversorDinero.formatear(tarifaCentavos) + ")";
     }
 }

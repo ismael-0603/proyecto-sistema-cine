@@ -13,7 +13,7 @@ import ucsur.pe.repository.PedidoRepository;
 import java.util.List;
 
 /**
- * Por qué existe: caso de uso "Realizar pago" (RF-16 a RF-18, RF-45) y el reembolso.
+ * Por qué existe: caso de uso "Realizar pago" (RF-16 a RF-18, RF-45) y el reembolso automático (RF-24).
  * Coordina el modelo, la pasarela de pagos (actor externo) y los repositorios.
  * Orden: validar sin cambiar nada -> cobrar -> confirmar con el mismo instante (todo o nada, RNF-10).
  */
@@ -42,8 +42,8 @@ public class PagoService {
      * Intenta pagar la compra y devuelve la transacción: APROBADO, o RECHAZADO con su motivo.
      * Si se rechaza, la compra sigue EN_PROCESO para reintentar mientras dure el plazo (RF-18).
      */
-    public TransaccionPago pagar(Compra compra, double monto, String medioPago) {
-        TransaccionPago pago = new TransaccionPago(pagos.siguienteId(), monto, medioPago, compra);
+    public TransaccionPago pagar(Compra compra, long montoCentavos, String medioPago) {
+        TransaccionPago pago = new TransaccionPago(pagos.siguienteId(), montoCentavos, medioPago, compra);
         procesar(pago);
         pagos.guardar(pago);
         if (TransaccionPago.APROBADO.equals(pago.getEstadoPago())) {
@@ -64,11 +64,12 @@ public class PagoService {
             pago.rechazar("La compra expiró: se acabaron los " + Compra.TIEMPO_MAXIMO_COMPRA_MIN + " minutos", ahora);
             return;
         }
-        if (pago.getMonto() <= 0) {
+        if (pago.getMontoCentavos() <= 0) {
             pago.rechazar("Monto inválido", ahora);
             return;
         }
-        if (Math.abs(pago.getMonto() - compra.calcularTotal()) > 0.01) {
+        // En céntimos la comparación es exacta: ya no hace falta un margen de tolerancia como con double.
+        if (pago.getMontoCentavos() != compra.calcularTotalCentavos()) {
             pago.rechazar("El monto no coincide con el total de la compra", ahora);
             return;
         }
@@ -79,7 +80,7 @@ public class PagoService {
         }
 
         // 2. Cobro en la pasarela
-        ResultadoPago resultado = pasarela.cobrar(pago.getMedioPago(), pago.getMonto(), "COMPRA-" + compra.getIdCompra());
+        ResultadoPago resultado = pasarela.cobrar(pago.getMedioPago(), pago.getMontoCentavos(), "COMPRA-" + compra.getIdCompra());
         if (resultado == null || !resultado.aprobado()) {
             pago.rechazar(resultado == null ? "La pasarela no respondió" : resultado.motivo(), ahora);
             return;
@@ -91,7 +92,7 @@ public class PagoService {
             compra.confirmar(pago, ahora);
         } catch (RuntimeException ex) {
             // No debería pasar porque ya se validó todo; si pasa, no se queda con el dinero del cliente.
-            boolean devuelto = pasarela.reembolsar(resultado.referencia(), pago.getMonto());
+            boolean devuelto = pasarela.reembolsar(resultado.referencia(), pago.getMontoCentavos());
             pago.rechazar((devuelto ? "Cobro devuelto" : "Cobro NO devuelto, revisar") + ": " + ex.getMessage(), ahora);
             return;
         }
@@ -99,21 +100,29 @@ public class PagoService {
     }
 
     /**
-     * Reembolsa un pago aprobado: primero la compra comprueba que se puede (funciones canceladas
-     * y pedido no entregado) y luego la pasarela devuelve el dinero.
+     * Reembolso automático de una compra cuya función canceló el cine (RF-24); no lo pide el cliente.
+     * Busca su pago aprobado, pide a la pasarela devolver el monto y recién entonces marca la compra
+     * como REEMBOLSADA: si la pasarela no acepta, la compra queda CONFIRMADA para reintentarlo.
+     * Devuelve el monto devuelto, en céntimos (si la dulcería ya se entregó, solo el de las entradas).
      */
-    public void reembolsar(TransaccionPago pago) {
-        if (!TransaccionPago.APROBADO.equals(pago.getEstadoPago())) {
-            throw new ReglaNegocioException("Solo se reembolsa un pago aprobado (estado: " + pago.getEstadoPago() + ")");
+    public long reembolsar(Compra compra) {
+        String motivo = compra.motivoNoReembolsable();
+        if (motivo != null) {
+            throw new ReglaNegocioException("No se puede reembolsar la compra #" + compra.getIdCompra() + ": " + motivo);
         }
-        Compra compra = pago.getCompra();
+        TransaccionPago pago = pagos.listarPorCompra(compra).stream()
+                .filter(p -> TransaccionPago.APROBADO.equals(p.getEstadoPago()))
+                .findFirst()
+                .orElseThrow(() -> new ReglaNegocioException("La compra #" + compra.getIdCompra() + " no tiene un pago aprobado"));
+        long monto = compra.calcularMontoReembolsoCentavos();
+        if (!pasarela.reembolsar(pago.getReferenciaPasarela(), monto)) {
+            throw new ReglaNegocioException("La pasarela no aceptó la devolución de la compra #" + compra.getIdCompra());
+        }
         compra.reembolsar();
-        if (!pasarela.reembolsar(pago.getReferenciaPasarela(), pago.getMonto())) {
-            throw new ReglaNegocioException("La pasarela no aceptó la devolución; revisar manualmente");
-        }
         compras.guardar(compra);
         if (compra.getPedido() != null) {
             pedidos.guardar(compra.getPedido());
         }
+        return monto;
     }
 }

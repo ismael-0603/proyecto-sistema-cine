@@ -9,6 +9,7 @@ import ucsur.pe.model.Cupon;
 import ucsur.pe.model.Entrada;
 import ucsur.pe.model.Funcion;
 import ucsur.pe.model.GestorPuntos;
+import ucsur.pe.model.MapaButacas;
 import ucsur.pe.model.Pedido;
 import ucsur.pe.model.Promocion;
 import ucsur.pe.model.Reloj;
@@ -27,27 +28,52 @@ import java.util.List;
 public class CompraService {
     private final CompraRepository compras;
     private final CuponRepository cupones;
+    // Colaboradores sin estado: uno solo sirve para todas las compras, por eso llegan desde App.
+    private final CalculadoraImporte calculadora;
+    private final GestorPuntos gestorPuntos;
     private final Reloj reloj;
 
-    public CompraService(CompraRepository compras, CuponRepository cupones, Reloj reloj) {
+    public CompraService(CompraRepository compras, CuponRepository cupones,
+                         CalculadoraImporte calculadora, GestorPuntos gestorPuntos, Reloj reloj) {
         this.compras = compras;
         this.cupones = cupones;
+        this.calculadora = calculadora;
+        this.gestorPuntos = gestorPuntos;
         this.reloj = reloj;
     }
 
     /** Empieza la compra en la sede elegida; desde aquí corren los 4 minutos. */
     public Compra iniciarCompra(Cliente cliente, Sede sede) {
+        // SeleccionAsientos sí se crea aquí: guarda las entradas de ESTA compra, así que cada compra tiene la suya.
         Compra compra = new Compra(compras.siguienteId(), null, cliente, sede,
-                new SeleccionAsientos(), new CalculadoraImporte(), new GestorPuntos(), reloj);
+                new SeleccionAsientos(), calculadora, gestorPuntos, reloj);
         cliente.agregarCompra(compra);
         compras.guardar(compra);
         return compra;
     }
 
-    /** Butacas contiguas sugeridas cerca del centro (RF-29). */
-    public List<Butaca> recomendarAsientos(Funcion funcion, int cantidad) {
+    /**
+     * Mapa de butacas que ve el cliente al entrar a «1. Asientos», con la sugerencia ya marcada (RF-07, RF-29).
+     * La sugerencia no tiene en cuenta las butacas que esta compra ya eligió. Si no hay suficientes butacas
+     * libres, el mapa llega igual, sin sugerencia y con un aviso.
+     */
+    public MapaButacas consultarMapa(Compra compra, Funcion funcion, int cantidad, boolean incluirAccesibles) {
         if (funcion == null) throw new IllegalArgumentException("La función es obligatoria");
-        return funcion.recomendarMejoresAsientos(cantidad);
+        List<Butaca> sugeridas = List.of();
+        String aviso = null;
+        try {
+            sugeridas = recomendarAsientos(compra, funcion, cantidad, incluirAccesibles);
+        } catch (IllegalStateException e) {
+            aviso = e.getMessage();
+        }
+        return new MapaButacas(funcion.getSala().obtenerMapaButacas(), funcion.obtenerButacasDisponibles(), sugeridas, aviso);
+    }
+
+    /** Mejores butacas para el grupo (RF-29); no repite las que la compra ya eligió. */
+    public List<Butaca> recomendarAsientos(Compra compra, Funcion funcion, int cantidad, boolean incluirAccesibles) {
+        if (funcion == null) throw new IllegalArgumentException("La función es obligatoria");
+        List<Butaca> elegidas = (compra != null) ? compra.butacasElegidas(funcion) : List.of();
+        return funcion.recomendarMejoresAsientos(cantidad, incluirAccesibles, elegidas);
     }
 
     public Entrada agregarEntrada(Compra compra, Funcion funcion, Butaca butaca, TipoEntrada tipo) {
@@ -68,6 +94,12 @@ public class CompraService {
         compras.guardar(compra);
     }
 
+    /** «Volver» desde Dulcería: libera las butacas bloqueadas para poder cambiarlas; el plazo sigue corriendo. */
+    public void liberarAsientos(Compra compra) {
+        compra.liberarSeleccionAsientos();
+        compras.guardar(compra);
+    }
+
     public void asignarPedido(Compra compra, Pedido pedido) {
         compra.asignarPedido(pedido);
     }
@@ -76,7 +108,7 @@ public class CompraService {
     public void aplicarCupon(Compra compra, String codigo) {
         Cupon cupon = cupones.buscarPorCodigo(codigo)
                 .orElseThrow(() -> new ReglaNegocioException("No existe el cupón " + codigo));
-        compra.aplicarDescuento(cupon);
+        compra.aplicarDescuento(cupon); // al ser Cupon, Java usa la versión que cuenta usos
     }
 
     public void aplicarPromocion(Compra compra, Promocion promocion) {

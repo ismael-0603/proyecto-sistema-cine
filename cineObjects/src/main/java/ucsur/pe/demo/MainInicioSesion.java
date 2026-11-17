@@ -29,7 +29,7 @@ public class MainInicioSesion {
         Sede sede = new Sede(1, "Cine Prueba", "Av. Lima 123", "Miraflores", null, null, Sede.ACTIVA);
         Rol rol = new Rol(1, "Dulceria", "Atiende pedidos", Rol.NIVEL_DULCERIA);
         Empleado empleado = new Empleado(1, "87654321", "Ana", "Perez",
-                new DateTime(1, 1, 1995), "ana@cine.com", null, "empleado1", "MANANA", rol, sede);
+                new DateTime(1, 1, 1995), "ana@cine.com", null, "empleado1", "MANANA", rol, sede, app.reloj());
         app.empleados().guardar(empleado);
 
         System.out.println("\n--- INICIO DE SESION ---");

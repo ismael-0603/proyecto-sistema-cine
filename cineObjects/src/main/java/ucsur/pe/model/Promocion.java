@@ -32,15 +32,38 @@ public class Promocion extends DescuentoBase {
         this.nombre = nombre.trim();
         this.descripcion = descripcion;
         this.soloSocios = soloSocios;
-        this.diasAplicables = new ArrayList<>();
+        this.diasAplicables = validarDias(diasAplicables);
+    }
+
+    /** El administrador edita la promoción (wireframe 19); se valida igual que al crearla. */
+    public void actualizar(String nombre, String descripcion, CalculoDescuento calculo, DateTime fechaInicio,
+                           DateTime fechaFin, boolean soloSocios, List<Integer> diasAplicables) {
+        if (nombre == null || nombre.trim().isEmpty() || nombre.trim().length() > 40) {
+            throw new IllegalArgumentException("El nombre es obligatorio (máx. 40 caracteres)");
+        }
+        if (descripcion != null && descripcion.length() > 200) {
+            throw new IllegalArgumentException("La descripción no puede superar 200 caracteres");
+        }
+        List<Integer> dias = validarDias(diasAplicables);
+        cambiarCalculoYVigencia(calculo, fechaInicio, fechaFin);
+        this.nombre = nombre.trim();
+        this.descripcion = descripcion;
+        this.soloSocios = soloSocios;
+        this.diasAplicables = dias;
+    }
+
+    /** Copia los días sin repetir y verifica que estén entre 1 (lunes) y 7 (domingo). */
+    private static List<Integer> validarDias(List<Integer> diasAplicables) {
+        List<Integer> dias = new ArrayList<>();
         if (diasAplicables != null) {
             for (Integer d : diasAplicables) {
                 if (d == null || d < 1 || d > 7) {
                     throw new IllegalArgumentException("Los días deben estar entre 1 (lunes) y 7 (domingo)");
                 }
-                if (!this.diasAplicables.contains(d)) this.diasAplicables.add(d);
+                if (!dias.contains(d)) dias.add(d);
             }
         }
+        return dias;
     }
 
     /** Si no se configuraron días, la promoción aplica cualquier día de la semana. */

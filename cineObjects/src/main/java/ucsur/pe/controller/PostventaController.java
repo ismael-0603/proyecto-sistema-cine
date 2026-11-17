@@ -31,6 +31,14 @@ public class PostventaController extends ControllerBase {
         return ejecutar("Reclamo rechazado", () -> servicio.rechazarReclamo(reclamo, motivo));
     }
 
+    public Respuesta<List<Reclamo>> consultarReclamos(Compra compra) {
+        return ejecutar("", () -> servicio.consultarReclamos(compra));
+    }
+
+    public Respuesta<List<Reclamo>> listarReclamos(String estado) {
+        return ejecutar("", () -> servicio.listarReclamos(estado));
+    }
+
     public Respuesta<Calificacion> calificar(Compra compra, int puntuacion, String comentario) {
         return ejecutar("Gracias por calificar", () -> servicio.calificar(compra, puntuacion, comentario));
     }

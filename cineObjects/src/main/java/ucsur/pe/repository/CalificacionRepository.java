@@ -8,6 +8,7 @@ import ucsur.pe.model.Compra;
  * Hoy lo cumple CalificacionMemoriaRepository; con la base de datos lo cumplirá una versión Jdbc.
  */
 public interface CalificacionRepository {
+    /** Guarda la calificación; si aún no tiene id, le asigna uno (como el AUTO_INCREMENT). */
     void guardar(Calificacion calificacion);
     /** En la BD hay una sola calificación por compra (uq_calificacion_compra). */
     boolean existePorCompra(Compra compra);

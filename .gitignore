@@ -1,1 +1,4 @@
 /cineObjects/target/
+
+# Credenciales de la base de datos (se sube solo db.properties.example)
+/cineObjects/src/main/resources/ucsur/pe/db/db.properties

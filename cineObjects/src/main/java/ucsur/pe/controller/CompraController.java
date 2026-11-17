@@ -5,6 +5,7 @@ import ucsur.pe.model.Cliente;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.Entrada;
 import ucsur.pe.model.Funcion;
+import ucsur.pe.model.MapaButacas;
 import ucsur.pe.model.Pedido;
 import ucsur.pe.model.Promocion;
 import ucsur.pe.model.Sede;
@@ -25,8 +26,14 @@ public class CompraController extends ControllerBase {
                 () -> servicio.iniciarCompra(cliente, sede));
     }
 
-    public Respuesta<List<Butaca>> recomendarAsientos(Funcion funcion, int cantidad) {
-        return ejecutar("", () -> servicio.recomendarAsientos(funcion, cantidad));
+    /** Mapa de la sala con las butacas libres y la sugerencia marcada; si hay aviso, va en el mensaje. */
+    public Respuesta<MapaButacas> consultarMapa(Compra compra, Funcion funcion, int cantidad, boolean incluirAccesibles) {
+        Respuesta<MapaButacas> r = ejecutar("", () -> servicio.consultarMapa(compra, funcion, cantidad, incluirAccesibles));
+        return (r.ok() && r.dato().aviso() != null) ? Respuesta.exito(r.dato().aviso(), r.dato()) : r;
+    }
+
+    public Respuesta<List<Butaca>> recomendarAsientos(Compra compra, Funcion funcion, int cantidad, boolean incluirAccesibles) {
+        return ejecutar("", () -> servicio.recomendarAsientos(compra, funcion, cantidad, incluirAccesibles));
     }
 
     public Respuesta<Entrada> agregarEntrada(Compra compra, Funcion funcion, Butaca butaca, TipoEntrada tipo) {
@@ -39,6 +46,10 @@ public class CompraController extends ControllerBase {
 
     public Respuesta<Void> confirmarAsientos(Compra compra) {
         return ejecutar("Butacas bloqueadas", () -> servicio.confirmarAsientos(compra));
+    }
+
+    public Respuesta<Void> liberarAsientos(Compra compra) {
+        return ejecutar("Butacas liberadas: puedes cambiarlas", () -> servicio.liberarAsientos(compra));
     }
 
     public Respuesta<Void> asignarPedido(Compra compra, Pedido pedido) {

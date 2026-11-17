@@ -1,33 +1,37 @@
 package ucsur.pe.model;
 
+import ucsur.pe.util.ConversorDinero;
+
 /**
- * Por qué existe: guarda juntos los resultados del cálculo (subtotal, descuento, IGV y total).
+ * Por qué existe: guarda juntos los resultados del cálculo (subtotal, descuento, IGV y total), en céntimos.
  * Es inmutable: cada recálculo crea un resumen nuevo.
  */
 public final class ResumenImporte {
     /** Importe de una compra que aún no tiene nada. */
     public static final ResumenImporte VACIO = new ResumenImporte(0, 0, 0, 0);
 
-    private final double subtotal;
-    private final double descuento;
-    private final double igv;
-    private final double total;
+    private final long subtotalCentavos;
+    private final long descuentoCentavos;
+    private final long igvCentavos;
+    private final long totalCentavos;
 
-    public ResumenImporte(double subtotal, double descuento, double igv, double total) {
-        this.subtotal = subtotal;
-        this.descuento = descuento;
-        this.igv = igv;
-        this.total = total;
+    public ResumenImporte(long subtotalCentavos, long descuentoCentavos, long igvCentavos, long totalCentavos) {
+        this.subtotalCentavos = subtotalCentavos;
+        this.descuentoCentavos = descuentoCentavos;
+        this.igvCentavos = igvCentavos;
+        this.totalCentavos = totalCentavos;
     }
 
-    public double getSubtotal() { return subtotal; }
-    public double getDescuento() { return descuento; }
-    public double getIgv() { return igv; }
-    public double getTotal() { return total; }
+    public long getSubtotalCentavos() { return subtotalCentavos; }
+    public long getDescuentoCentavos() { return descuentoCentavos; }
+    public long getIgvCentavos() { return igvCentavos; }
+    public long getTotalCentavos() { return totalCentavos; }
 
     @Override
     public String toString() {
-        return String.format("Subtotal: S/ %.2f | Desc: S/ %.2f | IGV: S/ %.2f | Total: S/ %.2f",
-                subtotal, descuento, igv, total);
+        return "Subtotal: " + ConversorDinero.formatear(subtotalCentavos)
+                + " | Desc: " + ConversorDinero.formatear(descuentoCentavos)
+                + " | IGV: " + ConversorDinero.formatear(igvCentavos)
+                + " | Total: " + ConversorDinero.formatear(totalCentavos);
     }
 }

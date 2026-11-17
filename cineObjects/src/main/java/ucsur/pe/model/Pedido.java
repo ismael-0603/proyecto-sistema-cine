@@ -1,5 +1,6 @@
 package ucsur.pe.model;
 
+import ucsur.pe.util.ConversorDinero;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,14 +15,15 @@ public class Pedido implements Totalizable {
     public static final String EN_PREPARACION = "EN_PREPARACION"; // un empleado lo está preparando
     public static final String LISTO = "LISTO"; // listo para recoger; se avisa al cliente
     public static final String ENTREGADO = "ENTREGADO"; // el cliente ya lo recogió
-    public static final String ANULADO = "ANULADO"; // su compra se reembolsó; ya no se prepara ni se entrega
+    public static final String ANULADO = "ANULADO"; // su compra se canceló, expiró o se reembolsó; ya no se prepara ni se entrega
 
     private int idPedido;
     private String codigoQR; // null hasta que el pedido se registra, cuando ya existe su id real.
     private DateTime fechaHora;
     private DateTime fechaEntrega;
     private String estado;
-    private double total; // suma de los subtotales de las líneas
+    private long totalCentavos; // suma de los subtotales de las líneas, en céntimos
+    private final Reloj reloj; // de dónde sale la hora actual
     private Empleado empleado; // Permanece null hasta que un empleado inicia la preparación.
     /** Sede de cuyo inventario se descuenta el stock; se fija al registrar el pedido. */
     private Sede sede;
@@ -30,9 +32,12 @@ public class Pedido implements Totalizable {
     /** Se activa al descontar el stock, para no registrar ni cobrar el pedido dos veces. */
     private boolean registrado;
 
-    public Pedido(int idPedido) {
+    /** Recibe el reloj (el real o uno fijo en pruebas) para fechar la creación, el registro y la entrega. */
+    public Pedido(int idPedido, Reloj reloj) {
+        if (reloj == null) throw new IllegalArgumentException("El reloj es obligatorio");
+        this.reloj = reloj;
         this.idPedido = idPedido;
-        this.fechaHora = DateTime.ahora();
+        this.fechaHora = reloj.ahora();
         this.estado = PENDIENTE;
         this.detalles = new ArrayList<>();
         this.registrado = false;
@@ -118,7 +123,7 @@ public class Pedido implements Totalizable {
         }
         this.sede = sede;
         this.registrado = true;
-        this.fechaHora = DateTime.ahora();
+        this.fechaHora = reloj.ahora();
         this.estado = PENDIENTE;
         this.codigoQR = generarCodigoQR();
         actualizarTotal();
@@ -144,9 +149,9 @@ public class Pedido implements Totalizable {
     }
 
     /**
-     * Anula el pedido cuando se reembolsa su compra. Solo vuelve el stock si el pedido seguía PENDIENTE
-     * (nadie lo preparó); si ya estaba en preparación o listo, los productos ya se usaron.
-     * No es pública: solo la llama Compra.reembolsar().
+     * Anula el pedido cuando su compra se cancela, expira o se reembolsa. Solo vuelve el stock si el pedido
+     * estaba registrado y seguía PENDIENTE (nadie lo preparó); si ya estaba en preparación o listo,
+     * los productos ya se usaron. No es pública: solo la llama Compra.
      */
     void anular() {
         if (ENTREGADO.equals(estado)) {
@@ -163,17 +168,17 @@ public class Pedido implements Totalizable {
 
     /** Suma los subtotales de todas las líneas y guarda el total actualizado. */
     @Override
-    public double calcularTotal() {
-        double suma = 0;
+    public long calcularTotalCentavos() {
+        long suma = 0;
         for (DetallePedido d : detalles) {
-            suma += d.calcularSubtotal();
+            suma += d.calcularSubtotalCentavos();
         }
         return suma;
     }
 
     /** Guarda el total recalculado; se llama cada vez que cambian las líneas. */
     private void actualizarTotal() {
-        this.total = calcularTotal();
+        this.totalCentavos = calcularTotalCentavos();
     }
 
     /** Pasa a EN_PREPARACION; exige un pedido registrado y PENDIENTE, y un empleado que pueda atender pedidos. */
@@ -216,7 +221,7 @@ public class Pedido implements Totalizable {
             throw new IllegalStateException("Solo se puede entregar un pedido LISTO (estado actual: " + estado + ")");
         }
         this.estado = ENTREGADO;
-        this.fechaEntrega = DateTime.ahora();
+        this.fechaEntrega = reloj.ahora();
     }
 
     public int getIdPedido() { return idPedido; }
@@ -224,7 +229,7 @@ public class Pedido implements Totalizable {
     public DateTime getFechaHora() { return fechaHora; }
     public DateTime getFechaEntrega() { return fechaEntrega; }
     public String getEstado() { return estado; }
-    public double getTotal() { return total; }
+    public long getTotalCentavos() { return totalCentavos; }
     public Empleado getEmpleado() { return empleado; }
     public Sede getSede() { return sede; }
     public List<DetallePedido> getDetalles() { return new ArrayList<>(detalles); }
@@ -232,6 +237,6 @@ public class Pedido implements Totalizable {
 
     @Override
     public String toString() {
-        return "Pedido #" + idPedido + " [" + estado + "] S/ " + String.format("%.2f", total);
+        return "Pedido #" + idPedido + " [" + estado + "] " + ConversorDinero.formatear(totalCentavos);
     }
 }

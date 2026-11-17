@@ -25,9 +25,20 @@ public class Calificacion {
         this.idCalificacion = idCalificacion;
         this.puntuacion = puntuacion;
         this.comentario = comentario;
-        this.fecha = DateTime.ahora();
+        this.fecha = compra.getReloj().ahora(); // el mismo reloj de la compra calificada
         this.compra = compra;
         this.registrada = false;
+    }
+
+    /** Asigna el id real generado por la base tras el INSERT (en memoria, lo simula el repositorio). */
+    public void asignarId(int idCalificacion) {
+        if (this.idCalificacion > 0) {
+            throw new IllegalStateException("La calificación ya tiene id asignado");
+        }
+        if (idCalificacion <= 0) {
+            throw new IllegalArgumentException("El id de la calificación debe ser mayor a 0");
+        }
+        this.idCalificacion = idCalificacion;
     }
 
     /** Comprueba el mismo rango usado al crear una calificación. */
@@ -43,7 +54,7 @@ public class Calificacion {
         if (!Compra.CONFIRMADA.equals(compra.getEstado())) {
             throw new IllegalStateException("Solo se califica una compra confirmada (estado: " + compra.getEstado() + ")");
         }
-        this.fecha = DateTime.ahora();
+        this.fecha = compra.getReloj().ahora();
         this.registrada = true;
     }
 

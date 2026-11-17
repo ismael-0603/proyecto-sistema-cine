@@ -1,5 +1,6 @@
 package ucsur.pe.demo;
 
+import ucsur.pe.util.ConversorDinero;
 import ucsur.pe.model.Producto;
 import ucsur.pe.model.Sede;
 
@@ -16,7 +17,7 @@ public class MainStock {
         Sede otraSede = new Sede(2, "Cine Centro", "Jr. Union 456", "Cercado", null, null, Sede.ACTIVA);
 
         Producto canchita = new Producto(1, "Canchita mediana", "Canchita para compartir",
-                "Canchitas", 17.00, false, true);
+                "Canchitas", ConversorDinero.aCentavos("17.00"), false, true);
         canchita.reponerStock(sede, 5);
 
         System.out.println("Hay 3 unidades: " + canchita.verificarStock(sede, 3));

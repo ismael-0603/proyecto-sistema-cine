@@ -1,5 +1,6 @@
 package ucsur.pe.model;
 
+import ucsur.pe.util.ConversorDinero;
 import java.util.List;
 
 /**
@@ -27,7 +28,7 @@ public class TransaccionPago {
     private static final int MAX_MOTIVO = 150; // en la BD motivo_rechazo es VARCHAR(150)
 
     private int idTransaccion;
-    private double monto;
+    private long montoCentavos; // en céntimos
     private String medioPago;
     private String estadoPago;
     private DateTime fechaHora;
@@ -35,8 +36,8 @@ public class TransaccionPago {
     private String motivoRechazo; // existe si el pago fue rechazado o devuelto
     private Compra compra;
 
-    public TransaccionPago(int idTransaccion, double monto, String medioPago, Compra compra) {
-        if (monto < 0) {
+    public TransaccionPago(int idTransaccion, long montoCentavos, String medioPago, Compra compra) {
+        if (montoCentavos < 0) {
             throw new IllegalArgumentException("El monto no puede ser negativo");
         }
         if (!esMedioValido(medioPago)) {
@@ -46,7 +47,7 @@ public class TransaccionPago {
             throw new IllegalArgumentException("La compra es obligatoria");
         }
         this.idTransaccion = idTransaccion;
-        this.monto = monto;
+        this.montoCentavos = montoCentavos;
         this.medioPago = medioPago;
         this.estadoPago = PENDIENTE;
         this.fechaHora = compra.getReloj().ahora();
@@ -93,7 +94,7 @@ public class TransaccionPago {
     }
 
     public int getIdTransaccion() { return idTransaccion; }
-    public double getMonto() { return monto; }
+    public long getMontoCentavos() { return montoCentavos; }
     public String getMedioPago() { return medioPago; }
     public String getEstadoPago() { return estadoPago; }
     public DateTime getFechaHora() { return fechaHora; }
@@ -103,6 +104,6 @@ public class TransaccionPago {
 
     @Override
     public String toString() {
-        return "Pago #" + idTransaccion + " " + medioPago + " S/ " + String.format("%.2f", monto) + " [" + estadoPago + "]";
+        return "Pago #" + idTransaccion + " " + medioPago + " " + ConversorDinero.formatear(montoCentavos) + " [" + estadoPago + "]";
     }
 }

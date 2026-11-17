@@ -8,9 +8,13 @@ import java.util.List;
  */
 public class Pelicula {
     // Estados de una película (constantes: se usan como Pelicula.NOMBRE y su valor no cambia).
-    public static final String PROXIMAMENTE = "PROXIMAMENTE"; // aún no se estrena
+    public static final String PROXIMAMENTE = "PROXIMAMENTE"; // anunciada; aún no tiene funciones
+    public static final String PREESTRENO = "PREESTRENO"; // vende funciones antes de su fecha de estreno
     public static final String EN_CARTELERA = "EN_CARTELERA"; // se está proyectando
-    public static final String FUERA_DE_CARTELERA = "FUERA_DE_CARTELERA"; // ya no se proyecta
+    public static final String REESTRENO = "REESTRENO"; // película antigua de vuelta en cines (fechaEstreno es la original)
+    public static final String FUERA_DE_CARTELERA = "FUERA_DE_CARTELERA"; // ya no se proyecta (equivale a desactivarla)
+    private static final List<String> ESTADOS =
+            List.of(PROXIMAMENTE, PREESTRENO, EN_CARTELERA, REESTRENO, FUERA_DE_CARTELERA);
 
     private int idPelicula;
     private String titulo;
@@ -42,9 +46,9 @@ public class Pelicula {
         this.generos = new ArrayList<>();
     }
 
-    /** Indica si el estado permite mostrar la película en la cartelera actual. */
+    /** Indica si la película se muestra en la cartelera actual: estrenada, en preestreno o reestrenada. */
     public boolean estaEnCartelera() {
-        return EN_CARTELERA.equals(this.estado);
+        return EN_CARTELERA.equals(this.estado) || PREESTRENO.equals(this.estado) || REESTRENO.equals(this.estado);
     }
 
     /** Prepara una descripción legible con clasificación, duración, géneros y estreno. */
@@ -134,10 +138,9 @@ public class Pelicula {
     public String getEstado() { return estado; }
     public List<Genero> getGeneros() { return new ArrayList<>(generos); } // copia: la lista interna no se modifica desde fuera
 
-    /** Cambia el estado; solo admite PROXIMAMENTE, EN_CARTELERA o FUERA_DE_CARTELERA. */
+    /** Cambia el estado; solo admite los cinco estados de arriba (los mismos que ck_pelicula_estado en la BD). */
     public void setEstado(String estado) {
-        if (!PROXIMAMENTE.equals(estado) && !EN_CARTELERA.equals(estado)
-                && !FUERA_DE_CARTELERA.equals(estado)) {
+        if (!ESTADOS.contains(estado)) {
             throw new IllegalArgumentException("Estado de película inválido: " + estado);
         }
         this.estado = estado;

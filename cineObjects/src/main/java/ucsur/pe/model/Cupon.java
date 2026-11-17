@@ -6,7 +6,7 @@ import ucsur.pe.tipo.CalculoDescuento;
  * Por qué existe: es un código de descuento que escribe el cliente (por ejemplo CINE10),
  * con fechas de vigencia y un límite de usos.
  */
-public class Cupon extends DescuentoBase {
+public class Cupon extends DescuentoBase implements DescuentoConUsos {
     public static final String CATEGORIA = "CUPON";
     public static final int ORDEN_APLICACION = 2; // se aplica después de las promociones
     private int idCupon;
@@ -29,6 +29,22 @@ public class Cupon extends DescuentoBase {
         this.codigo = codigo.trim();
         this.limiteUso = limiteUso;
         this.usosRealizados = 0;
+    }
+
+    /**
+     * El administrador edita el cupón (wireframe 19). El servicio comprueba que el código no lo use otro cupón;
+     * el límite no puede quedar por debajo de los usos que ya tuvo.
+     */
+    public void actualizar(String codigo, CalculoDescuento calculo, DateTime fechaInicio, DateTime fechaFin, int limiteUso) {
+        if (codigo == null || codigo.trim().isEmpty() || codigo.trim().length() > 30) {
+            throw new IllegalArgumentException("El código es obligatorio (máx. 30 caracteres)");
+        }
+        if (limiteUso < usosRealizados) {
+            throw new IllegalArgumentException("El límite no puede ser menor a los " + usosRealizados + " usos ya realizados");
+        }
+        cambiarCalculoYVigencia(calculo, fechaInicio, fechaFin);
+        this.codigo = codigo.trim();
+        this.limiteUso = limiteUso;
     }
 
     /** Devuelve true si está activo, dentro de fechas y aún tiene usos disponibles. */

@@ -1,5 +1,7 @@
 package ucsur.pe.model;
 
+import ucsur.pe.util.ConversorDinero;
+
 /**
  * Por qué existe: es una línea del pedido (producto x cantidad). Guarda el precio del momento
  * para que el importe no cambie si después sube el precio del producto.
@@ -8,9 +10,9 @@ public class DetallePedido {
     private int idDetalle;
     private int cantidad;
     /** Precio guardado al crear la línea, para mantener el importe aunque cambie el precio del producto. */
-    private double precioUnitario;
+    private long precioUnitarioCentavos;
     private String personalizacion;
-    private double subtotal; // cantidad por precio unitario
+    private long subtotalCentavos; // cantidad por precio unitario, en céntimos
     private Producto producto;
 
     public DetallePedido(int idDetalle, Producto producto, int cantidad, String personalizacion) {
@@ -29,14 +31,14 @@ public class DetallePedido {
         this.idDetalle = idDetalle;
         this.producto = producto;
         this.cantidad = cantidad;
-        this.precioUnitario = producto.getPrecio(); // precio fijado al momento de la compra
+        this.precioUnitarioCentavos = producto.getPrecioCentavos(); // precio fijado al momento de la compra
         this.personalizacion = personalizacion;
-        this.subtotal = calcularSubtotal();
+        this.subtotalCentavos = calcularSubtotalCentavos();
     }
 
-    /** Calcula y guarda el subtotal de la línea con la cantidad actual. */
-    public double calcularSubtotal() {
-        return cantidad * precioUnitario;
+    /** Calcula el subtotal de la línea con la cantidad actual: entero por entero, el resultado es exacto. */
+    public long calcularSubtotalCentavos() {
+        return cantidad * precioUnitarioCentavos;
     }
 
     /**
@@ -48,18 +50,18 @@ public class DetallePedido {
             throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
         }
         this.cantidad = cant;
-        this.subtotal = calcularSubtotal();
+        this.subtotalCentavos = calcularSubtotalCentavos();
     }
 
     public int getIdDetalle() { return idDetalle; }
     public int getCantidad() { return cantidad; }
-    public double getPrecioUnitario() { return precioUnitario; }
+    public long getPrecioUnitarioCentavos() { return precioUnitarioCentavos; }
     public String getPersonalizacion() { return personalizacion; }
-    public double getSubtotal() { return subtotal; }
+    public long getSubtotalCentavos() { return subtotalCentavos; }
     public Producto getProducto() { return producto; }
 
     @Override
     public String toString() {
-        return cantidad + " x " + producto.getNombre() + " = S/ " + String.format("%.2f", subtotal);
+        return cantidad + " x " + producto.getNombre() + " = " + ConversorDinero.formatear(subtotalCentavos);
     }
 }

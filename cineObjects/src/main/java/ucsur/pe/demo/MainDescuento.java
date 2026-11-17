@@ -9,6 +9,7 @@ import ucsur.pe.tipo.CalculoDescuento;
 import ucsur.pe.tipo.CalculoMontoFijo;
 import ucsur.pe.tipo.CalculoPorcentaje;
 import ucsur.pe.tipo.FabricaCalculoDescuento;
+import ucsur.pe.util.ConversorDinero;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,23 +28,25 @@ public class MainDescuento {
         DateTime fin = inicio.sumarDias(30);
 
         Cupon cupon = new Cupon(1, "CINE10", new CalculoPorcentaje(10), inicio, fin, 5, true);
-        Promocion promo = new Promocion(1, "Promo 5 soles", "S/ 5 de descuento", new CalculoMontoFijo(5),
+        Promocion promo = new Promocion(1, "Promo 5 soles", "S/ 5 de descuento", new CalculoMontoFijo(ConversorDinero.aCentavos("5.00")),
                 inicio, fin, false, null, true);
 
         List<Descuento> descuentos = new ArrayList<>();
         descuentos.add(cupon);
         descuentos.add(promo);
 
-        System.out.println("\n--- DESCUENTO SOBRE S/ 100.00 ---");
+        long cien = ConversorDinero.aCentavos("100.00");
+        System.out.println("\n--- DESCUENTO SOBRE " + ConversorDinero.formatear(cien) + " ---");
         for (Descuento d : descuentos) {
-            System.out.printf("%s: vigente=%b, descuento=S/ %.2f%n",
-                    d, d.validarVigencia(hoy), d.calcularDescuento(100.0));
+            System.out.printf("%s: vigente=%b, descuento=%s%n",
+                    d, d.validarVigencia(hoy), ConversorDinero.formatear(d.calcularDescuentoCentavos(cien)));
         }
 
         System.out.println("\n--- FORMA DE CALCULO LEIDA DE LA BD ---");
         CalculoDescuento desdeBD = FabricaCalculoDescuento.crear("PORCENTAJE", 15);
-        System.out.printf("tipo_descuento=%s, valor=%.0f -> %s descuenta S/ %.2f de S/ 100.00%n",
-                desdeBD.getTipo(), desdeBD.getValor(), desdeBD.describir(), desdeBD.calcular(100.0));
+        System.out.printf("tipo_descuento=%s, valor=%d -> %s descuenta %s de %s%n",
+                desdeBD.getTipo(), desdeBD.getValor(), desdeBD.describir(),
+                ConversorDinero.formatear(desdeBD.calcularCentavos(cien)), ConversorDinero.formatear(cien));
 
         System.out.println("\n--- DESACTIVAR ---");
         // Desactivar es tarea del administrador: se usa la interfaz Activable, no Descuento.
@@ -52,8 +55,8 @@ public class MainDescuento {
             a.desactivar();
         }
         for (Descuento d : descuentos) {
-            System.out.printf("%s: vigente=%b, descuento=S/ %.2f%n",
-                    d, d.validarVigencia(hoy), d.calcularDescuento(100.0));
+            System.out.printf("%s: vigente=%b, descuento=%s%n",
+                    d, d.validarVigencia(hoy), ConversorDinero.formatear(d.calcularDescuentoCentavos(cien)));
         }
     }
 }
