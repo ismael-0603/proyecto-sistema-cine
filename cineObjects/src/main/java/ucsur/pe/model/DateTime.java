@@ -143,12 +143,6 @@ public final class DateTime {
         return base.sumarDias(diasExtra);
     }
 
-    /** Suma minutos solo a la hora, sin cambiar la fecha; al pasar medianoche vuelve a las 00:00. */
-    public DateTime sumarMinutosAHora(int minutosExtra) {
-        int total = Math.floorMod(this.hora * 60 + this.minuto + minutosExtra, 1440);
-        return new DateTime(total / 60, total % 60);
-    }
-
     /** Calcula los años cumplidos desde esta fecha hasta la indicada; nunca devuelve negativos. */
     public int calcularAniosHasta(DateTime fechaActual) {
         int edad = fechaActual.anio - this.anio;

@@ -28,6 +28,10 @@ public class CarteleraController extends ControllerBase {
         return ejecutar("", () -> servicio.filtrarCartelera(sede, idioma, clasificacion, genero));
     }
 
+    public Respuesta<List<Genero>> listarGeneros() {
+        return ejecutar("", servicio::listarGeneros);
+    }
+
     public Respuesta<List<Butaca>> consultarButacasDisponibles(Funcion funcion) {
         return ejecutar("", () -> servicio.consultarButacasDisponibles(funcion));
     }

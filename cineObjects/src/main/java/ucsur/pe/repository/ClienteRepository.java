@@ -6,12 +6,23 @@ import java.util.Optional;
 
 /**
  * Contrato de persistencia de Cliente: define QUÉ se puede guardar y buscar, no CÓMO.
- * Hoy lo cumple ClienteMemoriaRepository; con la base de datos lo cumplirá una versión Jdbc.
+ * Lo cumplen ClienteMemoriaRepository (demos en memoria) y ClienteJdbcRepository (MySQL).
+ * Las búsquedas que solo filtran listarTodos() están aquí como métodos default, para no repetirlas en cada implementación.
  */
 public interface ClienteRepository {
     void guardar(Cliente cliente);
-    /** Busca una cuenta registrada (no invitada) por su correo; en la BD el correo es único solo para registrados. */
-    Optional<Cliente> buscarPorCorreo(String correo);
+    Optional<Cliente> buscarPorId(int idCliente);
     List<Cliente> listarTodos();
-    int siguienteId();
+
+    /**
+     * Busca una cuenta registrada (no invitada) por su correo, sin distinguir mayúsculas ni espacios alrededor.
+     * En la BD el correo es único solo para registrados: un invitado puede repetirlo en varias compras.
+     */
+    default Optional<Cliente> buscarPorCorreo(String correo) {
+        if (correo == null) return Optional.empty();
+        String buscado = correo.trim();
+        return listarTodos().stream()
+                .filter(c -> !c.esInvitado() && c.getCorreo() != null && c.getCorreo().equalsIgnoreCase(buscado))
+                .findFirst();
+    }
 }

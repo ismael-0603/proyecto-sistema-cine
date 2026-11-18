@@ -174,6 +174,15 @@ public class Sede {
         this.estado = estado;
     }
 
+    /**
+     * Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT; una sede nueva nace con id 0.
+     * Ojo: equals y hashCode usan el id, así que la sede se guarda (y recibe su id) antes de usarla como clave
+     * del stock de un producto; AdministracionService.registrarSede la guarda apenas la crea.
+     */
+    public void asignarId(int idSede) {
+        this.idSede = Ids.asignar(this.idSede, idSede, "la sede");
+    }
+
     public int getIdSede() { return idSede; }
     public String getNombre() { return nombre; }
     public String getDireccion() { return direccion; }

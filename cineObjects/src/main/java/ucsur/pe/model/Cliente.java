@@ -44,20 +44,46 @@ public class Cliente extends Persona {
     }
 
     /**
-     * Completa el registro de un invitado: exige los datos obligatorios, activa la cuenta y lo pasa
-     * al nivel 1. Si falta algún dato, lanza el error.
+     * Solo para la capa de base de datos (ucsur.pe.db): reconstruye un cliente (socio o invitado) con
+     * su saldo de puntos, su nivel, su fecha de registro y si la cuenta está activa.
+     * Su historial se llena después, al restaurar cada una de sus compras (Compra.restaurar).
      */
-    public void registrarse() {
-        exigirDatosCompletos(); // el DNI ya llega validado con 8 dígitos
-        this.esInvitado = false;
-        activar();
-        this.fechaRegistro = getReloj().ahora();
-        if (this.nivelSocio == 0) this.nivelSocio = 1;
+    public static Cliente restaurar(int idCliente, String dni, String nombres, String apellidos, DateTime fechaNac,
+                                    String correo, String telefono, String contra, boolean estado,
+                                    DateTime fechaRegistro, int puntos, int nivelSocio, boolean esInvitado,
+                                    Reloj reloj) {
+        if (fechaRegistro == null) {
+            throw new IllegalArgumentException("La fecha de registro es obligatoria");
+        }
+        if (puntos < 0) {
+            throw new IllegalArgumentException("Los puntos no pueden ser negativos"); // en la BD, ck_cliente_puntos
+        }
+        if (nivelSocio < 0 || nivelSocio > NIVEL_MAXIMO) {
+            throw new IllegalArgumentException("Nivel de socio inválido: " + nivelSocio);
+        }
+        // Los constructores validan los datos personales (completos para un socio, solo el correo para un invitado)
+        Cliente cliente = esInvitado
+                ? new Cliente(correo, reloj)
+                : new Cliente(idCliente, dni, nombres, apellidos, fechaNac, correo, telefono, contra, reloj);
+        cliente.idCliente = idCliente;
+        cliente.fechaRegistro = fechaRegistro;
+        cliente.puntos = puntos;
+        cliente.nivelSocio = nivelSocio;
+        if (!estado) cliente.desactivar();
+        return cliente;
     }
 
     /** Crea una cuenta temporal con correo, sin datos personales, puntos ni nivel de socio. */
     public static Cliente ingresarComoInvitado(String correo, Reloj reloj) {
         return new Cliente(correo, reloj);
+    }
+
+    /**
+     * Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT. Todo cliente nuevo, socio o invitado,
+     * nace con id 0; su compra necesita ese id en la BD (compra.id_cliente).
+     */
+    public void asignarId(int idCliente) {
+        this.idCliente = Ids.asignar(this.idCliente, idCliente, "el cliente");
     }
 
     /**

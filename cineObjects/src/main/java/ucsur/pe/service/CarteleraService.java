@@ -7,6 +7,7 @@ import ucsur.pe.model.Genero;
 import ucsur.pe.model.Promocion;
 import ucsur.pe.model.Reloj;
 import ucsur.pe.model.Sede;
+import ucsur.pe.repository.PeliculaRepository;
 import ucsur.pe.repository.PromocionRepository;
 import ucsur.pe.repository.SedeRepository;
 import java.util.List;
@@ -18,11 +19,14 @@ import java.util.List;
 public class CarteleraService {
     private final SedeRepository sedes;
     private final PromocionRepository promociones;
+    private final PeliculaRepository peliculas;
     private final Reloj reloj;
 
-    public CarteleraService(SedeRepository sedes, PromocionRepository promociones, Reloj reloj) {
+    public CarteleraService(SedeRepository sedes, PromocionRepository promociones, PeliculaRepository peliculas,
+                            Reloj reloj) {
         this.sedes = sedes;
         this.promociones = promociones;
+        this.peliculas = peliculas;
         this.reloj = reloj;
     }
 
@@ -37,6 +41,11 @@ public class CarteleraService {
 
     public List<Funcion> filtrarCartelera(Sede sede, String idioma, String clasificacion, Genero genero) {
         return exigirSede(sede).filtrarCartelera(idioma, clasificacion, genero);
+    }
+
+    /** Géneros para el filtro de la cartelera (RF-03), sin escribirlos en la vista. */
+    public List<Genero> listarGeneros() {
+        return peliculas.listarGeneros();
     }
 
     /** Mapa de butacas libres de una función. */

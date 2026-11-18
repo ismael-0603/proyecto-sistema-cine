@@ -10,7 +10,6 @@ import ucsur.pe.model.Cliente;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.Cupon;
 import ucsur.pe.model.DateTime;
-import ucsur.pe.model.DetallePedido;
 import ucsur.pe.model.Empleado;
 import ucsur.pe.model.Entrada;
 import ucsur.pe.model.Funcion;
@@ -45,7 +44,11 @@ public class CineObjects {
         System.out.println("\n=== " + texto + " ===");
     }
 
-    /** Muestra si la acción salió bien o el motivo por el que se rechazó. */
+    /** Una línea con la serie y los importes (el ticket completo, con QR, lo da app.emision().imprimir). */
+    private static String comprobante(Compra compra) {
+        return "Comprobante " + compra.getSerieNumero() + " | " + compra.getImporte();
+    }
+
     private static String resultado(Respuesta<?> r) {
         return r.ok() ? "true" : "false | motivo: " + r.mensaje();
     }
@@ -92,27 +95,23 @@ public class CineObjects {
         app.empleados().guardar(admin);
 
         Genero accion = new Genero(1, "Accion");
-        Pelicula peli = new Pelicula(1, "Pelicula de prueba", "Sinopsis", 120, "+14",
-                null, null, new DateTime(1, 1, 2026), Pelicula.EN_CARTELERA);
-        peli.agregarGenero(accion);
-        app.admin().registrarPelicula(admin, peli);
+        // El administrador envía los datos; el servicio crea la película (la vista no arma modelos ni ids)
+        Pelicula peli = app.admin().registrarPelicula(admin, "Pelicula de prueba", "Sinopsis", 120, "+14",
+                null, null, new DateTime(1, 1, 2026), Pelicula.EN_CARTELERA, List.of(accion)).dato();
 
         // Funciones de manana, para que no hayan empezado
         DateTime manana = DateTime.ahora().sumarDias(1);
         DateTime fechaFuncion = new DateTime(manana.getDia(), manana.getMes(), manana.getAnio());
 
-        Funcion funcion = new Funcion(1, fechaFuncion, new DateTime(19, 0), "Doblada", null, peli, sala, app.reloj());
-        app.admin().programarFuncion(admin, funcion);
+        Funcion funcion = app.admin().programarFuncion(admin, peli, sala, fechaFuncion, new DateTime(19, 0), "Doblada").dato();
         System.out.println("Funcion: " + funcion + " | hora fin: " + funcion.obtenerFechaHoraFin().soloHora());
 
         // Solapamiento: empieza a las 20:00 y la anterior termina a las 21:00 (+15 min de limpieza)
-        Respuesta<Void> cruce = app.admin().programarFuncion(admin,
-                new Funcion(2, fechaFuncion, new DateTime(20, 0), "Doblada", null, peli, sala, app.reloj()));
+        Respuesta<Funcion> cruce = app.admin().programarFuncion(admin, peli, sala, fechaFuncion, new DateTime(20, 0), "Doblada");
         System.out.println("Solapamiento detectado: " + cruce.mensaje());
 
         // Esta si cabe: empieza a las 21:30, despues de la limpieza (21:15)
-        Funcion funcion3 = new Funcion(3, fechaFuncion, new DateTime(21, 30), "Subtitulada", null, peli, sala, app.reloj());
-        app.admin().programarFuncion(admin, funcion3);
+        Funcion funcion3 = app.admin().programarFuncion(admin, peli, sala, fechaFuncion, new DateTime(21, 30), "Subtitulada").dato();
         System.out.println("Funciones en cartelera: " + app.cartelera().consultarCartelera(sede).dato().size());
         System.out.println("Filtro idioma Doblada + genero Accion: "
                 + app.cartelera().filtrarCartelera(sede, "Doblada", null, accion).dato().size());
@@ -123,7 +122,7 @@ public class CineObjects {
                 "ana@mail.com", null, "clave456", "Tarde", rolDulceria, sede, app.reloj());
         app.empleados().guardar(empleado);
         System.out.println("Dulceria programa una funcion: "
-                + resultado(app.admin().programarFuncion(empleado, new Funcion(9, fechaFuncion, new DateTime(8, 0), "Doblada", null, peli, sala, app.reloj()))));
+                + resultado(app.admin().programarFuncion(empleado, peli, sala, fechaFuncion, new DateTime(8, 0), "Doblada")));
 
         // ---------- 2. Compra basica ----------
         titulo("2. Compra basica");
@@ -142,7 +141,7 @@ public class CineObjects {
 
         Respuesta<TransaccionPago> pago = app.pago().pagar(compra, compra.getTotalCentavos(), TransaccionPago.TARJETA_CREDITO);
         System.out.println("Pago aprobado: " + resultado(pago));
-        System.out.println(app.compra().generarComprobante(compra).dato()); // la serie la asigna el repositorio (como el trigger)
+        System.out.println(comprobante(compra)); // la serie la asigna el repositorio (como el trigger)
         System.out.println("Puntos del cliente: " + cliente.consultarPuntos());
         System.out.println("Butacas libres en funcion 1: " + funcion.consultarDisponibilidad());
 
@@ -170,26 +169,27 @@ public class CineObjects {
 
         // ---------- 4. Dulceria, cupon y pedido ----------
         titulo("4. Entrada + combo + cupon + pedido");
-        Producto combo = new Producto(1, "Combo Mediano", "Canchita y gaseosa", "Combos", ConversorDinero.aCentavos("25.00"), true, true);
-        app.admin().registrarProducto(admin, combo);
+        Producto combo = app.admin().registrarProducto(admin, "Combo Mediano", "Canchita y gaseosa", "Combos",
+                ConversorDinero.aCentavos("25.00"), true, 0).dato();
         app.admin().reponerStock(admin, combo, 10);
-        Cupon cupon = new Cupon(1, "CINE10", new CalculoPorcentaje(10),
-                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 5, true);
-        app.admin().registrarCupon(admin, cupon);
+        Cupon cupon = app.admin().registrarCupon(admin, "CINE10", CalculoPorcentaje.TIPO, 10,
+                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 5).dato();
         System.out.println("Menu de dulceria: " + app.dulceria().consultarMenu(sede, cliente).dato());
 
         Compra c3 = app.compra().iniciarCompra(cliente, sede).dato();
         app.compra().agregarEntrada(c3, funcion3, sala.obtenerMapaButacas().get(0), general); // A1
-        Pedido pedido = new Pedido(0, app.reloj());
-        pedido.agregarDetalle(new DetallePedido(0, combo, 2, "Sin sal"));
-        app.compra().asignarPedido(c3, pedido);
+        System.out.println("Agregar entrada de otra funcion a la misma compra - error esperado: "
+                + app.compra().agregarEntrada(c3, funcion, sala.obtenerMapaButacas().get(4), general).mensaje());
+        // El servicio arma el pedido: la vista solo dice qué producto y cuántos
+        app.compra().agregarProducto(c3, combo, 2, "Sin sal");
+        Pedido pedido = c3.getPedido();
         System.out.println("Cupon aplicado: " + resultado(app.compra().aplicarCupon(c3, "CINE10")));
         System.out.println("Cupon inexistente: " + resultado(app.compra().aplicarCupon(c3, "NOEXISTE")));
         System.out.println("Asientos bloqueados: " + resultado(app.compra().confirmarAsientos(c3)));
 
         Respuesta<TransaccionPago> pago3 = app.pago().pagar(c3, c3.getTotalCentavos(), TransaccionPago.YAPE);
         System.out.println("Pago aprobado: " + resultado(pago3));
-        System.out.println(app.compra().generarComprobante(c3).dato());
+        System.out.println(comprobante(c3));
         System.out.println("Stock del combo: " + combo.getStock(sede));
         System.out.println("Puntos del cliente: " + cliente.consultarPuntos());
 
@@ -231,11 +231,11 @@ public class CineObjects {
         System.out.println("Saldo de puntos de prueba: " + cliente.consultarPuntos());
         TipoEntrada normal = new TipoEntrada(2, "GENERAL", "Entrada general", ConversorDinero.aCentavos("30.00"), 2, false, true);
         TipoEntrada socio50 = new TipoEntrada(3, "SOCIO", "Entrada socio a mitad de precio", ConversorDinero.aCentavos("15.00"), 3, true, true, 40);
-        Producto comboNivel2 = new Producto(2, "Combo Oferta Nivel 2", "Oferta para socios nivel 2", "Combos", ConversorDinero.aCentavos("30.00"), true, 2, true);
-        Producto comboSocio = new Producto(3, "Combo Socio", "Oferta para socios", "Combos", ConversorDinero.aCentavos("25.00"), true, 1, true);
-        app.admin().registrarProducto(admin, comboNivel2);
+        Producto comboNivel2 = app.admin().registrarProducto(admin, "Combo Oferta Nivel 2", "Oferta para socios nivel 2",
+                "Combos", ConversorDinero.aCentavos("30.00"), true, 2).dato();
+        Producto comboSocio = app.admin().registrarProducto(admin, "Combo Socio", "Oferta para socios", "Combos",
+                ConversorDinero.aCentavos("25.00"), true, 1).dato();
         app.admin().reponerStock(admin, comboNivel2, 5);
-        app.admin().registrarProducto(admin, comboSocio);
         app.admin().reponerStock(admin, comboSocio, 5);
         System.out.println("Tarifa normal: " + ConversorDinero.formatear(normal.getTarifaCentavos()));
         System.out.println("Tarifa socio (mitad): " + ConversorDinero.formatear(socio50.getTarifaCentavos()));
@@ -245,18 +245,14 @@ public class CineObjects {
         app.compra().agregarEntrada(c6, funcion, sala.obtenerMapaButacas().get(0), socio50); // A1
 
         // Un combo de nivel 2 no esta disponible para un cliente de nivel 1
-        Pedido pedidoFallido = new Pedido(0, app.reloj());
-        pedidoFallido.agregarDetalle(new DetallePedido(0, comboNivel2, 1, null));
-        System.out.println("Error esperado: " + app.compra().asignarPedido(c6, pedidoFallido).mensaje());
+        System.out.println("Error esperado: " + app.compra().agregarProducto(c6, comboNivel2, 1, null).mensaje());
 
-        Pedido pedido6 = new Pedido(0, app.reloj());
-        pedido6.agregarDetalle(new DetallePedido(0, comboSocio, 1, null));
-        app.compra().asignarPedido(c6, pedido6);
+        app.compra().agregarProducto(c6, comboSocio, 1, null);
         System.out.println("Asientos bloqueados: " + resultado(app.compra().confirmarAsientos(c6)));
 
         Respuesta<TransaccionPago> pago6 = app.pago().pagar(c6, c6.getTotalCentavos(), TransaccionPago.PLIN);
         System.out.println("Pago aprobado: " + resultado(pago6));
-        System.out.println(app.compra().generarComprobante(c6).dato());
+        System.out.println(comprobante(c6));
         System.out.println("Puntos del cliente: " + cliente.consultarPuntos());
         System.out.println("Stock del Combo Socio: " + comboSocio.getStock(sede));
 
@@ -285,8 +281,7 @@ public class CineObjects {
         for (int i = 1; i <= 10; i++) {
             sala2.agregarButaca(new Butaca(0, "B", i, Butaca.ESTANDAR, sala2));
         }
-        Funcion funcion4 = new Funcion(4, fechaFuncion, new DateTime(10, 0), "Doblada", null, peli, sala2, app.reloj());
-        app.admin().programarFuncion(admin, funcion4);
+        Funcion funcion4 = app.admin().programarFuncion(admin, peli, sala2, fechaFuncion, new DateTime(10, 0), "Doblada").dato();
 
         // Una compra creada hace 10 minutos ya vencio su plazo de 4 (se arma a mano solo para la prueba)
         Compra vencida = new Compra(0, app.reloj().ahora().sumarMinutos(-10), cliente, sede,
@@ -322,12 +317,10 @@ public class CineObjects {
         soloHoy.add(diaHoy);
         List<Integer> otroDia = new ArrayList<>();
         otroDia.add(diaHoy % 7 + 1);
-        Promocion pHoy = new Promocion(1, "Promo hoy", "20% solo hoy", new CalculoPorcentaje(20),
-                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), false, soloHoy, true);
-        Promocion pOtro = new Promocion(2, "Promo otro dia", "20% otro dia", new CalculoPorcentaje(20),
-                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), false, otroDia, true);
-        app.admin().registrarPromocion(admin, pHoy);
-        app.admin().registrarPromocion(admin, pOtro);
+        Promocion pHoy = app.admin().registrarPromocion(admin, "Promo hoy", "20% solo hoy", CalculoPorcentaje.TIPO, 20,
+                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), false, soloHoy).dato();
+        Promocion pOtro = app.admin().registrarPromocion(admin, "Promo otro dia", "20% otro dia", CalculoPorcentaje.TIPO, 20,
+                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), false, otroDia).dato();
         System.out.println("Promociones vigentes hoy: " + app.cartelera().consultarPromociones().dato());
         Compra cp = app.compra().iniciarCompra(cliente, sede).dato();
         System.out.println("Hoy es dia " + diaHoy
@@ -335,21 +328,26 @@ public class CineObjects {
                 + " | promo de otro dia aplicable: " + app.compra().aplicarPromocion(cp, pOtro).ok());
         app.compra().cancelar(cp);
 
-        System.out.println("Calificacion registrada: " + resultado(app.postventa().calificar(ultimaFrecuente, 5, "Excelente atencion"))
-                + " | repetida: " + resultado(app.postventa().calificar(ultimaFrecuente, 4, "Otra vez"))
-                + " | compra reembolsada: " + resultado(app.postventa().calificar(compra, 5, null)));
+        System.out.println("Calificacion registrada: " + resultado(app.postventa().calificar(ultimaFrecuente.getCliente(), ultimaFrecuente, 5, "Excelente atencion"))
+                + " | repetida: " + resultado(app.postventa().calificar(ultimaFrecuente.getCliente(), ultimaFrecuente, 4, "Otra vez"))
+                + " | compra reembolsada: " + resultado(app.postventa().calificar(compra.getCliente(), compra, 5, null)));
         Compra compraSinCalificar = c3;
         System.out.println("Calificacion con puntuacion 9 - error esperado: "
-                + app.postventa().calificar(compraSinCalificar, 9, null).mensaje());
+                + app.postventa().calificar(compraSinCalificar.getCliente(), compraSinCalificar, 9, null).mensaje());
 
-        Reclamo rec = app.postventa().presentarReclamo(compra, Reclamo.ATENCION, "Demora en la dulceria").dato();
-        System.out.println("Responder sin revisar: " + resultado(app.postventa().responderReclamo(rec, "Disculpas")));
-        app.postventa().iniciarRevision(rec);
-        app.postventa().responderReclamo(rec, "Se ofrecen disculpas");
+        Cliente ajeno = app.login().ingresarComoInvitado("ajeno@cine.com").dato();
+        System.out.println("Reclamo sobre compra ajena - error esperado: "
+                + app.postventa().presentarReclamo(ajeno, compra, Reclamo.ATENCION, "No es mia").mensaje());
+        Reclamo rec = app.postventa().presentarReclamo(compra.getCliente(), compra, Reclamo.ATENCION, "Demora en la dulceria").dato();
+        System.out.println("Responder sin revisar: " + resultado(app.postventa().responderReclamo(admin, rec, "Disculpas")));
+        System.out.println("Empleado de dulceria revisa el reclamo - error esperado: "
+                + app.postventa().iniciarRevision(empleado, rec).mensaje());
+        app.postventa().iniciarRevision(admin, rec);
+        app.postventa().responderReclamo(admin, rec, "Se ofrecen disculpas");
         System.out.println("Reclamo: " + rec);
         Compra pendiente = app.compra().iniciarCompra(cliente, sede).dato();
         System.out.println("Reclamo sobre compra en proceso: "
-                + resultado(app.postventa().presentarReclamo(pendiente, Reclamo.SALA_PROYECCION, "Prueba")));
+                + resultado(app.postventa().presentarReclamo(cliente, pendiente, Reclamo.SALA_PROYECCION, "Prueba")));
         app.compra().cancelar(pendiente);
 
         System.out.println("Cliente con DNI de 3 digitos - error esperado: " + app.login().registrarCliente(
@@ -366,8 +364,7 @@ public class CineObjects {
         System.out.println(grande + " | capacidad: " + grande.getCapacidad() + " | filas: " + grande.obtenerFilas());
         System.out.println("Fila A: " + filaComoTexto(grande, "A"));
         System.out.println("Fila G: " + filaComoTexto(grande, "G"));
-        Funcion funcion5 = new Funcion(5, fechaFuncion, new DateTime(16, 0), "Subtitulada", null, peli, grande, app.reloj());
-        app.admin().programarFuncion(admin, funcion5);
+        Funcion funcion5 = app.admin().programarFuncion(admin, peli, grande, fechaFuncion, new DateTime(16, 0), "Subtitulada").dato();
 
         Compra cg = app.compra().iniciarCompra(cliente, sede).dato();
         System.out.println("Sugerencia para 2 en sala vacia: " + app.compra().consultarMapa(cg, funcion5, 2, false).dato().sugeridas());
@@ -399,12 +396,22 @@ public class CineObjects {
         System.out.println("Ver una compra reembolsada (sin QR):");
         System.out.println(app.emision().verDetalle(compra).dato());
         System.out.println(app.emision().enviarPorCorreo(ultimaFrecuente, null).mensaje() + " -> " + ultimoCorreo(app));
-        System.out.println("Recuperar con el codigo " + ultimaFrecuente.getSerieNumero() + ": "
-                + resultado(app.emision().recuperarPorCodigo(ultimaFrecuente.getSerieNumero())));
+        String serie = ultimaFrecuente.getSerieNumero();
+        String correoComprador = ultimaFrecuente.getCliente().getCorreo();
+        System.out.println("Recuperar con el codigo " + serie + " y su correo: "
+                + resultado(app.emision().recuperarPorCodigo(serie, correoComprador)));
+        System.out.println("Recuperar con el codigo y un correo ajeno - error esperado: "
+                + app.emision().recuperarPorCodigo(serie, "otro@mail.com").mensaje());
         System.out.println("Recuperar por correo: " + app.emision().recuperarPorCorreo("rosa@mail.com").mensaje());
         System.out.println("Recuperar por correo sin compras vigentes: " + app.emision().recuperarPorCorreo("ismael@mail.com").mensaje());
         System.out.println("Imprimir: " + resultado(app.emision().imprimir(ultimaFrecuente)));
-        System.out.println("Codigo inexistente: " + resultado(app.emision().recuperarPorCodigo("B001-999999")));
+        System.out.println("Codigo inexistente - mismo mensaje: " + resultado(app.emision().recuperarPorCodigo("B001-999999", correoComprador)));
+        // Ya van 2 fallos; 3 series probadas al azar completan los 5 y el kiosco se bloquea.
+        for (int i = 1; i <= 3; i++) {
+            app.emision().recuperarPorCodigo(String.format("B001-%06d", 900000 + i), correoComprador);
+        }
+        System.out.println("Tras 5 fallos, incluso con datos correctos - error esperado: "
+                + app.emision().recuperarPorCodigo(serie, correoComprador).mensaje());
 
         // ---------- 11. Administracion: sedes, salas, productos, cupones y funciones ----------
         titulo("11. Administracion");
@@ -417,7 +424,7 @@ public class CineObjects {
         System.out.println("Editar combo: " + resultado(app.admin().actualizarProducto(admin, combo, "Combo Mediano",
                 "Canchita salada y gaseosa", "Combos", ConversorDinero.aCentavos("27.50"), true, 0)) + " | " + combo);
         System.out.println("Bajar limite del cupon por debajo de sus usos: " + resultado(app.admin().actualizarCupon(admin, cupon,
-                "CINE10", new CalculoPorcentaje(10), new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 0)));
+                "CINE10", CalculoPorcentaje.TIPO, 10, new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 0)));
         System.out.println("Editar funcion con entradas vendidas: " + resultado(app.admin().editarFuncion(admin, funcion4,
                 fechaFuncion, new DateTime(11, 0), "Doblada")));
         System.out.println("Reactivar funcion 3: " + resultado(app.admin().reactivarFuncion(admin, funcion3))
@@ -430,14 +437,12 @@ public class CineObjects {
         DateTime haceVeinticinco = app.reloj().ahora().sumarMinutos(-25);
         Sala sala4 = app.admin().registrarSala(admin, sede, 4, tipo, 3, 2, 4).dato();
         Sala sala5 = app.admin().registrarSala(admin, sede, 5, tipo, 3, 2, 4).dato();
-        Funcion empezoHace10 = new Funcion(6,
+        Funcion empezoHace10 = app.admin().programarFuncion(admin, peli, sala4,
                 new DateTime(haceDiez.getDia(), haceDiez.getMes(), haceDiez.getAnio()),
-                new DateTime(haceDiez.getHora(), haceDiez.getMinuto()), "Doblada", null, peli, sala4, app.reloj());
-        Funcion empezoHace25 = new Funcion(7,
+                new DateTime(haceDiez.getHora(), haceDiez.getMinuto()), "Doblada").dato();
+        Funcion empezoHace25 = app.admin().programarFuncion(admin, peli, sala5,
                 new DateTime(haceVeinticinco.getDia(), haceVeinticinco.getMes(), haceVeinticinco.getAnio()),
-                new DateTime(haceVeinticinco.getHora(), haceVeinticinco.getMinuto()), "Doblada", null, peli, sala5, app.reloj());
-        app.admin().programarFuncion(admin, empezoHace10);
-        app.admin().programarFuncion(admin, empezoHace25);
+                new DateTime(haceVeinticinco.getHora(), haceVeinticinco.getMinuto()), "Doblada").dato();
         List<Funcion> enCartelera = app.cartelera().consultarCartelera(sede).dato();
         System.out.println("Empezo hace 10 min: " + empezoHace10.getEstado() + " | cierre de venta: "
                 + empezoHace10.obtenerCierreVenta().soloHora() + " | en cartelera: " + enCartelera.contains(empezoHace10));

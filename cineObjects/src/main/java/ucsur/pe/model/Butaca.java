@@ -52,6 +52,14 @@ public class Butaca {
         this.sala = sala;
     }
 
+    /**
+     * Asigna el id real generado por la base tras el INSERT. Las butacas que crea Sala.generarButacas
+     * nacen con id 0, y las entradas de la BD necesitan ese id (entrada.id_butaca).
+     */
+    public void asignarId(int idButaca) {
+        this.idButaca = Ids.asignar(this.idButaca, idButaca, "la butaca");
+    }
+
     /** Código visible del asiento: fila y número, como A5. */
     public String getCodigoAsiento() {
         return fila + numero;

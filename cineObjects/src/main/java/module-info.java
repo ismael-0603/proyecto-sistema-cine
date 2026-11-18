@@ -7,6 +7,4 @@ module ucsur.pe {
     requires mysql.connector.j;
 
     exports ucsur.pe;
-    exports ucsur.pe.db;
-    exports ucsur.pe.demo;
 }

@@ -3,8 +3,8 @@ package ucsur.pe.controller;
 import ucsur.pe.model.Cliente;
 import ucsur.pe.model.DateTime;
 import ucsur.pe.model.Empleado;
-import ucsur.pe.model.Persona;
 import ucsur.pe.service.AutenticacionService;
+import ucsur.pe.service.Sesion;
 
 /** Acciones de la pantalla de inicio: entrar como invitado, registrarse, iniciar sesión y editar datos. */
 public class LoginController extends ControllerBase {
@@ -24,7 +24,8 @@ public class LoginController extends ControllerBase {
                 () -> servicio.registrarCliente(dni, nombres, apellidos, fechaNac, correo, telefono, contra));
     }
 
-    public Respuesta<Persona> iniciarSesion(String correo, String contra) {
+    /** La sesión dice a qué zona entra la cuenta (cliente, dulcería o administración). */
+    public Respuesta<Sesion> iniciarSesion(String correo, String contra) {
         return ejecutar("Sesión iniciada", () -> servicio.iniciarSesion(correo, contra));
     }
 

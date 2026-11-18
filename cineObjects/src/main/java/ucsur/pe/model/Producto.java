@@ -126,6 +126,11 @@ public class Producto implements Activable {
         return (this.estado && this.esCombo) ? PUNTOS_COMBO : 0;
     }
 
+    /** Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT; un producto nuevo nace con id 0. */
+    public void asignarId(int idProducto) {
+        this.idProducto = Ids.asignar(this.idProducto, idProducto, "el producto");
+    }
+
     public int getIdProducto() { return idProducto; }
     public String getNombre() { return nombre; }
     public String getDescripcion() { return descripcion; }

@@ -29,10 +29,7 @@ public class MainTotalizable {
         Reloj reloj = new RelojSistema(); // en la demo no hay App: se crea el reloj aquí
         Cliente cliente1 = Cliente.ingresarComoInvitado("invitado@cine.com", reloj);
 
-        // 2. Creamos un pedido de dulceria
-        Pedido pedido1 = new Pedido(1, reloj);
-
-        // 3. Creamos la sede y los productos con sus precios y stock en esa sede
+        // 2. Creamos la sede y los productos con sus precios y stock en esa sede
         Sede sede = new Sede(1, "Cine Prueba", "Av. Lima 123", "Miraflores", null, null, Sede.ACTIVA);
 
         Producto producto1 = new Producto(
@@ -47,6 +44,10 @@ public class MainTotalizable {
         );
         producto2.reponerStock(sede, 30);
 
+        // 3. Creamos la compra del cliente en la sede (en el sistema la crea CompraService)
+        Compra compra1 = new Compra(1, null, cliente1, sede,
+                new SeleccionAsientos(), new CalculadoraImporte(), new GestorPuntos(), reloj);
+
         // 4. Creamos los detalles indicando cantidades
         DetallePedido detalle1 = new DetallePedido(
                 1, producto1, 2, null
@@ -56,9 +57,10 @@ public class MainTotalizable {
                 2, producto2, 1, null
         );
 
-        // 5. Agregamos los detalles al pedido
-        pedido1.agregarDetalle(detalle1);
-        pedido1.agregarDetalle(detalle2);
+        // 5. Agregamos los detalles: la compra crea su pedido de dulcería con el primer producto
+        compra1.agregarProducto(detalle1);
+        compra1.agregarProducto(detalle2);
+        Pedido pedido1 = compra1.getPedido();
 
         // 6. Mostramos el contenido del pedido
         System.out.println("\n--- DETALLE DEL PEDIDO ---");
@@ -70,20 +72,13 @@ public class MainTotalizable {
                 ConversorDinero.formatear(pedido1.calcularTotalCentavos())
         );
 
-        // 7. Creamos la compra del cliente en la sede (en el sistema la crea CompraService)
-        Compra compra1 = new Compra(1, null, cliente1, sede,
-                new SeleccionAsientos(), new CalculadoraImporte(), new GestorPuntos(), reloj);
-
-        // 8. Asociamos el pedido a la compra
-        compra1.asignarPedido(pedido1);
-
-        // 9. Creamos una lista de objetos Totalizable
+        // 7. Creamos una lista de objetos Totalizable
         List<Totalizable> listaTotales = new ArrayList<>();
 
         listaTotales.add(pedido1);
         listaTotales.add(compra1);
 
-        // 10. Aplicamos el polimorfismo
+        // 8. Aplicamos el polimorfismo
         System.out.println("\n--- TOTALIZABLE ---");
 
         for (Totalizable t : listaTotales) {

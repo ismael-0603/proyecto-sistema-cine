@@ -6,11 +6,12 @@ import ucsur.pe.model.CalculadoraImporte;
 import ucsur.pe.model.Cliente;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.Cupon;
+import ucsur.pe.model.DetallePedido;
 import ucsur.pe.model.Entrada;
 import ucsur.pe.model.Funcion;
 import ucsur.pe.model.GestorPuntos;
 import ucsur.pe.model.MapaButacas;
-import ucsur.pe.model.Pedido;
+import ucsur.pe.model.Producto;
 import ucsur.pe.model.Promocion;
 import ucsur.pe.model.Reloj;
 import ucsur.pe.model.SeleccionAsientos;
@@ -18,6 +19,7 @@ import ucsur.pe.model.Sede;
 import ucsur.pe.model.TipoEntrada;
 import ucsur.pe.repository.CompraRepository;
 import ucsur.pe.repository.CuponRepository;
+import ucsur.pe.repository.TipoEntradaRepository;
 import java.util.List;
 
 /**
@@ -28,15 +30,17 @@ import java.util.List;
 public class CompraService {
     private final CompraRepository compras;
     private final CuponRepository cupones;
+    private final TipoEntradaRepository tiposEntrada;
     // Colaboradores sin estado: uno solo sirve para todas las compras, por eso llegan desde App.
     private final CalculadoraImporte calculadora;
     private final GestorPuntos gestorPuntos;
     private final Reloj reloj;
 
-    public CompraService(CompraRepository compras, CuponRepository cupones,
+    public CompraService(CompraRepository compras, CuponRepository cupones, TipoEntradaRepository tiposEntrada,
                          CalculadoraImporte calculadora, GestorPuntos gestorPuntos, Reloj reloj) {
         this.compras = compras;
         this.cupones = cupones;
+        this.tiposEntrada = tiposEntrada;
         this.calculadora = calculadora;
         this.gestorPuntos = gestorPuntos;
         this.reloj = reloj;
@@ -45,10 +49,10 @@ public class CompraService {
     /** Empieza la compra en la sede elegida; desde aquí corren los 4 minutos. */
     public Compra iniciarCompra(Cliente cliente, Sede sede) {
         // SeleccionAsientos sí se crea aquí: guarda las entradas de ESTA compra, así que cada compra tiene la suya.
-        Compra compra = new Compra(compras.siguienteId(), null, cliente, sede,
+        Compra compra = new Compra(0, null, cliente, sede,
                 new SeleccionAsientos(), calculadora, gestorPuntos, reloj);
         cliente.agregarCompra(compra);
-        compras.guardar(compra);
+        compras.guardar(compra); // la base le genera el id (AUTO_INCREMENT)
         return compra;
     }
 
@@ -76,6 +80,11 @@ public class CompraService {
         return funcion.recomendarMejoresAsientos(cantidad, incluirAccesibles, elegidas);
     }
 
+    /** Tarifas que el cliente puede elegir para sus entradas: activas y, si son de socio, solo para socios. */
+    public List<TipoEntrada> listarTiposEntrada(Cliente cliente) {
+        return tiposEntrada.listarActivos().stream().filter(t -> t.validarElegibilidad(cliente)).toList();
+    }
+
     public Entrada agregarEntrada(Compra compra, Funcion funcion, Butaca butaca, TipoEntrada tipo) {
         Entrada entrada = new Entrada(0, funcion, butaca, tipo); // el id real lo genera la BD
         compra.agregarEntrada(entrada);
@@ -100,15 +109,39 @@ public class CompraService {
         compras.guardar(compra);
     }
 
-    public void asignarPedido(Compra compra, Pedido pedido) {
-        compra.asignarPedido(pedido);
+    // ---------- Dulcería (el pedido lo arma el servicio, no la vista) ----------
+    /**
+     * Agrega un producto al pedido de la compra; si la compra aún no tiene pedido, lo crea (RF-12 a RF-14).
+     * La compra vuelve a validar las ofertas de socio y recalcula el total con cada cambio.
+     */
+    public DetallePedido agregarProducto(Compra compra, Producto producto, int cantidad, String personalizacion) {
+        exigirCompra(compra);
+        DetallePedido detalle = new DetallePedido(0, producto, cantidad, personalizacion);
+        compra.agregarProducto(detalle); // la compra valida su estado y las ofertas de socio antes de tocar el pedido
+        return detalle;
+    }
+
+    /** Cambia la cantidad de una línea del pedido y recalcula el total de la compra. */
+    public void cambiarCantidad(Compra compra, DetallePedido detalle, int cantidad) {
+        exigirCompra(compra);
+        compra.cambiarCantidad(detalle, cantidad);
+    }
+
+    /** Quita una línea del pedido; si el pedido queda vacío, la compra sigue sin dulcería. */
+    public void quitarProducto(Compra compra, DetallePedido detalle) {
+        exigirCompra(compra);
+        compra.quitarProducto(detalle);
+    }
+
+    private static void exigirCompra(Compra compra) {
+        if (compra == null) throw new IllegalArgumentException("La compra es obligatoria");
     }
 
     /** Busca el cupón por el código que escribe el cliente y lo aplica (RF-11). */
     public void aplicarCupon(Compra compra, String codigo) {
         Cupon cupon = cupones.buscarPorCodigo(codigo)
                 .orElseThrow(() -> new ReglaNegocioException("No existe el cupón " + codigo));
-        compra.aplicarDescuento(cupon); // al ser Cupon, Java usa la versión que cuenta usos
+        compra.aplicarDescuento(cupon); // el uso del cupón se cuenta al confirmar la compra
     }
 
     public void aplicarPromocion(Compra compra, Promocion promocion) {
@@ -125,7 +158,4 @@ public class CompraService {
         compras.guardar(compra);
     }
 
-    public String generarComprobante(Compra compra) {
-        return compra.generarComprobante();
-    }
 }

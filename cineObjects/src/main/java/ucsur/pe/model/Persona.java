@@ -5,15 +5,16 @@ package ucsur.pe.model;
  * para no repetirlo. Es abstracta: no se crean personas sueltas, solo clientes o empleados.
  */
 public abstract class Persona implements Activable {
-    // protected: las subclases (Cliente y Empleado) pueden acceder a estos datos directamente.
-    protected String dni;
-    protected String nombres;
-    protected String apellidos;
-    protected DateTime fechaNac; // solo fecha: DateTime(dia, mes, anio)
-    protected String correo;
-    protected String telefono;
-    protected String contra;
-    protected boolean estado = true; // cuenta activa; si es false no puede iniciar sesión
+    // private (encapsulamiento): ni las subclases cambian estos datos sin pasar por las validaciones;
+    // Cliente y Empleado los leen con los getters y cambian el estado con activar() y desactivar().
+    private String dni;
+    private String nombres;
+    private String apellidos;
+    private DateTime fechaNac; // solo fecha: DateTime(dia, mes, anio)
+    private String correo;
+    private String telefono;
+    private String contra;
+    private boolean estado = true; // cuenta activa; si es false no puede iniciar sesión
     private final Reloj reloj; // de dónde sale la fecha de hoy (el real o uno fijo en pruebas)
 
     // Se permiten datos incompletos para invitados; clientes registrados y empleados validan lo requerido.
@@ -58,12 +59,6 @@ public abstract class Persona implements Activable {
     public String getNombreCompleto() {
         String completo = ((nombres != null ? nombres : "") + " " + (apellidos != null ? apellidos : "")).trim();
         return completo.isEmpty() ? "Invitado" : completo;
-    }
-
-    /** Calcula la edad a la fecha de hoy; si no se conoce el nacimiento, devuelve cero. */
-    public int calcularEdad() {
-        if (this.fechaNac == null) return 0;
-        return this.fechaNac.calcularAniosHasta(reloj.ahora());
     }
 
     /** Indica si están los datos obligatorios de una cuenta registrada; la subclase pregunta sin ver la contraseña. */
@@ -137,31 +132,20 @@ public abstract class Persona implements Activable {
         return contra;
     }
 
-    // Los setters vuelven a validar cada dato antes de guardarlo.
+    // Sin setters: los datos se validan en el constructor y el teléfono y el correo cambian con modificarDatos.
     public String getDni() { return dni; }
-    /** Solo para completar el DNI de un invitado que se registra; una vez registrado, el DNI no cambia. */
-    public void setDni(String dni) {
-        if (this.dni != null) {
-            throw new IllegalStateException("El DNI no se puede cambiar una vez registrado");
-        }
-        this.dni = validarDni(dni);
-    }
-
     public String getNombres() { return nombres; }
-    public void setNombres(String nombres) { this.nombres = validarTexto(nombres, "Los nombres", 80); }
-
     public String getApellidos() { return apellidos; }
-    public void setApellidos(String apellidos) { this.apellidos = validarTexto(apellidos, "Los apellidos", 80); }
-
     public DateTime getFechaNac() { return fechaNac; }
-    public void setFechaNac(DateTime fechaNac) { this.fechaNac = validarFechaNac(fechaNac); }
-
     public String getCorreo() { return correo; }
-
     public String getTelefono() { return telefono; }
-    public void setTelefono(String telefono) { this.telefono = validarTelefono(telefono); }
 
-    public void setContra(String contra) { this.contra = validarContra(contra); }
+    /**
+     * Solo para la capa de base de datos (ucsur.pe.db), que necesita escribir la columna contra.
+     * Las demás capas verifican la clave con verificarContrasena, sin leerla.
+     * Hoy se guarda en texto plano (alcance del curso); si el sistema se publica, aquí iría el hash.
+     */
+    public String getContra() { return contra; }
 
     /** Reloj de la cuenta; Cliente lo usa para su fecha de registro y sus visitas del año. */
     protected Reloj getReloj() { return reloj; }

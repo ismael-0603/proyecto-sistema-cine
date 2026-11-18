@@ -47,15 +47,29 @@ public class Reclamo {
         this.compra = compra;
     }
 
+    /**
+     * Solo para la capa de base de datos (ucsur.pe.db): reconstruye un reclamo ya guardado con su estado
+     * y su respuesta. En la BD no existe BORRADOR: un reclamo guardado ya fue registrado.
+     */
+    public static Reclamo restaurar(int idReclamo, String tipo, String descripcion, DateTime fecha,
+                                    String estado, String respuesta, Compra compra) {
+        Reclamo reclamo = new Reclamo(idReclamo, tipo, descripcion, compra); // valida tipo, descripción y compra
+        if (fecha == null) {
+            throw new IllegalArgumentException("La fecha del reclamo es obligatoria");
+        }
+        if (!REGISTRADO.equals(estado) && !EN_REVISION.equals(estado)
+                && !RESUELTO.equals(estado) && !RECHAZADO.equals(estado)) {
+            throw new IllegalArgumentException("Estado de reclamo inválido: " + estado);
+        }
+        reclamo.fecha = fecha;
+        reclamo.estado = estado;
+        reclamo.respuesta = respuesta;
+        return reclamo;
+    }
+
     /** Asigna el id real generado por la base tras el INSERT (en memoria, lo simula el repositorio). */
     public void asignarId(int idReclamo) {
-        if (this.idReclamo > 0) {
-            throw new IllegalStateException("El reclamo ya tiene id asignado");
-        }
-        if (idReclamo <= 0) {
-            throw new IllegalArgumentException("El id del reclamo debe ser mayor a 0");
-        }
-        this.idReclamo = idReclamo;
+        this.idReclamo = Ids.asignar(this.idReclamo, idReclamo, "el reclamo");
     }
 
     /** Formaliza el reclamo una sola vez y solo para compras confirmadas o reembolsadas. */
@@ -96,7 +110,6 @@ public class Reclamo {
         this.estado = RECHAZADO;
     }
 
-    /** Impide revisar o responder reclamos que no se registraron o que ya fueron cerrados. */
     /** Un reclamo se cierra (respondido o rechazado) solo después de pasar por EN_REVISION. */
     private void exigirEnRevision() {
         validarAbierto();
@@ -105,6 +118,7 @@ public class Reclamo {
         }
     }
 
+    /** Impide revisar o responder reclamos que no se registraron o que ya fueron cerrados. */
     private void validarAbierto() {
         if (BORRADOR.equals(estado)) {
             throw new IllegalStateException("El reclamo aún no fue registrado");

@@ -22,7 +22,6 @@ public class Pedido implements Totalizable {
     private DateTime fechaHora;
     private DateTime fechaEntrega;
     private String estado;
-    private long totalCentavos; // suma de los subtotales de las líneas, en céntimos
     private final Reloj reloj; // de dónde sale la hora actual
     private Empleado empleado; // Permanece null hasta que un empleado inicia la preparación.
     /** Sede de cuyo inventario se descuenta el stock; se fija al registrar el pedido. */
@@ -43,15 +42,54 @@ public class Pedido implements Totalizable {
         this.registrado = false;
     }
 
+    /**
+     * Solo para la capa de base de datos (ucsur.pe.db): reconstruye un pedido tal como quedó guardado.
+     * No vuelve a descontar ni a reponer stock. El pedido está registrado si tiene QR, porque el QR se crea
+     * justo al registrarlo; como en memoria, solo un pedido registrado tiene sede
+     * (en la BD la sede no está en pedido: es la de su compra).
+     */
+    public static Pedido restaurar(int idPedido, String codigoQR, DateTime fechaHora, DateTime fechaEntrega,
+                                   String estado, Sede sede, Empleado empleado, List<DetallePedido> detalles,
+                                   Reloj reloj) {
+        Pedido pedido = new Pedido(idPedido, reloj); // valida el reloj
+        if (fechaHora == null) {
+            throw new IllegalArgumentException("La fecha del pedido es obligatoria");
+        }
+        if (!esEstadoValido(estado)) {
+            throw new IllegalArgumentException("Estado de pedido inválido: " + estado);
+        }
+        if (empleado == null && (EN_PREPARACION.equals(estado) || LISTO.equals(estado))) {
+            throw new IllegalArgumentException("Un pedido " + estado + " necesita al empleado que lo prepara");
+        }
+        boolean registrado = (codigoQR != null);
+        if (registrado && sede == null) {
+            throw new IllegalArgumentException("Un pedido registrado necesita su sede");
+        }
+        pedido.codigoQR = codigoQR;
+        pedido.fechaHora = fechaHora;
+        pedido.fechaEntrega = fechaEntrega;
+        pedido.estado = estado;
+        pedido.empleado = empleado;
+        pedido.registrado = registrado;
+        pedido.sede = registrado ? sede : null;
+        if (detalles != null) {
+            for (DetallePedido d : detalles) {
+                if (d == null) throw new IllegalArgumentException("El detalle no puede ser nulo");
+                pedido.detalles.add(d);
+            }
+        }
+        return pedido;
+    }
+
+    /** Los cinco estados posibles (en la BD, ck_pedido_estado). */
+    private static boolean esEstadoValido(String estado) {
+        return PENDIENTE.equals(estado) || EN_PREPARACION.equals(estado) || LISTO.equals(estado)
+                || ENTREGADO.equals(estado) || ANULADO.equals(estado);
+    }
+
     /** Asigna el id real generado por la base tras el INSERT; si el QR ya existe, lo rehace con ese id. */
     public void asignarId(int idPedido) {
-        if (this.idPedido > 0) {
-            throw new IllegalStateException("El pedido ya tiene id asignado");
-        }
-        if (idPedido <= 0) {
-            throw new IllegalArgumentException("El id del pedido debe ser mayor a 0");
-        }
-        this.idPedido = idPedido;
+        this.idPedido = Ids.asignar(this.idPedido, idPedido, "el pedido");
         if (codigoQR != null) {
             this.codigoQR = generarCodigoQR();
         }
@@ -62,34 +100,28 @@ public class Pedido implements Totalizable {
         return "QR-PED-" + idPedido + "-" + fechaHora.toValorComparable();
     }
 
-    /** Agrega una línea antes del registro y recalcula el total del pedido. */
+    /** Agrega una línea antes del registro. */
     public void agregarDetalle(DetallePedido detalle) {
         if (detalle == null) {
             throw new IllegalArgumentException("El detalle no puede ser nulo");
         }
         exigirNoRegistrado();
         detalles.add(detalle);
-        actualizarTotal();
     }
 
-    /** Cambia la cantidad de una línea mientras el pedido no esté registrado y recalcula el total. */
+    /** Cambia la cantidad de una línea mientras el pedido no esté registrado. */
     public void modificarCantidad(DetallePedido detalle, int cantidad) {
         exigirNoRegistrado();
         if (!detalles.contains(detalle)) {
             throw new IllegalArgumentException("La línea no pertenece a este pedido");
         }
         detalle.modificarCantidad(cantidad);
-        actualizarTotal();
     }
 
     /** Quita una línea del carrito mientras el pedido no esté registrado (RF-14). */
     public boolean quitarDetalle(DetallePedido detalle) {
         exigirNoRegistrado();
-        boolean quitado = detalles.remove(detalle);
-        if (quitado) {
-            actualizarTotal();
-        }
-        return quitado;
+        return detalles.remove(detalle);
     }
 
     /** Después de registrarlo (stock descontado y cobrado) el pedido ya no se puede cambiar. */
@@ -126,7 +158,6 @@ public class Pedido implements Totalizable {
         this.fechaHora = reloj.ahora();
         this.estado = PENDIENTE;
         this.codigoQR = generarCodigoQR();
-        actualizarTotal();
     }
 
     /**
@@ -166,7 +197,7 @@ public class Pedido implements Totalizable {
         this.estado = ANULADO;
     }
 
-    /** Suma los subtotales de todas las líneas y guarda el total actualizado. */
+    /** Suma los subtotales de todas las líneas; el total no se guarda: siempre sale de las líneas. */
     @Override
     public long calcularTotalCentavos() {
         long suma = 0;
@@ -174,11 +205,6 @@ public class Pedido implements Totalizable {
             suma += d.calcularSubtotalCentavos();
         }
         return suma;
-    }
-
-    /** Guarda el total recalculado; se llama cada vez que cambian las líneas. */
-    private void actualizarTotal() {
-        this.totalCentavos = calcularTotalCentavos();
     }
 
     /** Pasa a EN_PREPARACION; exige un pedido registrado y PENDIENTE, y un empleado que pueda atender pedidos. */
@@ -229,7 +255,7 @@ public class Pedido implements Totalizable {
     public DateTime getFechaHora() { return fechaHora; }
     public DateTime getFechaEntrega() { return fechaEntrega; }
     public String getEstado() { return estado; }
-    public long getTotalCentavos() { return totalCentavos; }
+    public long getTotalCentavos() { return calcularTotalCentavos(); }
     public Empleado getEmpleado() { return empleado; }
     public Sede getSede() { return sede; }
     public List<DetallePedido> getDetalles() { return new ArrayList<>(detalles); }
@@ -237,6 +263,6 @@ public class Pedido implements Totalizable {
 
     @Override
     public String toString() {
-        return "Pedido #" + idPedido + " [" + estado + "] " + ConversorDinero.formatear(totalCentavos);
+        return "Pedido #" + idPedido + " [" + estado + "] " + ConversorDinero.formatear(calcularTotalCentavos());
     }
 }

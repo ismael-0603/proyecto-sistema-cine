@@ -6,10 +6,14 @@ import java.util.List;
 
 /**
  * Contrato de persistencia de TransaccionPago: define QUÉ se puede guardar y buscar, no CÓMO.
- * Hoy lo cumple PagoMemoriaRepository; con la base de datos lo cumplirá una versión Jdbc.
+ * Lo cumplen PagoMemoriaRepository (demos en memoria) y PagoJdbcRepository (MySQL).
  */
 public interface PagoRepository {
     void guardar(TransaccionPago pago);
+    /**
+     * Guarda un pago APROBADO junto con su compra ya confirmada: quedan los dos o ninguno.
+     * Si falla, la compra y el pago siguen sin id nuevo y se puede deshacer el cobro.
+     */
+    void guardarConCompra(TransaccionPago pago);
     List<TransaccionPago> listarPorCompra(Compra compra);
-    int siguienteId();
 }

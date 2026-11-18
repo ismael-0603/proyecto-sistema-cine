@@ -37,21 +37,35 @@ public class AutenticacionService {
     public Cliente registrarCliente(String dni, String nombres, String apellidos, DateTime fechaNac,
                                     String correo, String telefono, String contra) {
         exigirCorreoLibre(correo, null);
-        Cliente cliente = new Cliente(clientes.siguienteId(), dni, nombres, apellidos, fechaNac, correo, telefono, contra, reloj);
-        clientes.guardar(cliente);
+        Cliente cliente = new Cliente(0, dni, nombres, apellidos, fechaNac, correo, telefono, contra, reloj);
+        clientes.guardar(cliente); // la base le genera el id (AUTO_INCREMENT)
         return cliente;
     }
 
     /**
-     * Inicia sesión de un cliente o empleado. Ante cualquier fallo responde lo mismo
-     * ("correo o contraseña incorrectos") para no revelar qué correos existen.
+     * Inicia sesión de un cliente o empleado y devuelve la Sesion con su tipo ya resuelto: se sabe en qué
+     * repositorio se encontró la cuenta, así que no hace falta instanceof. Ante cualquier fallo responde
+     * lo mismo ("correo o contraseña incorrectos") para no revelar qué correos existen.
      */
-    public Persona iniciarSesion(String correo, String contra) {
-        Optional<Persona> cuenta = buscarCuenta(correo);
-        if (cuenta.isEmpty() || !cuenta.get().verificarContrasena(contra)) {
+    public Sesion iniciarSesion(String correo, String contra) {
+        if (correo != null) {
+            Optional<Cliente> cliente = clientes.buscarPorCorreo(correo);
+            if (cliente.isPresent()) {
+                return verificar(cliente.get(), contra, Sesion.deCliente(cliente.get()));
+            }
+            Optional<Empleado> empleado = empleados.buscarPorCorreo(correo);
+            if (empleado.isPresent()) {
+                return verificar(empleado.get(), contra, Sesion.deEmpleado(empleado.get()));
+            }
+        }
+        throw new ReglaNegocioException("Correo o contraseña incorrectos");
+    }
+
+    private static Sesion verificar(Persona cuenta, String contra, Sesion sesion) {
+        if (!cuenta.verificarContrasena(contra)) {
             throw new ReglaNegocioException("Correo o contraseña incorrectos");
         }
-        return cuenta.get();
+        return sesion;
     }
 
     /** Cambia teléfono y correo de un cliente; el correo nuevo no puede usarlo otra cuenta. */

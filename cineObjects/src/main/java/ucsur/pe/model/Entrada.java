@@ -42,6 +42,43 @@ public class Entrada {
         asignarTipoEntrada(tipoEntrada);
     }
 
+    /**
+     * Solo para la capa de base de datos (ucsur.pe.db): reconstruye una entrada tal como quedó guardada.
+     * No aplica reglas de venta (no vuelve a calcular el precio ni a generar el QR): esas reglas ya se
+     * cumplieron cuando se vendió. Si la entrada llegó a bloquearse, se cuelga de su función para que
+     * esa butaca se vea ocupada (o libre, si el bloqueo ya venció).
+     */
+    public static Entrada restaurar(int idEntrada, Funcion funcion, Butaca butaca, TipoEntrada tipoEntrada,
+                                    String estado, long precioCentavos, String codigoQR,
+                                    DateTime fechaEmision, DateTime expiraBloqueo) {
+        Entrada entrada = new Entrada(idEntrada, funcion, butaca); // valida función, butaca y que sean de la misma sala
+        if (tipoEntrada == null) {
+            throw new IllegalArgumentException("El tipo de entrada es obligatorio"); // en la BD, id_tipo_entrada NOT NULL
+        }
+        if (!esEstadoValido(estado)) {
+            throw new IllegalArgumentException("Estado de entrada inválido: " + estado);
+        }
+        if (precioCentavos < 0) {
+            throw new IllegalArgumentException("El precio no puede ser negativo");
+        }
+        entrada.tipoEntrada = tipoEntrada;
+        entrada.precioCentavos = precioCentavos; // el precio que se cobró, aunque la tarifa haya cambiado después
+        entrada.estado = estado;
+        entrada.codigoQR = codigoQR;
+        entrada.fechaEmision = fechaEmision;
+        entrada.expiraBloqueo = expiraBloqueo;
+        if (!PRESELECCIONADA.equals(estado)) {
+            funcion.restaurarEntrada(entrada); // igual que en memoria: la función guarda las entradas que se bloquearon
+        }
+        return entrada;
+    }
+
+    /** Los cinco estados posibles (en la BD, ck_entrada_estado). */
+    private static boolean esEstadoValido(String estado) {
+        return PRESELECCIONADA.equals(estado) || BLOQUEADA.equals(estado) || VENDIDA.equals(estado)
+                || EXPIRADA.equals(estado) || ANULADA.equals(estado);
+    }
+
     /** Asigna un tipo válido y calcula el precio final según tarifa y recargo de sala. */
     public void asignarTipoEntrada(TipoEntrada tipoEntrada) {
         if (tipoEntrada == null) {
@@ -56,13 +93,7 @@ public class Entrada {
 
     /** Asigna el id real generado por la base tras el INSERT; el QR se crea después, al confirmar la venta. */
     public void asignarId(int idEntrada) {
-        if (this.idEntrada > 0) {
-            throw new IllegalStateException("La entrada ya tiene id asignado");
-        }
-        if (idEntrada <= 0) {
-            throw new IllegalArgumentException("El id de la entrada debe ser mayor a 0");
-        }
-        this.idEntrada = idEntrada;
+        this.idEntrada = Ids.asignar(this.idEntrada, idEntrada, "la entrada");
     }
 
     /**
@@ -91,7 +122,7 @@ public class Entrada {
 
     /** Indica, sin cambiar nada, si la entrada está bloqueada y su bloqueo ya venció en el instante indicado. */
     public boolean bloqueoVencido(DateTime ahora) {
-        return BLOQUEADA.equals(estado) && expiraBloqueo != null && ahora.esDespuesDe(expiraBloqueo);
+        return BLOQUEADA.equals(estado) && expiraBloqueo != null && !ahora.esAntesDe(expiraBloqueo); // vence al llegar al límite
     }
 
     /** Comprueba si venció el bloqueo y, en ese caso, expira la entrada y libera la butaca. */
@@ -111,7 +142,7 @@ public class Entrada {
     }
 
     /** Suma la tarifa de entrada y el recargo por formato de sala, en céntimos; sin tipo, el precio es cero. */
-    public long calculaPrecioFinalCentavos() {
+    private long calculaPrecioFinalCentavos() {
         if (tipoEntrada == null) return 0;
         return tipoEntrada.getTarifaCentavos() + funcion.getSala().getTipoSala().obtenerRecargoFormatoCentavos();
     }

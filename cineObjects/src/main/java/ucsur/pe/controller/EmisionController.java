@@ -24,8 +24,9 @@ public class EmisionController extends ControllerBase {
         return ejecutar("Te enviamos tus entradas por correo", () -> servicio.enviarPorCorreo(compra, destinatario));
     }
 
-    public Respuesta<DetalleCompra> recuperarPorCodigo(String serieNumero) {
-        return ejecutar("", () -> servicio.recuperarPorCodigo(serieNumero));
+    /** Recuperar entradas en el kiosco: código del comprobante y correo con el que se compró. */
+    public Respuesta<DetalleCompra> recuperarPorCodigo(String serieNumero, String correoComprador) {
+        return ejecutar("", () -> servicio.recuperarPorCodigo(serieNumero, correoComprador));
     }
 
     public Respuesta<Integer> recuperarPorCorreo(String correo) {

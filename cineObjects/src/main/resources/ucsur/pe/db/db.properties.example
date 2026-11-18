@@ -1,0 +1,7 @@
+# Plantilla de conexión a MySQL local.
+# Cópiala en esta misma carpeta como db.properties y escribe la contraseña de tu usuario.
+# db.properties está en .gitignore: no se sube al repositorio. Este archivo sí, sin secretos.
+db.url=jdbc:mysql://localhost:3306/
+db.name=DB_Cine
+db.user=root
+db.password=

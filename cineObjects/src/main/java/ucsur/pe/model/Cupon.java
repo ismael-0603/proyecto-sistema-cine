@@ -32,6 +32,20 @@ public class Cupon extends DescuentoBase implements DescuentoConUsos {
     }
 
     /**
+     * Solo para la capa de base de datos (ucsur.pe.db): reconstruye un cupón con los usos que ya tuvo
+     * (cupon.usos_realizados), que el constructor siempre deja en cero.
+     */
+    public static Cupon restaurar(int idCupon, String codigo, CalculoDescuento calculo, DateTime fechaInicio,
+                                  DateTime fechaFin, int limiteUso, int usosRealizados, boolean estado) {
+        Cupon cupon = new Cupon(idCupon, codigo, calculo, fechaInicio, fechaFin, limiteUso, estado);
+        if (usosRealizados < 0 || usosRealizados > limiteUso) {
+            throw new IllegalArgumentException("Los usos realizados deben estar entre 0 y " + limiteUso); // ck_cupon_usos
+        }
+        cupon.usosRealizados = usosRealizados;
+        return cupon;
+    }
+
+    /**
      * El administrador edita el cupón (wireframe 19). El servicio comprueba que el código no lo use otro cupón;
      * el límite no puede quedar por debajo de los usos que ya tuvo.
      */
@@ -86,6 +100,11 @@ public class Cupon extends DescuentoBase implements DescuentoConUsos {
         if (usosRealizados > 0) {
             usosRealizados--;
         }
+    }
+
+    /** Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT; un cupón nuevo nace con id 0. */
+    public void asignarId(int idCupon) {
+        this.idCupon = Ids.asignar(this.idCupon, idCupon, "el cupón");
     }
 
     public int getIdCupon() { return idCupon; }

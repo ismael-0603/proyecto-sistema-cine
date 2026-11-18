@@ -75,11 +75,6 @@ public class Funcion {
         return obtenerFechaHoraInicio().sumarMinutos(TOLERANCIA_VENTA_MIN);
     }
 
-    /** Recalcula el estado según la hora y las butacas libres; una función CANCELADA no cambia. */
-    public void actualizarEstado() {
-        this.estado = calcularEstado(); // solo guarda lo calculado (por ejemplo, antes de escribirlo en la BD)
-    }
-
     /**
      * Calcula el estado actual sin cambiar nada: CANCELADA si el cine la canceló; si no, según la hora
      * (EN_CURSO, FINALIZADA) y las butacas libres (AGOTADA, DISPONIBLE).
@@ -119,9 +114,15 @@ public class Funcion {
         return DISPONIBLE.equals(calcularEstado());
     }
 
+    /** Una función pendiente es la que aún no terminó y no fue cancelada. */
+    public boolean estaPendiente() {
+        String actual = calcularEstado();
+        return !CANCELADA.equals(actual) && !FINALIZADA.equals(actual);
+    }
+
     /**
      * Cancela la función (por ejemplo, por una falla técnica); permite reembolsar sus entradas.
-     * Reemplaza al antiguo setEstado: los demás estados los calcula actualizarEstado() según la hora
+     * Reemplaza al antiguo setEstado: los demás estados los calcula getEstado() según la hora
      * y las butacas libres, así que no se ponen a mano.
      */
     public void cancelar() {
@@ -182,16 +183,6 @@ public class Funcion {
                 && !FINALIZADA.equals(estado) && !CANCELADA.equals(estado)) {
             throw new IllegalArgumentException("Estado de función inválido: " + estado);
         }
-    }
-
-    /** Indica si el idioma de la función incluye subtítulos. */
-    public boolean esSubtitulada() {
-        return idioma.toUpperCase().contains("SUB");
-    }
-
-    /** Devuelve el formato de la sala donde se proyecta. */
-    public String obtenerFormato() {
-        return sala.getTipoSala().getFormato();
     }
 
     /** Una butaca ocupada por una venta o por un bloqueo vigente no está disponible. */
@@ -350,6 +341,25 @@ public class Funcion {
             throw new IllegalStateException("La butaca " + entrada.getButaca().getCodigoAsiento() + " ya está ocupada");
         }
         entradasEmitidas.add(entrada); // si era la última butaca, getEstado() ya responde AGOTADA
+    }
+
+    /**
+     * Cuelga de la función una entrada leída de la base de datos. No vuelve a validar la venta
+     * (eso se hizo cuando se vendió): solo la llama Entrada.restaurar, que ya comprobó que es de esta función.
+     * Igual que en memoria, esButacaDisponible decide según el estado de la entrada y su bloqueo.
+     */
+    void restaurarEntrada(Entrada entrada) {
+        if (entrada.getFuncion() != this) {
+            throw new IllegalArgumentException("La entrada es de otra función");
+        }
+        if (!entradasEmitidas.contains(entrada)) {
+            entradasEmitidas.add(entrada);
+        }
+    }
+
+    /** Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT; una función nueva nace con id 0. */
+    public void asignarId(int idFuncion) {
+        this.idFuncion = Ids.asignar(this.idFuncion, idFuncion, "la función");
     }
 
     public int getIdFuncion() { return idFuncion; }

@@ -6,10 +6,9 @@ import java.util.Optional;
 
 /** Implementación en memoria de ClienteRepository (una lista hace de tabla). */
 public class ClienteMemoriaRepository extends RepositorioMemoria<Cliente> implements ClienteRepository {
+    public ClienteMemoriaRepository() { super(Cliente::getIdCliente, Cliente::asignarId); }
+
     @Override public void guardar(Cliente cliente) { agregar(cliente); }
-    @Override public Optional<Cliente> buscarPorCorreo(String correo) {
-        return buscarPrimero(c -> !c.esInvitado() && c.getCorreo() != null && c.getCorreo().equalsIgnoreCase(correo));
-    }
+    @Override public Optional<Cliente> buscarPorId(int idCliente) { return porId(idCliente); }
     @Override public List<Cliente> listarTodos() { return todos(); }
-    @Override public int siguienteId() { return generarId(); }
 }

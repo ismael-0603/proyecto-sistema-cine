@@ -84,6 +84,11 @@ public class TipoEntrada implements Activable {
         return this.estado ? puntosPorEntrada : 0;
     }
 
+    /** Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT; una tarifa nueva nace con id 0. */
+    public void asignarId(int idTipoEntrada) {
+        this.idTipoEntrada = Ids.asignar(this.idTipoEntrada, idTipoEntrada, "el tipo de entrada");
+    }
+
     public int getIdTipoEntrada() { return idTipoEntrada; }
     public String getNombre() { return nombre; }
     public String getDescripcion() { return descripcion; }

@@ -3,9 +3,12 @@ package ucsur.pe.service;
 import ucsur.pe.correo.ServicioCorreo;
 import ucsur.pe.exception.ReglaNegocioException;
 import ucsur.pe.model.Compra;
+import ucsur.pe.model.DateTime;
 import ucsur.pe.model.DetalleCompra;
+import ucsur.pe.model.Reloj;
 import ucsur.pe.repository.CompraRepository;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Por qué existe: casos de uso de emisión (RF-20 a RF-22 y RF-33): ver el detalle de una compra pagada
@@ -13,12 +16,22 @@ import java.util.List;
  * con el código de compra o el correo.
  */
 public class EmisionService {
+    public static final int MAX_INTENTOS_FALLIDOS = 5; // intentos seguidos de recuperar por código antes de bloquear
+    public static final int MINUTOS_BLOQUEO = 5;       // cuánto dura el bloqueo
+
     private final CompraRepository compras;
     private final ServicioCorreo correo;
+    private final Reloj reloj; // de dónde sale la hora actual (el real o uno fijo en pruebas)
 
-    public EmisionService(CompraRepository compras, ServicioCorreo correo) {
+    // Cada kiosco tiene su propio EmisionService, así que el conteo es por kiosco.
+    private int intentosFallidos;
+    private DateTime bloqueadoHasta; // null si no está bloqueado
+
+    public EmisionService(CompraRepository compras, ServicioCorreo correo, Reloj reloj) {
+        if (reloj == null) throw new IllegalArgumentException("El reloj es obligatorio");
         this.compras = compras;
         this.correo = correo;
+        this.reloj = reloj;
     }
 
     /** Resumen con el QR que se muestra al tocar «Ver» en Mis compras. */
@@ -44,11 +57,37 @@ public class EmisionService {
         }
     }
 
-    /** RF-33: con el código del comprobante (B001-000123) se vuelve a mostrar la compra y su QR. */
-    public DetalleCompra recuperarPorCodigo(String serieNumero) {
-        Compra compra = compras.buscarPorSerie(serieNumero)
-                .orElseThrow(() -> new ReglaNegocioException("No existe una compra con el código " + serieNumero));
-        return verDetalle(compra);
+    /**
+     * RF-33: con el código del comprobante (B001-000123) y el correo del comprador se vuelve a mostrar
+     * la compra y su QR. La serie es correlativa (así la pide SUNAT) y se puede adivinar, por eso no basta sola.
+     * Si no existe la serie o el correo no coincide, el mensaje es el mismo: así no se revela qué series existen.
+     * Tras MAX_INTENTOS_FALLIDOS seguidos, el kiosco bloquea la recuperación por MINUTOS_BLOQUEO minutos.
+     */
+    public DetalleCompra recuperarPorCodigo(String serieNumero, String correoComprador) {
+        DateTime ahora = reloj.ahora();
+        if (bloqueadoHasta != null && ahora.esAntesDe(bloqueadoHasta)) {
+            throw new ReglaNegocioException("Demasiados intentos fallidos; vuelve a intentarlo después de las "
+                    + bloqueadoHasta.soloHora());
+        }
+        Optional<Compra> compra = compras.buscarPorSerie(serieNumero)
+                .filter(c -> correoComprador != null && c.getCliente().getCorreo() != null
+                        && c.getCliente().getCorreo().equalsIgnoreCase(correoComprador.trim()));
+        if (compra.isEmpty()) {
+            registrarIntentoFallido(ahora);
+            throw new ReglaNegocioException("No se encontró una compra con ese código y correo");
+        }
+        intentosFallidos = 0;
+        bloqueadoHasta = null;
+        return verDetalle(compra.get());
+    }
+
+    /** Cuenta un intento fallido; al llegar al máximo bloquea la recuperación y reinicia la cuenta. */
+    private void registrarIntentoFallido(DateTime ahora) {
+        intentosFallidos++;
+        if (intentosFallidos >= MAX_INTENTOS_FALLIDOS) {
+            bloqueadoHasta = ahora.sumarMinutos(MINUTOS_BLOQUEO);
+            intentosFallidos = 0;
+        }
     }
 
     /**

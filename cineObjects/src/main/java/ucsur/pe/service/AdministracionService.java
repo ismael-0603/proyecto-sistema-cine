@@ -7,10 +7,11 @@ import ucsur.pe.model.Cupon;
 import ucsur.pe.model.DateTime;
 import ucsur.pe.model.Empleado;
 import ucsur.pe.model.Funcion;
+import ucsur.pe.model.Genero;
 import ucsur.pe.model.Pelicula;
 import ucsur.pe.model.Producto;
 import ucsur.pe.model.Promocion;
-import ucsur.pe.model.Rol;
+import ucsur.pe.model.Reloj;
 import ucsur.pe.model.Sala;
 import ucsur.pe.model.Sede;
 import ucsur.pe.model.TipoSala;
@@ -22,6 +23,7 @@ import ucsur.pe.repository.PromocionRepository;
 import ucsur.pe.repository.SalaRepository;
 import ucsur.pe.repository.SedeRepository;
 import ucsur.pe.tipo.CalculoDescuento;
+import ucsur.pe.tipo.FabricaCalculoDescuento;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +33,8 @@ import java.util.List;
  * servicio, el permiso se verifica siempre.
  * «Eliminar» siempre es una baja lógica (se desactiva o se retira): las compras y pedidos antiguos
  * siguen apuntando a esos datos y el historial no se pierde.
+ * Como ComprobanteService de MVCone, al registrar recibe los datos sueltos y crea el objeto aquí:
+ * la vista no construye modelos ni maneja ids (los genera la base, AUTO_INCREMENT).
  */
 public class AdministracionService {
     private final SedeRepository sedes;
@@ -41,10 +45,12 @@ public class AdministracionService {
     private final PromocionRepository promociones;
     private final CompraRepository compras;
     private final PagoService pagos; // para el reembolso automático al cancelar una función
+    private final Reloj reloj;       // las funciones nuevas lo necesitan para saber su estado
 
     public AdministracionService(SedeRepository sedes, SalaRepository salas, PeliculaRepository peliculas,
                                  ProductoRepository productos, CuponRepository cupones,
-                                 PromocionRepository promociones, CompraRepository compras, PagoService pagos) {
+                                 PromocionRepository promociones, CompraRepository compras, PagoService pagos,
+                                 Reloj reloj) {
         this.sedes = sedes;
         this.salas = salas;
         this.peliculas = peliculas;
@@ -53,19 +59,35 @@ public class AdministracionService {
         this.promociones = promociones;
         this.compras = compras;
         this.pagos = pagos;
+        this.reloj = reloj;
     }
 
     // ---------- Películas (wireframe 17) ----------
-    public void registrarPelicula(Empleado admin, Pelicula pelicula) {
+    /** Crea la película con sus géneros y la guarda; la base le genera el id. */
+    public Pelicula registrarPelicula(Empleado admin, String titulo, String sinopsis, int duracion,
+                                      String clasificacion, String trailer, String poster, DateTime fechaEstreno,
+                                      String estado, List<Genero> generos) {
         exigirAdmin(admin);
+        Pelicula pelicula = new Pelicula(0, titulo, sinopsis, duracion, clasificacion, trailer, poster, fechaEstreno, estado);
+        pelicula.cambiarGeneros(generos);
         peliculas.guardar(pelicula);
+        return pelicula;
     }
 
     public void actualizarPelicula(Empleado admin, Pelicula pelicula, String titulo, String sinopsis,
-                                   String clasificacion, String trailer, String poster, DateTime fechaEstreno) {
+                                   String clasificacion, String trailer, String poster, DateTime fechaEstreno,
+                                   List<Genero> generos) {
         exigirAdmin(admin);
+        if (pelicula == null) throw new IllegalArgumentException("La película es obligatoria");
         pelicula.actualizarInformacion(titulo, sinopsis, clasificacion, trailer, poster, fechaEstreno);
+        pelicula.cambiarGeneros(generos);
         peliculas.guardar(pelicula);
+    }
+
+    /** Géneros para el formulario de películas. */
+    public List<Genero> listarGeneros(Empleado admin) {
+        exigirAdmin(admin);
+        return peliculas.listarGeneros();
     }
 
     /** «Eliminar» película: pasa a FUERA_DE_CARTELERA si no tiene funciones pendientes en ninguna sede. */
@@ -74,7 +96,7 @@ public class AdministracionService {
         if (pelicula == null) throw new IllegalArgumentException("La película es obligatoria");
         for (Sede sede : sedes.listarTodas()) {
             for (Funcion f : sede.getCartelera()) {
-                if (f.getPelicula() == pelicula && esPendiente(f)) {
+                if (f.getPelicula() == pelicula && f.estaPendiente()) {
                     throw new ReglaNegocioException("La película tiene funciones pendientes en " + sede.getNombre()
                             + "; cancélelas antes de retirarla");
                 }
@@ -90,12 +112,17 @@ public class AdministracionService {
     }
 
     // ---------- Funciones (wireframe 18) ----------
-    /** Programa una función en la sede del administrador; la sede rechaza cruces de horario (RF-47). */
-    public void programarFuncion(Empleado admin, Funcion funcion) {
+    /**
+     * Programa una función en una sala de la sede del administrador; la sede rechaza una sala de otra sede
+     * y la sala, los cruces de horario (RF-47). La base le genera el id.
+     */
+    public Funcion programarFuncion(Empleado admin, Pelicula pelicula, Sala sala, DateTime fecha, DateTime hora,
+                                    String idioma) {
         exigirAdmin(admin);
-        if (funcion == null) throw new IllegalArgumentException("La función es obligatoria");
+        Funcion funcion = new Funcion(0, fecha, hora, idioma, Funcion.DISPONIBLE, pelicula, sala, reloj);
         admin.getSede().agregarFuncion(funcion);
         sedes.guardar(admin.getSede());
+        return funcion;
     }
 
     /** Cambia fecha, hora e idioma de una función que aún no tiene entradas vendidas ni reservadas. */
@@ -148,9 +175,13 @@ public class AdministracionService {
     }
 
     // ---------- Productos de dulcería (wireframe 20) ----------
-    public void registrarProducto(Empleado admin, Producto producto) {
+    /** Crea el producto activo y sin stock (se repone con reponerStock); la base le genera el id. */
+    public Producto registrarProducto(Empleado admin, String nombre, String descripcion, String categoria,
+                                      long precioCentavos, boolean esCombo, int nivelSocioMinimo) {
         exigirAdmin(admin);
+        Producto producto = new Producto(0, nombre, descripcion, categoria, precioCentavos, esCombo, nivelSocioMinimo, true);
         productos.guardar(producto);
+        return producto;
     }
 
     public void actualizarProducto(Empleado admin, Producto producto, String nombre, String descripcion,
@@ -164,6 +195,7 @@ public class AdministracionService {
     /** Repone stock del producto en la sede del administrador. */
     public void reponerStock(Empleado admin, Producto producto, int cantidad) {
         exigirAdmin(admin);
+        if (producto == null) throw new IllegalArgumentException("El producto es obligatorio");
         producto.reponerStock(admin.getSede(), cantidad);
         productos.guardar(producto);
     }
@@ -174,19 +206,27 @@ public class AdministracionService {
     }
 
     // ---------- Cupones y promociones (wireframe 19) ----------
-    /** Registra un cupón; el código no puede repetirse (uq_cupon_codigo). */
-    public void registrarCupon(Empleado admin, Cupon cupon) {
+    /**
+     * Crea un cupón activo; el código no puede repetirse (uq_cupon_codigo).
+     * El descuento llega como tipo (uno de tiposDescuento(), por ejemplo "PORCENTAJE") y valor:
+     * el porcentaje (10 = 10%) o el monto en céntimos (500 = S/ 5.00).
+     */
+    public Cupon registrarCupon(Empleado admin, String codigo, String tipoDescuento, long valor,
+                                DateTime fechaInicio, DateTime fechaFin, int limiteUso) {
         exigirAdmin(admin);
-        exigirCodigoLibre(cupon.getCodigo(), cupon);
+        exigirCodigoLibre(codigo, null);
+        Cupon cupon = new Cupon(0, codigo, FabricaCalculoDescuento.crear(tipoDescuento, valor),
+                fechaInicio, fechaFin, limiteUso, true);
         cupones.guardar(cupon);
+        return cupon;
     }
 
-    public void actualizarCupon(Empleado admin, Cupon cupon, String codigo, CalculoDescuento calculo,
+    public void actualizarCupon(Empleado admin, Cupon cupon, String codigo, String tipoDescuento, long valor,
                                 DateTime fechaInicio, DateTime fechaFin, int limiteUso) {
         exigirAdmin(admin);
         if (cupon == null) throw new IllegalArgumentException("El cupón es obligatorio");
         exigirCodigoLibre(codigo, cupon);
-        cupon.actualizar(codigo, calculo, fechaInicio, fechaFin, limiteUso);
+        cupon.actualizar(codigo, FabricaCalculoDescuento.crear(tipoDescuento, valor), fechaInicio, fechaFin, limiteUso);
         cupones.guardar(cupon);
     }
 
@@ -195,18 +235,30 @@ public class AdministracionService {
         return cupones.listarTodos();
     }
 
-    public void registrarPromocion(Empleado admin, Promocion promocion) {
+    /** Crea una promoción activa; el descuento llega como tipo y valor, igual que en registrarCupon. */
+    public Promocion registrarPromocion(Empleado admin, String nombre, String descripcion, String tipoDescuento,
+                                        long valor, DateTime fechaInicio, DateTime fechaFin, boolean soloSocios,
+                                        List<Integer> diasAplicables) {
         exigirAdmin(admin);
+        Promocion promocion = new Promocion(0, nombre, descripcion, FabricaCalculoDescuento.crear(tipoDescuento, valor),
+                fechaInicio, fechaFin, soloSocios, diasAplicables, true);
         promociones.guardar(promocion);
+        return promocion;
     }
 
     public void actualizarPromocion(Empleado admin, Promocion promocion, String nombre, String descripcion,
-                                    CalculoDescuento calculo, DateTime fechaInicio, DateTime fechaFin,
+                                    String tipoDescuento, long valor, DateTime fechaInicio, DateTime fechaFin,
                                     boolean soloSocios, List<Integer> diasAplicables) {
         exigirAdmin(admin);
         if (promocion == null) throw new IllegalArgumentException("La promoción es obligatoria");
+        CalculoDescuento calculo = FabricaCalculoDescuento.crear(tipoDescuento, valor);
         promocion.actualizar(nombre, descripcion, calculo, fechaInicio, fechaFin, soloSocios, diasAplicables);
         promociones.guardar(promocion);
+    }
+
+    /** Formas de descuento para el ComboBox del formulario ("PORCENTAJE", "MONTO_FIJO"), sin escribirlas en la vista. */
+    public List<String> tiposDescuento() {
+        return FabricaCalculoDescuento.tiposDisponibles();
     }
 
     public List<Promocion> listarPromociones(Empleado admin) {
@@ -214,9 +266,33 @@ public class AdministracionService {
         return promociones.listarTodas();
     }
 
-    /** Habilita o retira cualquier elemento activable (descuento, producto, tipo de entrada o cuenta). */
-    public void cambiarEstado(Empleado admin, Activable elemento, boolean activo) {
+    // ---------- Activar y desactivar (se guarda en la BD) ----------
+    /** Habilita o retira un producto de la venta y lo guarda. */
+    public void cambiarEstadoProducto(Empleado admin, Producto producto, boolean activo) {
         exigirAdmin(admin);
+        if (producto == null) throw new IllegalArgumentException("El producto es obligatorio");
+        aplicarEstado(producto, activo);
+        productos.guardar(producto);
+    }
+
+    /** Habilita o retira un cupón y lo guarda. */
+    public void cambiarEstadoCupon(Empleado admin, Cupon cupon, boolean activo) {
+        exigirAdmin(admin);
+        if (cupon == null) throw new IllegalArgumentException("El cupón es obligatorio");
+        aplicarEstado(cupon, activo);
+        cupones.guardar(cupon);
+    }
+
+    /** Habilita o retira una promoción y la guarda. */
+    public void cambiarEstadoPromocion(Empleado admin, Promocion promocion, boolean activo) {
+        exigirAdmin(admin);
+        if (promocion == null) throw new IllegalArgumentException("La promoción es obligatoria");
+        aplicarEstado(promocion, activo);
+        promociones.guardar(promocion);
+    }
+
+    /** Lo común a los tres: cualquier Activable sabe activarse y desactivarse (polimorfismo). */
+    private static void aplicarEstado(Activable elemento, boolean activo) {
         if (activo) {
             elemento.activar();
         } else {
@@ -228,8 +304,8 @@ public class AdministracionService {
     public Sede registrarSede(Empleado admin, String nombre, String direccion, String distrito,
                               String telefono, String horarioAtencion) {
         exigirAdmin(admin);
-        Sede sede = new Sede(sedes.siguienteId(), nombre, direccion, distrito, telefono, horarioAtencion, Sede.ACTIVA);
-        sedes.guardar(sede);
+        Sede sede = new Sede(0, nombre, direccion, distrito, telefono, horarioAtencion, Sede.ACTIVA);
+        sedes.guardar(sede); // la base le genera el id (AUTO_INCREMENT)
         return sede;
     }
 
@@ -274,7 +350,7 @@ public class AdministracionService {
         if (filas <= 0 || lateral < 0 || central <= 0) {
             throw new IllegalArgumentException("Indique filas, butacas laterales y butacas centrales válidas");
         }
-        Sala sala = new Sala(salas.siguienteId(), numero, filas * (2 * lateral + central), Sala.ACTIVA, sede, tipoSala);
+        Sala sala = new Sala(0, numero, filas * (2 * lateral + central), Sala.ACTIVA, sede, tipoSala);
         sala.generarButacas(filas, lateral, central);
         sede.agregarSala(sala); // rechaza un número de sala repetido en la sede
         salas.guardar(sala);
@@ -313,6 +389,12 @@ public class AdministracionService {
         cambiarEstadoSala(admin, sala, Sala.INACTIVA);
     }
 
+    /** Formatos de sala (2D, 3D...) para el formulario de salas. */
+    public List<TipoSala> listarTiposSala(Empleado admin) {
+        exigirAdmin(admin);
+        return salas.listarTiposSala();
+    }
+
     public List<Sala> listarSalas(Empleado admin, Sede sede) {
         exigirAdmin(admin);
         if (sede == null) throw new IllegalArgumentException("La sede es obligatoria");
@@ -320,8 +402,9 @@ public class AdministracionService {
     }
 
     // ---------- Validaciones comunes ----------
+    /** Cuenta activa y permiso ADMINISTRAR: un administrador desactivado ya no puede operar. */
     private void exigirAdmin(Empleado admin) {
-        if (admin == null || !admin.getRol().tienePermiso(Rol.ADMINISTRAR)) {
+        if (admin == null || !admin.esAdministradorActivo()) {
             throw new ReglaNegocioException("Solo un administrador puede realizar esta operación");
         }
     }
@@ -334,16 +417,12 @@ public class AdministracionService {
         }
     }
 
+    /** El código no lo puede usar otro cupón; {@code propio} es null al registrar uno nuevo. */
     private void exigirCodigoLibre(String codigo, Cupon propio) {
         cupones.buscarPorCodigo(codigo).ifPresent(existente -> {
             if (existente != propio) {
                 throw new ReglaNegocioException("Ya existe un cupón con el código " + codigo);
             }
         });
-    }
-
-    /** Una función pendiente es la que aún no terminó y no fue cancelada. */
-    private static boolean esPendiente(Funcion f) {
-        return !Funcion.CANCELADA.equals(f.getEstado()) && !Funcion.FINALIZADA.equals(f.getEstado());
     }
 }

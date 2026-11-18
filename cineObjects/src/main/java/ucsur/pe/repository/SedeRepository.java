@@ -6,11 +6,10 @@ import java.util.Optional;
 
 /**
  * Contrato de persistencia de Sede: define QUÉ se puede guardar y buscar, no CÓMO.
- * Hoy lo cumple SedeMemoriaRepository; con la base de datos lo cumplirá una versión Jdbc.
+ * Lo cumplen SedeMemoriaRepository (demos en memoria) y SedeJdbcRepository (MySQL).
  */
 public interface SedeRepository {
     void guardar(Sede sede);
     Optional<Sede> buscarPorId(int idSede);
     List<Sede> listarTodas();
-    int siguienteId();
 }

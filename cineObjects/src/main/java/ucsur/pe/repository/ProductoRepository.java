@@ -6,7 +6,7 @@ import java.util.Optional;
 
 /**
  * Contrato de persistencia de Producto: define QUÉ se puede guardar y buscar, no CÓMO.
- * Hoy lo cumple ProductoMemoriaRepository; con la base de datos lo cumplirá una versión Jdbc.
+ * Lo cumplen ProductoMemoriaRepository (demos en memoria) y ProductoJdbcRepository (MySQL).
  */
 public interface ProductoRepository {
     void guardar(Producto producto);

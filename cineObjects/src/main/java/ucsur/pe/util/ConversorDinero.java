@@ -15,6 +15,9 @@ package ucsur.pe.util;
  */
 public final class ConversorDinero {
 
+    /** Parte entera máxima: los montos de la BD son DECIMAL(10,2), es decir, hasta S/ 99 999 999.99. */
+    public static final int MAX_DIGITOS_ENTEROS = 8;
+
     private ConversorDinero() {
         // Constructor privado: no se crean objetos de esta clase.
     }
@@ -35,6 +38,10 @@ public final class ConversorDinero {
         }
 
         String[] partes = limpio.split("\\.");
+        // Sin este límite, un texto muy largo desbordaría el long (o Long.parseLong fallaría con otro error).
+        if (partes[0].replaceFirst("^0+(?=\\d)", "").length() > MAX_DIGITOS_ENTEROS) {
+            throw new IllegalArgumentException("Monto demasiado grande (máximo S/ 99999999.99): " + texto);
+        }
         long parteEntera = Long.parseLong(partes[0]);
         long parteDecimal = 0;
 

@@ -14,6 +14,7 @@ import java.util.Map;
 public final class DetalleCompra {
     private final String serieNumero;
     private final String estado;
+    private final DateTime fechaCompra;
     private final String pelicula;      // null si la compra fue solo de dulcería
     private final String sedeYSala;
     private final String fechaHoraFuncion;
@@ -27,6 +28,7 @@ public final class DetalleCompra {
     DetalleCompra(Compra compra) {
         this.serieNumero = compra.getSerieNumero();
         this.estado = compra.getEstado();
+        this.fechaCompra = compra.getFechaHora();
         this.importe = compra.getImporte();
         this.montoReembolsadoCentavos = compra.getMontoReembolsadoCentavos();
         Funcion funcion = null;
@@ -60,6 +62,7 @@ public final class DetalleCompra {
     public String generarTexto() {
         List<String> lineas = new ArrayList<>();
         lineas.add("Comprobante " + serieNumero + " [" + estado + "]");
+        lineas.add("Fecha de compra: " + fechaCompra);
         if (pelicula != null) {
             lineas.add("Película: " + pelicula);
             lineas.add("Sede · Sala: " + sedeYSala);
@@ -88,6 +91,7 @@ public final class DetalleCompra {
 
     public String getSerieNumero() { return serieNumero; }
     public String getEstado() { return estado; }
+    public DateTime getFechaCompra() { return fechaCompra; }
     public String getPelicula() { return pelicula; }
     public String getSedeYSala() { return sedeYSala; }
     public String getFechaHoraFuncion() { return fechaHoraFuncion; }

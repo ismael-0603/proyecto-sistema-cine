@@ -5,7 +5,7 @@ import ucsur.pe.model.Compra;
 
 /**
  * Contrato de persistencia de Calificacion: define QUÉ se puede guardar y buscar, no CÓMO.
- * Hoy lo cumple CalificacionMemoriaRepository; con la base de datos lo cumplirá una versión Jdbc.
+ * Lo cumplen CalificacionMemoriaRepository (demos en memoria) y CalificacionJdbcRepository (MySQL).
  */
 public interface CalificacionRepository {
     /** Guarda la calificación; si aún no tiene id, le asigna uno (como el AUTO_INCREMENT). */

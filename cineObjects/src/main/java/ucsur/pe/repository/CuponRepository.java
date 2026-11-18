@@ -6,11 +6,18 @@ import java.util.Optional;
 
 /**
  * Contrato de persistencia de Cupon: define QUÉ se puede guardar y buscar, no CÓMO.
- * Hoy lo cumple CuponMemoriaRepository; con la base de datos lo cumplirá una versión Jdbc.
+ * Lo cumplen CuponMemoriaRepository (demos en memoria) y CuponJdbcRepository (MySQL).
+ * La búsqueda por código solo filtra listarTodos(): está aquí como método default para no repetirla.
  */
 public interface CuponRepository {
     void guardar(Cupon cupon);
-    /** Busca por el código que escribe el cliente; no distingue mayúsculas. */
-    Optional<Cupon> buscarPorCodigo(String codigo);
+    Optional<Cupon> buscarPorId(int idCupon);
     List<Cupon> listarTodos();
+
+    /** Busca por el código que escribe el cliente; no distingue mayúsculas ni espacios alrededor. */
+    default Optional<Cupon> buscarPorCodigo(String codigo) {
+        if (codigo == null) return Optional.empty();
+        String buscado = codigo.trim();
+        return listarTodos().stream().filter(c -> c.getCodigo().equalsIgnoreCase(buscado)).findFirst();
+    }
 }

@@ -30,15 +30,24 @@ public class Calificacion {
         this.registrada = false;
     }
 
+    /**
+     * Solo para la capa de base de datos (ucsur.pe.db): reconstruye una calificación ya guardada, que por
+     * estar en la BD ya fue registrada. No vuelve a exigir que la compra esté CONFIRMADA: pudo reembolsarse después.
+     */
+    public static Calificacion restaurar(int idCalificacion, int puntuacion, String comentario, DateTime fecha,
+                                         Compra compra) {
+        Calificacion calificacion = new Calificacion(idCalificacion, puntuacion, comentario, compra); // valida nota, comentario y compra
+        if (fecha == null) {
+            throw new IllegalArgumentException("La fecha de la calificación es obligatoria");
+        }
+        calificacion.fecha = fecha;
+        calificacion.registrada = true;
+        return calificacion;
+    }
+
     /** Asigna el id real generado por la base tras el INSERT (en memoria, lo simula el repositorio). */
     public void asignarId(int idCalificacion) {
-        if (this.idCalificacion > 0) {
-            throw new IllegalStateException("La calificación ya tiene id asignado");
-        }
-        if (idCalificacion <= 0) {
-            throw new IllegalArgumentException("El id de la calificación debe ser mayor a 0");
-        }
-        this.idCalificacion = idCalificacion;
+        this.idCalificacion = Ids.asignar(this.idCalificacion, idCalificacion, "la calificación");
     }
 
     /** Comprueba el mismo rango usado al crear una calificación. */
@@ -63,7 +72,6 @@ public class Calificacion {
     public String getComentario() { return comentario; }
     public DateTime getFecha() { return fecha; }
     public Compra getCompra() { return compra; }
-    public boolean isRegistrada() { return registrada; }
 
     @Override
     public String toString() {

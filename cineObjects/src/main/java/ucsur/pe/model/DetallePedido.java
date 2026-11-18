@@ -12,7 +12,6 @@ public class DetallePedido {
     /** Precio guardado al crear la línea, para mantener el importe aunque cambie el precio del producto. */
     private long precioUnitarioCentavos;
     private String personalizacion;
-    private long subtotalCentavos; // cantidad por precio unitario, en céntimos
     private Producto producto;
 
     public DetallePedido(int idDetalle, Producto producto, int cantidad, String personalizacion) {
@@ -33,10 +32,38 @@ public class DetallePedido {
         this.cantidad = cantidad;
         this.precioUnitarioCentavos = producto.getPrecioCentavos(); // precio fijado al momento de la compra
         this.personalizacion = personalizacion;
-        this.subtotalCentavos = calcularSubtotalCentavos();
     }
 
-    /** Calcula el subtotal de la línea con la cantidad actual: entero por entero, el resultado es exacto. */
+    /**
+     * Solo para la capa de base de datos (ucsur.pe.db): reconstruye una línea ya guardada con el precio
+     * de ese momento (detalle_pedido.precio_unitario). No exige que el producto siga activo:
+     * el pedido se hizo cuando sí lo estaba.
+     */
+    public static DetallePedido restaurar(int idDetalle, Producto producto, int cantidad,
+                                          long precioUnitarioCentavos, String personalizacion) {
+        if (producto == null) {
+            throw new IllegalArgumentException("El producto es obligatorio");
+        }
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
+        }
+        if (precioUnitarioCentavos < 0) {
+            throw new IllegalArgumentException("El precio no puede ser negativo");
+        }
+        return new DetallePedido(idDetalle, producto, cantidad, personalizacion, precioUnitarioCentavos);
+    }
+
+    /** Constructor de restaurar: asigna sin las validaciones de una línea nueva. */
+    private DetallePedido(int idDetalle, Producto producto, int cantidad, String personalizacion,
+                          long precioUnitarioCentavos) {
+        this.idDetalle = idDetalle;
+        this.producto = producto;
+        this.cantidad = cantidad;
+        this.precioUnitarioCentavos = precioUnitarioCentavos;
+        this.personalizacion = personalizacion;
+    }
+
+    /** Subtotal con la cantidad actual y el precio pactado; no se guarda: siempre sale de esos dos datos. */
     public long calcularSubtotalCentavos() {
         return cantidad * precioUnitarioCentavos;
     }
@@ -50,18 +77,16 @@ public class DetallePedido {
             throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
         }
         this.cantidad = cant;
-        this.subtotalCentavos = calcularSubtotalCentavos();
     }
 
-    public int getIdDetalle() { return idDetalle; }
     public int getCantidad() { return cantidad; }
     public long getPrecioUnitarioCentavos() { return precioUnitarioCentavos; }
     public String getPersonalizacion() { return personalizacion; }
-    public long getSubtotalCentavos() { return subtotalCentavos; }
+    public long getSubtotalCentavos() { return calcularSubtotalCentavos(); }
     public Producto getProducto() { return producto; }
 
     @Override
     public String toString() {
-        return cantidad + " x " + producto.getNombre() + " = " + ConversorDinero.formatear(subtotalCentavos);
+        return cantidad + " x " + producto.getNombre() + " = " + ConversorDinero.formatear(calcularSubtotalCentavos());
     }
 }

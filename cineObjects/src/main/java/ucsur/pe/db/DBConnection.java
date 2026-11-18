@@ -82,7 +82,8 @@ public class DBConnection {
         try (InputStream in = DBConnection.class.getResourceAsStream(RUTA_PROPIEDADES)) {
             if (in == null) {
                 throw new RepositoryException(
-                        "No se encontró db.properties. Copie db.properties.example como db.properties.");
+                        "No se encontró db.properties. Copie src/main/resources/ucsur/pe/db/db.properties.example "
+                                + "como db.properties en la misma carpeta y complete la contraseña.");
             }
             props.load(in);
         } catch (IOException e) {

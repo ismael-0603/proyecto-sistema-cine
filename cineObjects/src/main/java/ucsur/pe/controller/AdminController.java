@@ -1,10 +1,10 @@
 package ucsur.pe.controller;
 
-import ucsur.pe.model.Activable;
 import ucsur.pe.model.Cupon;
 import ucsur.pe.model.DateTime;
 import ucsur.pe.model.Empleado;
 import ucsur.pe.model.Funcion;
+import ucsur.pe.model.Genero;
 import ucsur.pe.model.Pelicula;
 import ucsur.pe.model.Producto;
 import ucsur.pe.model.Promocion;
@@ -13,7 +13,6 @@ import ucsur.pe.model.Sede;
 import ucsur.pe.model.TipoSala;
 import ucsur.pe.service.AdministracionService;
 import ucsur.pe.service.ResultadoCancelacion;
-import ucsur.pe.tipo.CalculoDescuento;
 import java.util.List;
 
 /**
@@ -32,14 +31,22 @@ public class AdminController extends ControllerBase {
         return ejecutar("", () -> servicio.listarPeliculas(admin));
     }
 
-    public Respuesta<Void> registrarPelicula(Empleado admin, Pelicula pelicula) {
-        return ejecutar("Película registrada", () -> servicio.registrarPelicula(admin, pelicula));
+    public Respuesta<List<Genero>> listarGeneros(Empleado admin) {
+        return ejecutar("", () -> servicio.listarGeneros(admin));
+    }
+
+    public Respuesta<Pelicula> registrarPelicula(Empleado admin, String titulo, String sinopsis, int duracion,
+                                                 String clasificacion, String trailer, String poster,
+                                                 DateTime estreno, String estado, List<Genero> generos) {
+        return ejecutar("Película registrada", () -> servicio.registrarPelicula(admin, titulo, sinopsis, duracion,
+                clasificacion, trailer, poster, estreno, estado, generos));
     }
 
     public Respuesta<Void> actualizarPelicula(Empleado admin, Pelicula pelicula, String titulo, String sinopsis,
-                                              String clasificacion, String trailer, String poster, DateTime estreno) {
+                                              String clasificacion, String trailer, String poster, DateTime estreno,
+                                              List<Genero> generos) {
         return ejecutar("Película actualizada", () -> servicio.actualizarPelicula(admin, pelicula, titulo, sinopsis,
-                clasificacion, trailer, poster, estreno));
+                clasificacion, trailer, poster, estreno, generos));
     }
 
     public Respuesta<Void> retirarPelicula(Empleado admin, Pelicula pelicula) {
@@ -51,8 +58,9 @@ public class AdminController extends ControllerBase {
         return ejecutar("", () -> servicio.listarFunciones(admin));
     }
 
-    public Respuesta<Void> programarFuncion(Empleado admin, Funcion funcion) {
-        return ejecutar("Función programada", () -> servicio.programarFuncion(admin, funcion));
+    public Respuesta<Funcion> programarFuncion(Empleado admin, Pelicula pelicula, Sala sala, DateTime fecha,
+                                               DateTime hora, String idioma) {
+        return ejecutar("Función programada", () -> servicio.programarFuncion(admin, pelicula, sala, fecha, hora, idioma));
     }
 
     public Respuesta<Void> editarFuncion(Empleado admin, Funcion funcion, DateTime fecha, DateTime hora, String idioma) {
@@ -74,8 +82,10 @@ public class AdminController extends ControllerBase {
         return ejecutar("", () -> servicio.listarProductos(admin));
     }
 
-    public Respuesta<Void> registrarProducto(Empleado admin, Producto producto) {
-        return ejecutar("Producto registrado", () -> servicio.registrarProducto(admin, producto));
+    public Respuesta<Producto> registrarProducto(Empleado admin, String nombre, String descripcion, String categoria,
+                                                 long precioCentavos, boolean esCombo, int nivelSocioMinimo) {
+        return ejecutar("Producto registrado", () -> servicio.registrarProducto(admin, nombre, descripcion, categoria,
+                precioCentavos, esCombo, nivelSocioMinimo));
     }
 
     public Respuesta<Void> actualizarProducto(Empleado admin, Producto producto, String nombre, String descripcion,
@@ -88,37 +98,60 @@ public class AdminController extends ControllerBase {
         return ejecutar("Stock repuesto", () -> servicio.reponerStock(admin, producto, cantidad));
     }
 
+    public Respuesta<Void> cambiarEstadoProducto(Empleado admin, Producto producto, boolean activo) {
+        return ejecutar(activo ? "Producto activado" : "Producto desactivado",
+                () -> servicio.cambiarEstadoProducto(admin, producto, activo));
+    }
+
     // ---------- Cupones y promociones ----------
     public Respuesta<List<Cupon>> listarCupones(Empleado admin) {
         return ejecutar("", () -> servicio.listarCupones(admin));
     }
 
-    public Respuesta<Void> registrarCupon(Empleado admin, Cupon cupon) {
-        return ejecutar("Cupón registrado", () -> servicio.registrarCupon(admin, cupon));
+    /** Formas de descuento para el ComboBox ("PORCENTAJE", "MONTO_FIJO"). */
+    public Respuesta<List<String>> tiposDescuento() {
+        return ejecutar("", servicio::tiposDescuento);
     }
 
-    public Respuesta<Void> actualizarCupon(Empleado admin, Cupon cupon, String codigo, CalculoDescuento calculo,
+    /** El valor es el porcentaje (10 = 10%) o el monto en céntimos (500 = S/ 5.00), según el tipo. */
+    public Respuesta<Cupon> registrarCupon(Empleado admin, String codigo, String tipoDescuento, long valor,
                                            DateTime inicio, DateTime fin, int limiteUso) {
-        return ejecutar("Cupón actualizado", () -> servicio.actualizarCupon(admin, cupon, codigo, calculo, inicio, fin, limiteUso));
+        return ejecutar("Cupón registrado", () -> servicio.registrarCupon(admin, codigo, tipoDescuento, valor,
+                inicio, fin, limiteUso));
+    }
+
+    public Respuesta<Void> actualizarCupon(Empleado admin, Cupon cupon, String codigo, String tipoDescuento, long valor,
+                                           DateTime inicio, DateTime fin, int limiteUso) {
+        return ejecutar("Cupón actualizado", () -> servicio.actualizarCupon(admin, cupon, codigo, tipoDescuento, valor,
+                inicio, fin, limiteUso));
+    }
+
+    public Respuesta<Void> cambiarEstadoCupon(Empleado admin, Cupon cupon, boolean activo) {
+        return ejecutar(activo ? "Cupón activado" : "Cupón desactivado",
+                () -> servicio.cambiarEstadoCupon(admin, cupon, activo));
     }
 
     public Respuesta<List<Promocion>> listarPromociones(Empleado admin) {
         return ejecutar("", () -> servicio.listarPromociones(admin));
     }
 
-    public Respuesta<Void> registrarPromocion(Empleado admin, Promocion promocion) {
-        return ejecutar("Promoción registrada", () -> servicio.registrarPromocion(admin, promocion));
+    public Respuesta<Promocion> registrarPromocion(Empleado admin, String nombre, String descripcion,
+                                                   String tipoDescuento, long valor, DateTime inicio, DateTime fin,
+                                                   boolean soloSocios, List<Integer> dias) {
+        return ejecutar("Promoción registrada", () -> servicio.registrarPromocion(admin, nombre, descripcion,
+                tipoDescuento, valor, inicio, fin, soloSocios, dias));
     }
 
     public Respuesta<Void> actualizarPromocion(Empleado admin, Promocion promocion, String nombre, String descripcion,
-                                               CalculoDescuento calculo, DateTime inicio, DateTime fin,
+                                               String tipoDescuento, long valor, DateTime inicio, DateTime fin,
                                                boolean soloSocios, List<Integer> dias) {
         return ejecutar("Promoción actualizada", () -> servicio.actualizarPromocion(admin, promocion, nombre, descripcion,
-                calculo, inicio, fin, soloSocios, dias));
+                tipoDescuento, valor, inicio, fin, soloSocios, dias));
     }
 
-    public Respuesta<Void> cambiarEstado(Empleado admin, Activable elemento, boolean activo) {
-        return ejecutar(activo ? "Activado" : "Desactivado", () -> servicio.cambiarEstado(admin, elemento, activo));
+    public Respuesta<Void> cambiarEstadoPromocion(Empleado admin, Promocion promocion, boolean activo) {
+        return ejecutar(activo ? "Promoción activada" : "Promoción desactivada",
+                () -> servicio.cambiarEstadoPromocion(admin, promocion, activo));
     }
 
     // ---------- Sedes ----------
@@ -145,6 +178,10 @@ public class AdminController extends ControllerBase {
     }
 
     // ---------- Salas ----------
+    public Respuesta<List<TipoSala>> listarTiposSala(Empleado admin) {
+        return ejecutar("", () -> servicio.listarTiposSala(admin));
+    }
+
     public Respuesta<List<Sala>> listarSalas(Empleado admin, Sede sede) {
         return ejecutar("", () -> servicio.listarSalas(admin, sede));
     }

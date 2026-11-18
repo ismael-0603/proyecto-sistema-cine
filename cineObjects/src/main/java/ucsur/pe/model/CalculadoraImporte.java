@@ -23,7 +23,7 @@ public class CalculadoraImporte {
     public ResumenImporte calcular(List<Entrada> entradasValidas, Totalizable dulceria, List<Descuento> descuentos) {
         long sumaEntradas = 0;
         for (Entrada e : entradasValidas) {
-            sumaEntradas += e.calculaPrecioFinalCentavos();
+            sumaEntradas += e.getPrecioCentavos(); // el precio pactado al elegir el tipo, aunque la tarifa cambie después
         }
         long sumaDulceria = (dulceria != null) ? dulceria.calcularTotalCentavos() : 0;
         long subtotal = sumaEntradas + sumaDulceria;

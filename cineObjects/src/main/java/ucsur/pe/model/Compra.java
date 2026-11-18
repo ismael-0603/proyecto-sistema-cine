@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Por qué existe: representa la compra de un cliente en una sede y controla su proceso de principio a fin
  * (4 minutos para completarla). Coordina y delega: asientos a SeleccionAsientos, dinero a CalculadoraImporte,
- * puntos a GestorPuntos y comprobante a Comprobante.
+ * puntos a GestorPuntos y el comprobante (con sus QR) a DetalleCompra.
  */
 public class Compra implements Totalizable{
     // Estados de una compra (constantes: se usan como Compra.NOMBRE y su valor no cambia).
@@ -30,10 +30,12 @@ public class Compra implements Totalizable{
     private String estado;
     private Cliente cliente;
     private Sede sede; // Sede donde se hace la compra; en la BD es compra.id_sede NOT NULL.
-    /** Cupones y promociones aplicados; Compra los trata a todos como Descuento (la interfaz). */
+    /**
+     * Cupones y promociones aplicados; Compra los trata a todos como Descuento (la interfaz).
+     * Los que además cuentan usos (DescuentoConUsos, hoy el cupón) suman o devuelven su uso al confirmar,
+     * reembolsar o anular (ver registrarUsos y revertirUsos).
+     */
     private final List<Descuento> descuentos = new ArrayList<>();
-    /** Los descuentos de la lista anterior que además cuentan usos (hoy, el cupón). */
-    private final List<DescuentoConUsos> descuentosConUsos = new ArrayList<>();
     private Pedido pedido;
 
     // Colaboradores: cada uno se encarga de una parte de la compra. Llegan por el constructor
@@ -74,13 +76,66 @@ public class Compra implements Totalizable{
         this.expiraCompra = this.fechaHora.sumarMinutos(TIEMPO_MAXIMO_COMPRA_MIN);
     }
 
+    /**
+     * Solo para la capa de base de datos (ucsur.pe.db): reconstruye una compra tal como quedó guardada.
+     * No aplica reglas (no cobra, no descuenta stock, no mueve puntos ni usos del cupón, no recalcula el importe):
+     * todo eso ya pasó cuando la compra cambió de estado. La agrega al historial de su cliente,
+     * como hace CompraService al crearla.
+     * El monto reembolsado se recibe aparte porque la tabla compra no lo guarda (ver CompraMySqlDao).
+     */
+    public static Compra restaurar(int idCompra, DateTime fechaHora, DateTime expiraCompra, String serieNumero,
+                                   String estado, ResumenImporte importe, int puntosCanjeados, int puntosOtorgados,
+                                   long montoReembolsadoCentavos, Cliente cliente, Sede sede, List<Entrada> entradas,
+                                   Cupon cupon, Promocion promocion, Pedido pedido,
+                                   SeleccionAsientos asientos, CalculadoraImporte calculadora,
+                                   GestorPuntos gestorPuntos, Reloj reloj) {
+        if (fechaHora == null || expiraCompra == null) {
+            throw new IllegalArgumentException("La fecha y la hora límite de la compra son obligatorias");
+        }
+        if (!esEstadoValido(estado)) {
+            throw new IllegalArgumentException("Estado de compra inválido: " + estado);
+        }
+        if (importe == null) {
+            throw new IllegalArgumentException("El importe es obligatorio");
+        }
+        if (puntosCanjeados < 0 || puntosOtorgados < 0 || montoReembolsadoCentavos < 0) {
+            throw new IllegalArgumentException("Los puntos y el monto reembolsado no pueden ser negativos");
+        }
+        // El constructor valida cliente, sede y colaboradores
+        Compra compra = new Compra(idCompra, fechaHora, cliente, sede, asientos, calculadora, gestorPuntos, reloj);
+        compra.expiraCompra = expiraCompra;
+        compra.serieNumero = serieNumero;
+        compra.estado = estado;
+        compra.importe = importe; // lo que se guardó (y se cobró), no un cálculo nuevo
+        compra.puntosCanjeados = puntosCanjeados;
+        compra.puntosOtorgados = puntosOtorgados;
+        compra.montoReembolsadoCentavos = montoReembolsadoCentavos;
+        compra.pedido = pedido;
+        if (promocion != null) {
+            compra.descuentos.add(promocion);
+        }
+        if (cupon != null) {
+            compra.descuentos.add(cupon); // al estar en la lista, un reembolso le devuelve el uso
+        }
+        compra.asientos.restaurar(entradas != null ? entradas : List.of());
+        cliente.agregarCompra(compra);
+        return compra;
+    }
+
+    /** Los cinco estados posibles (en la BD, ck_compra_estado). */
+    private static boolean esEstadoValido(String estado) {
+        return EN_PROCESO.equals(estado) || CONFIRMADA.equals(estado) || CANCELADA.equals(estado)
+                || EXPIRADA.equals(estado) || REEMBOLSADA.equals(estado);
+    }
+
     /** Comprueba el plazo y expira la compra si venció; devuelve true si ya expiró. */
     public boolean verificarExpiracion() {
         if (!EN_PROCESO.equals(estado)) {
             return EXPIRADA.equals(estado);
         }
         DateTime ahora = reloj.ahora();
-        boolean tiempoVencido = (expiraCompra != null && ahora.esDespuesDe(expiraCompra));
+        // Vence al LLEGAR a la hora límite (no un instante después): el plazo es de 4 minutos como máximo.
+        boolean tiempoVencido = (expiraCompra != null && !ahora.esAntesDe(expiraCompra));
         if (asientos.isBloqueados() && asientos.algunaExpirada(ahora)) {
             tiempoVencido = true;
         }
@@ -100,11 +155,20 @@ public class Compra implements Totalizable{
     }
 
     // ---------- Asientos (delegado en SeleccionAsientos) ----------
-    /** Preselecciona una entrada de esta sede; la butaca aún no se bloquea y no se repite la misma butaca. */
+    /**
+     * Preselecciona una entrada de esta sede; la butaca aún no se bloquea y no se repite la misma butaca.
+     * Una compra es para UNA sola función (el cliente entra a una función y paga esa): el comprobante
+     * y el reembolso se basan en esa función. Para otra función se inicia una compra nueva.
+     */
     public void agregarEntrada(Entrada entrada) {
         validarEnProceso();
         if (entrada != null && !entrada.getFuncion().getSala().getSede().equals(this.sede)) {
             throw new IllegalArgumentException("La función pertenece a otra sede; la compra es de " + sede.getNombre());
+        }
+        List<Entrada> elegidas = asientos.getEntradas();
+        if (entrada != null && !elegidas.isEmpty() && elegidas.get(0).getFuncion() != entrada.getFuncion()) {
+            throw new IllegalArgumentException("Esta compra es para la función " + elegidas.get(0).getFuncion()
+                    + "; para otra función inicia una compra nueva");
         }
         asientos.agregar(entrada);
         recalcularImporte();
@@ -148,15 +212,51 @@ public class Compra implements Totalizable{
         return elegidas;
     }
 
-    /** Asigna el pedido de dulcería; rechaza productos de oferta si el cliente no tiene el nivel requerido. */
-    public void asignarPedido(Pedido pedido) {
+    // ---------- Dulcería: la compra valida primero y luego delega el cambio en su Pedido ----------
+    /**
+     * Agrega una línea al pedido de dulcería; si la compra aún no tiene pedido, lo crea (id 0: lo genera la base).
+     * Si la compra ya no está EN_PROCESO o el producto es de oferta para socios sin el nivel requerido,
+     * lanza el error y el pedido queda como estaba.
+     */
+    public void agregarProducto(DetallePedido detalle) {
         validarEnProceso();
-        if (pedido != null && pedido.getSede() != null && !pedido.getSede().equals(this.sede)) {
-            throw new IllegalArgumentException("El pedido es de otra sede; la compra es de " + sede.getNombre());
+        Pedido destino = (pedido != null) ? pedido : new Pedido(0, reloj);
+        destino.agregarDetalle(detalle);
+        try {
+            gestorPuntos.validarProductosSocio(cliente, destino);
+        } catch (RuntimeException e) {
+            destino.quitarDetalle(detalle); // la línea rechazada no se queda en el pedido
+            throw e;
         }
-        gestorPuntos.validarProductosSocio(cliente, pedido);
-        this.pedido = pedido;
+        this.pedido = destino;
         recalcularImporte();
+    }
+
+    /** Cambia la cantidad de una línea del pedido y recalcula el total. */
+    public void cambiarCantidad(DetallePedido detalle, int cantidad) {
+        validarEnProceso();
+        exigirPedido().modificarCantidad(detalle, cantidad);
+        recalcularImporte();
+    }
+
+    /** Quita una línea del pedido; si el pedido queda vacío, la compra sigue sin dulcería. */
+    public void quitarProducto(DetallePedido detalle) {
+        validarEnProceso();
+        Pedido actual = exigirPedido();
+        if (!actual.quitarDetalle(detalle)) {
+            throw new IllegalArgumentException("El producto no forma parte del pedido");
+        }
+        if (actual.getDetalles().isEmpty()) {
+            this.pedido = null;
+        }
+        recalcularImporte();
+    }
+
+    private Pedido exigirPedido() {
+        if (pedido == null) {
+            throw new IllegalStateException("La compra no tiene pedido de dulcería");
+        }
+        return pedido;
     }
 
     // ---------- Totales (delegado en CalculadoraImporte) ----------
@@ -189,27 +289,10 @@ public class Compra implements Totalizable{
      * Aplica cualquier descuento (cupón, promoción...) si cumple sus condiciones para esta compra.
      * Como en la BD (columnas id_cupon e id_promocion), hay a lo más uno de cada categoría:
      * uno nuevo de la misma categoría reemplaza al anterior.
+     * Es el único camino para aplicar un descuento: un cupón cuenta su uso al confirmar la compra
+     * sin importar el tipo de la variable con que llegue.
      */
     public void aplicarDescuento(Descuento descuento) {
-        agregarDescuento(descuento);
-        recalcularImporte();
-    }
-
-    /**
-     * Sobrecarga para los descuentos con límite de usos (como un cupón): al confirmar la compra se le
-     * suma un uso y al reembolsarla se le devuelve.
-     * Lleva el mismo nombre a propósito: Java elige este método cuando el argumento es un Cupon
-     * (o cualquier DescuentoConUsos), así que no hay forma de olvidarse de contar el uso.
-     * Solo se escaparía si el cupón se guarda antes en una variable declarada como Descuento.
-     */
-    public void aplicarDescuento(DescuentoConUsos descuento) {
-        agregarDescuento(descuento);
-        descuentosConUsos.add(descuento);
-        recalcularImporte();
-    }
-
-    /** Valida el descuento y reemplaza al anterior de su misma categoría (en ambas listas). */
-    private void agregarDescuento(Descuento descuento) {
         validarEnProceso();
         if (descuento == null) {
             throw new IllegalArgumentException("El descuento es obligatorio");
@@ -218,8 +301,22 @@ public class Compra implements Totalizable{
             throw new IllegalStateException("El descuento " + descuento + " no aplica a esta compra (fechas, día, usos o solo socios)");
         }
         descuentos.removeIf(d -> d.getCategoria().equals(descuento.getCategoria()));
-        descuentosConUsos.removeIf(d -> d.getCategoria().equals(descuento.getCategoria()));
         descuentos.add(descuento);
+        recalcularImporte();
+    }
+
+    /** Al confirmar: los descuentos con límite de usos (el cupón) suman uno. */
+    private void registrarUsos() {
+        for (Descuento d : descuentos) {
+            if (d instanceof DescuentoConUsos conUsos) conUsos.registrarUso();
+        }
+    }
+
+    /** Al reembolsar o anular: los descuentos con límite de usos recuperan el uso. */
+    private void revertirUsos() {
+        for (Descuento d : descuentos) {
+            if (d instanceof DescuentoConUsos conUsos) conUsos.revertirUso();
+        }
     }
 
     /** Datos de esta compra que un descuento necesita para decidir si aplica. */
@@ -236,7 +333,7 @@ public class Compra implements Totalizable{
     public String motivoNoConfirmable(DateTime ahora) {
         if (!EN_PROCESO.equals(estado)) return "la compra está " + estado;
         if (ahora == null) return "falta la fecha y hora de la operación";
-        if (ahora.esDespuesDe(expiraCompra)) {
+        if (!ahora.esAntesDe(expiraCompra)) { // al llegar a la hora límite ya venció
             return "venció el plazo de " + TIEMPO_MAXIMO_COMPRA_MIN + " minutos";
         }
         // Las butacas deben haberse bloqueado antes con confirmarSeleccionAsientos()
@@ -290,9 +387,7 @@ public class Compra implements Totalizable{
             pedido.registrar(sede); // descuenta el stock de la sede (ya se verificó que alcanza)
         }
         asientos.venderBloqueadas(ahora);
-        for (DescuentoConUsos d : descuentosConUsos) {
-            d.registrarUso(); // solo los que tienen límite de usos (el cupón suma uno)
-        }
+        registrarUsos(); // solo los que tienen límite de usos (el cupón suma uno)
         this.estado = CONFIRMADA; // la serie la asigna la base al confirmar (trigger trg_compra_serie)
 
         // Los puntos ganados usan el nivel que tenía el cliente antes de esta compra
@@ -380,15 +475,39 @@ public class Compra implements Totalizable{
             pedido.anular(); // el stock vuelve solo si nadie lo había empezado a preparar
         }
         asientos.anularVendidas();
-        for (DescuentoConUsos d : descuentosConUsos) {
-            d.revertirUso(); // el cupón recupera el uso
-        }
+        revertirUsos(); // el cupón recupera el uso
         this.estado = REEMBOLSADA;
         cliente.devolverPuntos(puntosCanjeados);
         cliente.revertirPuntos(puntosARevertir);
     }
 
-    // ---------- Comprobante (delegado en Comprobante) ----------
+    /**
+     * Deshace una confirmación que no se pudo guardar (por ejemplo, la base rechazó la venta de una butaca).
+     * Lo llama PagoService después de pedir a la pasarela que devuelva el cobro. Revierte lo mismo que un
+     * reembolso (libera las butacas, devuelve los puntos canjeados, quita los ganados, devuelve el uso del cupón
+     * y repone el stock del pedido), pero sin exigir que la función esté cancelada, y deja la compra CANCELADA:
+     * para volver a intentarlo el cliente inicia una compra nueva.
+     * Solo vale para una compra CONFIRMADA sin serie: si ya tiene serie, la confirmación sí quedó guardada.
+     * Como en el reembolso, el nivel de socio no baja (Cliente.actualizarNivel nunca lo reduce).
+     */
+    public void anularConfirmacion() {
+        if (!CONFIRMADA.equals(estado) || serieNumero != null) {
+            throw new IllegalStateException("Solo se anula una confirmación que no llegó a guardarse (estado: "
+                    + estado + (serieNumero != null ? ", serie " + serieNumero : "") + ")");
+        }
+        if (pedido != null && pedido.isRegistrado()) {
+            pedido.anular(); // recién registrado y PENDIENTE: el stock vuelve a la sede
+        }
+        asientos.anularVendidas();
+        revertirUsos();
+        cliente.devolverPuntos(puntosCanjeados);
+        cliente.revertirPuntos(puntosOtorgados);
+        this.puntosCanjeados = 0;
+        this.puntosOtorgados = 0;
+        this.estado = CANCELADA;
+    }
+
+    // ---------- Comprobante (delegado en DetalleCompra) ----------
     /** Guarda la serie que la base asignó al confirmar la compra (por ejemplo B001-000123); solo se fija una vez. */
     public void asignarSerie(String serieNumero) {
         if (!CONFIRMADA.equals(estado) && !REEMBOLSADA.equals(estado)) {
@@ -401,14 +520,6 @@ public class Compra implements Totalizable{
             throw new IllegalArgumentException("La serie es obligatoria (máx. 20 caracteres)");
         }
         this.serieNumero = serieNumero.trim();
-    }
-
-    /** Texto del comprobante; exige que la compra ya tenga serie. */
-    public String generarComprobante() {
-        if (serieNumero == null) {
-            throw new IllegalStateException("La compra aún no tiene comprobante (la base asigna la serie al confirmarla)");
-        }
-        return new Comprobante(serieNumero, fechaHora, importe).generarTexto();
     }
 
     /**
@@ -424,6 +535,11 @@ public class Compra implements Totalizable{
 
     /** Reloj de la compra; TransaccionPago lo usa para que el pago y la compra miren la misma hora. */
     Reloj getReloj() { return reloj; }
+
+    /** Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT; una compra nueva nace con id 0. */
+    public void asignarId(int idCompra) {
+        this.idCompra = Ids.asignar(this.idCompra, idCompra, "la compra");
+    }
 
     public int getIdCompra() { return idCompra; }
     public DateTime getFechaHora() { return fechaHora; }

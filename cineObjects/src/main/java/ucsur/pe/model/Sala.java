@@ -172,8 +172,7 @@ public class Sala {
     /** Indica si tiene funciones que aún no terminan y no fueron canceladas (impiden darla de baja). */
     public boolean tieneFuncionesPendientes() {
         for (Funcion f : funciones) {
-            String e = f.getEstado();
-            if (!Funcion.CANCELADA.equals(e) && !Funcion.FINALIZADA.equals(e)) return true;
+            if (f.estaPendiente()) return true;
         }
         return false;
     }
@@ -236,9 +235,9 @@ public class Sala {
         }
     }
 
-    /** Devuelve una copia de las funciones asignadas a la sala. */
-    public List<Funcion> getFunciones() {
-        return new ArrayList<>(funciones);
+    /** Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT; una sala nueva nace con id 0. */
+    public void asignarId(int idSala) {
+        this.idSala = Ids.asignar(this.idSala, idSala, "la sala");
     }
 
     public int getIdSala() { return idSala; }

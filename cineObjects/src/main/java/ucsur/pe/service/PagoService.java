@@ -1,6 +1,7 @@
 package ucsur.pe.service;
 
 import ucsur.pe.exception.ReglaNegocioException;
+import ucsur.pe.exception.RepositoryException;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.DateTime;
 import ucsur.pe.model.Reloj;
@@ -41,18 +42,51 @@ public class PagoService {
     /**
      * Intenta pagar la compra y devuelve la transacción: APROBADO, o RECHAZADO con su motivo.
      * Si se rechaza, la compra sigue EN_PROCESO para reintentar mientras dure el plazo (RF-18).
+     * Un pago APROBADO se guarda junto con su compra confirmada, en una sola transacción: nunca queda una venta
+     * confirmada sin el pago que permite reembolsarla, ni un pago aprobado de una compra que no se guardó.
+     * Si ese guardado falla después de cobrar, se devuelve el cobro y la compra se anula (ver deshacerCobro);
+     * el pago se guarda RECHAZADO con el motivo.
      */
     public TransaccionPago pagar(Compra compra, long montoCentavos, String medioPago) {
-        TransaccionPago pago = new TransaccionPago(pagos.siguienteId(), montoCentavos, medioPago, compra);
+        TransaccionPago pago = new TransaccionPago(0, montoCentavos, medioPago, compra);
         procesar(pago);
-        pagos.guardar(pago);
+        boolean guardado = false;
         if (TransaccionPago.APROBADO.equals(pago.getEstadoPago())) {
-            compras.guardar(compra); // la serie del comprobante se asigna al guardar la compra confirmada
-            if (compra.getPedido() != null) {
-                pedidos.guardar(compra.getPedido()); // el pedido entra a la cola de la dulcería
+            try {
+                pagos.guardarConCompra(pago); // la serie del comprobante se asigna al guardar la compra confirmada
+                guardado = true;
+            } catch (RepositoryException ex) {
+                deshacerCobro(pago);
             }
         }
+        if (!guardado) {
+            pagos.guardar(pago); // rechazado (o cobro devuelto): queda registrado con su motivo
+        }
+        if (TransaccionPago.APROBADO.equals(pago.getEstadoPago()) && compra.getPedido() != null) {
+            pedidos.guardar(compra.getPedido()); // el pedido entra a la cola de la dulcería
+        }
         return pago;
+    }
+
+    /**
+     * El cobro se aprobó pero la compra no se pudo guardar (por ejemplo, la base rechazó la venta de una butaca):
+     * se pide a la pasarela devolver el dinero, se deshace la confirmación en memoria (butacas, puntos, cupón y
+     * stock vuelven a como estaban) y el pago pasa a RECHAZADO con el motivo.
+     * Luego se intenta guardar la compra como CANCELADA; si la base sigue fallando, en la BD queda EN_PROCESO
+     * y el evento ev_expirar_compras la expira al vencer sus 4 minutos.
+     * El motivo lo ve el cliente, así que no lleva el detalle técnico del error de la base.
+     */
+    private void deshacerCobro(TransaccionPago pago) {
+        Compra compra = pago.getCompra();
+        boolean devuelto = pasarela.reembolsar(pago.getReferenciaPasarela(), pago.getMontoCentavos());
+        compra.anularConfirmacion();
+        pago.anularCobro("No se pudo guardar la compra; " + (devuelto ? "cobro devuelto" : "cobro NO devuelto, revisar"),
+                reloj.ahora());
+        try {
+            compras.guardar(compra);
+        } catch (RepositoryException otra) {
+            // Se deja como está: el pago RECHAZADO ya explica el problema y la BD expirará la compra sola.
+        }
     }
 
     private void procesar(TransaccionPago pago) {

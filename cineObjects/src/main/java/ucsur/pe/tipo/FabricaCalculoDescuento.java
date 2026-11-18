@@ -1,19 +1,23 @@
 package ucsur.pe.tipo;
 
-import ucsur.pe.model.DescuentoBase;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.LongFunction;
 
 /**
  * Por qué existe: convierte lo guardado en la BD (columnas tipo_descuento y valor) en su forma de cálculo.
  * Antes estaba dentro de DescuentoBase, pero traducir columnas de la BD no es trabajo del modelo (SRP);
- * cuando exista la capa de base de datos, esta conversión pasará al DAO de cupones y promociones.
+ * la usan el DAO de cupones y promociones (al leer) y el servicio de administración (al registrar o editar).
  * Usa un mapa en lugar de un switch: un tipo nuevo se registra con una línea (OCP).
  */
 public final class FabricaCalculoDescuento {
-    private static final Map<String, LongFunction<CalculoDescuento>> TIPOS = Map.of(
-            CalculoPorcentaje.TIPO, CalculoPorcentaje::new,
-            CalculoMontoFijo.TIPO, CalculoMontoFijo::new);
+    private static final Map<String, LongFunction<CalculoDescuento>> TIPOS = new LinkedHashMap<>(); // en orden de registro
+
+    static {
+        TIPOS.put(CalculoPorcentaje.TIPO, CalculoPorcentaje::new);
+        TIPOS.put(CalculoMontoFijo.TIPO, CalculoMontoFijo::new);
+    }
 
     private FabricaCalculoDescuento() { } // solo tiene un método estático
 
@@ -28,5 +32,10 @@ public final class FabricaCalculoDescuento {
             throw new IllegalArgumentException("Tipo de descuento inválido: " + tipoDescuento);
         }
         return constructor.apply(valor);
+    }
+
+    /** Los tipos que se pueden elegir (para el ComboBox del formulario, como nombresDeTipos de MVCone). */
+    public static List<String> tiposDisponibles() {
+        return List.copyOf(TIPOS.keySet());
     }
 }

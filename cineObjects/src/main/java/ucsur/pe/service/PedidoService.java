@@ -41,32 +41,51 @@ public class PedidoService {
     }
 
     public void prepararPedido(Empleado empleado, Pedido pedido) {
-        exigirPermiso(empleado);
-        empleado.prepararPedido(pedido);
+        exigirPedidoDeSuSede(empleado, pedido);
+        pedido.iniciarPreparacion(empleado); // exige un pedido registrado y PENDIENTE
         pedidos.guardar(pedido);
     }
 
-    /** Pasa el pedido a LISTO y devuelve el aviso para el cliente (RF-34). */
+    /** Pasa el pedido a LISTO y devuelve el aviso para el cliente (RF-34). Solo quien lo preparó. */
     public String marcarListo(Empleado empleado, Pedido pedido) {
-        exigirPermiso(empleado);
+        exigirPedidoDeSuSede(empleado, pedido);
+        if (pedido.getEmpleado() != empleado) {
+            throw new ReglaNegocioException("Solo el empleado que preparó el pedido puede marcarlo como listo");
+        }
         String aviso = pedido.marcarListo();
         pedidos.guardar(pedido);
         return aviso;
     }
 
-    /** Entrega el pedido solo si el cliente muestra el QR correcto. */
+    /**
+     * Entrega el pedido solo si el cliente muestra el QR correcto. Lo puede entregar cualquier empleado
+     * activo de la sede (por ejemplo, si cambió el turno): el QR es lo que prueba que el pedido es del cliente.
+     */
     public void entregarPedido(Empleado empleado, Pedido pedido, String codigoQR) {
-        exigirPermiso(empleado);
+        exigirPedidoDeSuSede(empleado, pedido);
         if (!pedido.validarCodigo(codigoQR)) {
             throw new ReglaNegocioException("El código QR no corresponde al pedido");
         }
-        empleado.entregarPedido(pedido);
+        pedido.entregar(); // exige un pedido LISTO; si no, lanza el error con el estado actual
         pedidos.guardar(pedido);
     }
 
+    /** El empleado debe tener la cuenta activa y el permiso ATENDER_PEDIDO. */
     private void exigirPermiso(Empleado empleado) {
-        if (empleado == null || !empleado.getRol().tienePermiso(Rol.ATENDER_PEDIDO)) {
+        if (empleado == null || !empleado.isEstado()) {
+            throw new ReglaNegocioException("La cuenta del empleado no está activa");
+        }
+        if (!empleado.getRol().tienePermiso(Rol.ATENDER_PEDIDO)) {
             throw new ReglaNegocioException("El empleado no tiene permiso para atender pedidos");
+        }
+    }
+
+    /** Además del permiso, el pedido debe ser de la sede donde trabaja el empleado. */
+    private void exigirPedidoDeSuSede(Empleado empleado, Pedido pedido) {
+        exigirPermiso(empleado);
+        if (pedido == null) throw new IllegalArgumentException("El pedido es obligatorio");
+        if (!empleado.getSede().equals(pedido.getSede())) {
+            throw new ReglaNegocioException("El pedido es de otra sede; el empleado atiende en " + empleado.getSede().getNombre());
         }
     }
 }

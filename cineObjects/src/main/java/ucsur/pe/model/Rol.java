@@ -47,7 +47,6 @@ public class Rol {
     public int getIdRol() { return idRol; }
     public String getNombre() { return nombre; }
     public String getDescripcion() { return descripcion; }
-    public int getNivelAcceso() { return nivelAcceso; }
 
     @Override
     public String toString() {

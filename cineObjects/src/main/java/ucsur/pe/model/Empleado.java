@@ -1,18 +1,14 @@
 package ucsur.pe.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Por qué existe: es el personal de una sede. Según su rol puede preparar y entregar pedidos de dulcería.
+ * Por qué existe: es el personal de una sede. Según su rol puede preparar y entregar pedidos de dulcería;
+ * esas acciones las coordina PedidoService con la cola de su sede, y el pedido recuerda quién lo preparó.
  */
 public class Empleado extends Persona {
     private int idEmpleado;
     private String turno; // texto libre, máx. 20 caracteres
     private Rol rol;
     private Sede sede;
-    /** Cola de pedidos que el empleado puede atender. */
-    private List<Pedido> pedidosAsignados;
 
     public Empleado(int idEmpleado, String dni, String nombres, String apellidos, DateTime fechaNac,
                     String correoElectronico, String telefono, String contra,
@@ -28,91 +24,40 @@ public class Empleado extends Persona {
         this.turno = turno;
         this.rol = rol;
         this.sede = sede;
-        this.pedidosAsignados = new ArrayList<>();
-    }
-
-    /** Devuelve una copia de la cola con pedidos pendientes o que ya se están preparando. */
-    public List<Pedido> consultarPedidosPendientes() {
-        List<Pedido> pendientes = new ArrayList<>();
-        for (Pedido p : pedidosAsignados) {
-            if (Pedido.PENDIENTE.equals(p.getEstado()) || Pedido.EN_PREPARACION.equals(p.getEstado())) {
-                pendientes.add(p);
-            }
-        }
-        return pendientes;
-    }
-
-    /** Inicia la preparación del primer pedido pendiente, si existe. */
-    public void prepararPedido() {
-        validarPermisoPedidos();
-        for (Pedido p : pedidosAsignados) {
-            if (Pedido.PENDIENTE.equals(p.getEstado())) {
-                p.iniciarPreparacion(this);
-                return;
-            }
-        }
     }
 
     /**
-     * Pone en la cola del empleado un pedido registrado y PENDIENTE de su misma sede.
-     * Con esto prepararPedido() y entregarPedido() sin parámetros tienen pedidos que atender.
+     * Solo para la capa de base de datos (ucsur.pe.db): reconstruye un empleado guardado con su id
+     * y si su cuenta está activa, igual que Cliente.restaurar.
      */
-    public void asignarPedido(Pedido pedido) {
-        validarPermisoPedidos();
-        if (pedido == null) {
-            throw new IllegalArgumentException("El pedido es obligatorio");
-        }
-        if (!pedido.isRegistrado() || !Pedido.PENDIENTE.equals(pedido.getEstado())) {
-            throw new IllegalStateException("Solo se asigna un pedido registrado y PENDIENTE (estado actual: " + pedido.getEstado() + ")");
-        }
-        if (!this.sede.equals(pedido.getSede())) {
-            throw new IllegalArgumentException("El pedido es de otra sede; el empleado atiende en " + sede.getNombre());
-        }
-        if (!pedidosAsignados.contains(pedido)) {
-            pedidosAsignados.add(pedido);
-        }
+    public static Empleado restaurar(int idEmpleado, String dni, String nombres, String apellidos, DateTime fechaNac,
+                                     String correo, String telefono, String contra, boolean estado,
+                                     String turno, Rol rol, Sede sede, Reloj reloj) {
+        Empleado empleado = new Empleado(idEmpleado, dni, nombres, apellidos, fechaNac, correo, telefono, contra,
+                turno, rol, sede, reloj); // valida los datos, el rol y la sede
+        if (!estado) empleado.desactivar();
+        return empleado;
     }
 
-    /** Asigna el pedido indicado a la cola y comienza su preparación si está pendiente. */
-    public void prepararPedido(Pedido pedido) {
-        validarPermisoPedidos();
-        if (pedido != null && Pedido.PENDIENTE.equals(pedido.getEstado())) {
-            asignarPedido(pedido);
-            pedido.iniciarPreparacion(this);
-        }
+    /** Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT; un empleado nuevo nace con id 0. */
+    public void asignarId(int idEmpleado) {
+        this.idEmpleado = Ids.asignar(this.idEmpleado, idEmpleado, "el empleado");
     }
 
-    /** Entrega el primer pedido listo que encuentre en su cola. */
-    public void entregarPedido() {
-        validarPermisoPedidos();
-        for (Pedido p : pedidosAsignados) {
-            if (Pedido.LISTO.equals(p.getEstado())) {
-                p.entregar();
-                return;
-            }
-        }
+    /** Indica si su rol le permite administrar el cine (no mira si la cuenta está activa). */
+    public boolean esAdministrador() {
+        return rol.tienePermiso(Rol.ADMINISTRAR);
     }
 
-    /** Entrega el pedido indicado si ya está listo; ignora pedidos nulos o en otro estado. */
-    public void entregarPedido(Pedido pedido) {
-        validarPermisoPedidos();
-        if (pedido != null && Pedido.LISTO.equals(pedido.getEstado())) {
-            pedido.entregar();
-        }
-    }
-
-    /** Impide preparar o entregar pedidos cuando el rol no tiene ese permiso. */
-    private void validarPermisoPedidos() {
-        if (!rol.tienePermiso(Rol.ATENDER_PEDIDO)) {
-            throw new IllegalStateException("El rol " + rol.getNombre() + " no puede atender pedidos");
-        }
+    /** Cuenta activa y rol de administrador: lo que exigen los servicios antes de una operación de administración. */
+    public boolean esAdministradorActivo() {
+        return isEstado() && esAdministrador();
     }
 
     public int getIdEmpleado() { return idEmpleado; }
     public String getTurno() { return turno; }
     public Rol getRol() { return rol; }
     public Sede getSede() { return sede; }
-    public List<Pedido> getPedidosAsignados() { return new ArrayList<>(pedidosAsignados); }
 
     @Override
     public String toString() {

@@ -2,10 +2,10 @@ package ucsur.pe.demo;
 
 import ucsur.pe.App;
 import ucsur.pe.controller.Respuesta;
+import ucsur.pe.service.Sesion;
 import ucsur.pe.model.Cliente;
 import ucsur.pe.model.DateTime;
 import ucsur.pe.model.Empleado;
-import ucsur.pe.model.Persona;
 import ucsur.pe.model.Rol;
 import ucsur.pe.model.Sede;
 
@@ -36,9 +36,10 @@ public class MainInicioSesion {
         System.out.println("Cliente (clave correcta): " + resultado(app.login().iniciarSesion("ismael@mail.com", "clave123")));
         System.out.println("Cliente (clave incorrecta): " + resultado(app.login().iniciarSesion("ismael@mail.com", "otra")));
         System.out.println("Correo no registrado: " + resultado(app.login().iniciarSesion("nadie@mail.com", "clave123")));
-        Respuesta<Persona> sesionEmpleado = app.login().iniciarSesion("ana@cine.com", "empleado1");
+        Respuesta<Sesion> sesionEmpleado = app.login().iniciarSesion("ana@cine.com", "empleado1");
+        // La sesión ya dice a qué zona va (sin instanceof): CLIENTE, DULCERIA o ADMINISTRADOR
         System.out.println("Empleado (clave correcta): " + resultado(sesionEmpleado)
-                + " -> " + sesionEmpleado.dato().getClass().getSimpleName());
+                + " -> " + sesionEmpleado.dato().tipo());
         empleado.desactivar();
         System.out.println("Empleado desactivado: " + resultado(app.login().iniciarSesion("ana@cine.com", "empleado1")));
         empleado.activar();

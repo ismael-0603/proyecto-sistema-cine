@@ -54,6 +54,27 @@ public class TransaccionPago {
         this.compra = compra;
     }
 
+    /**
+     * Solo para la capa de base de datos (ucsur.pe.db): reconstruye un pago ya guardado con su estado,
+     * su referencia de la pasarela y el motivo de rechazo. No vuelve a cobrar ni a aprobar.
+     */
+    public static TransaccionPago restaurar(int idTransaccion, long montoCentavos, String medioPago,
+                                            String estadoPago, DateTime fechaHora, String referenciaPasarela,
+                                            String motivoRechazo, Compra compra) {
+        TransaccionPago pago = new TransaccionPago(idTransaccion, montoCentavos, medioPago, compra); // valida monto, medio y compra
+        if (!PENDIENTE.equals(estadoPago) && !APROBADO.equals(estadoPago) && !RECHAZADO.equals(estadoPago)) {
+            throw new IllegalArgumentException("Estado de pago inválido: " + estadoPago);
+        }
+        if (fechaHora == null) {
+            throw new IllegalArgumentException("La fecha del pago es obligatoria");
+        }
+        pago.estadoPago = estadoPago;
+        pago.fechaHora = fechaHora;
+        pago.referenciaPasarela = referenciaPasarela;
+        pago.motivoRechazo = motivoRechazo;
+        return pago;
+    }
+
     /** Indica si el medio está entre los que acepta el kiosko. */
     public static boolean esMedioValido(String medioPago) {
         return medioPago != null && MEDIOS_DISPONIBLES.contains(medioPago);
@@ -86,11 +107,29 @@ public class TransaccionPago {
         this.motivoRechazo = (motivo != null && motivo.length() > MAX_MOTIVO) ? motivo.substring(0, MAX_MOTIVO) : motivo;
     }
 
+    /**
+     * Un cobro aprobado que se tuvo que devolver porque la compra no se pudo guardar: pasa a RECHAZADO
+     * con el motivo (en la BD, RECHAZADO también significa "cobrado y devuelto"). Solo para un pago APROBADO.
+     */
+    public void anularCobro(String motivo, DateTime fechaHora) {
+        if (!APROBADO.equals(estadoPago)) {
+            throw new IllegalStateException("Solo se anula un cobro APROBADO (estado actual: " + estadoPago + ")");
+        }
+        this.estadoPago = RECHAZADO;
+        this.fechaHora = fechaHora;
+        this.motivoRechazo = (motivo != null && motivo.length() > MAX_MOTIVO) ? motivo.substring(0, MAX_MOTIVO) : motivo;
+    }
+
     /** Un pago ya procesado (aprobado o rechazado) no se vuelve a procesar. */
     private void exigirPendiente() {
         if (!PENDIENTE.equals(estadoPago)) {
             throw new IllegalStateException("La transacción ya fue procesada (" + estadoPago + ")");
         }
+    }
+
+    /** Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT; un pago nuevo nace con id 0. */
+    public void asignarId(int idTransaccion) {
+        this.idTransaccion = Ids.asignar(this.idTransaccion, idTransaccion, "el pago");
     }
 
     public int getIdTransaccion() { return idTransaccion; }

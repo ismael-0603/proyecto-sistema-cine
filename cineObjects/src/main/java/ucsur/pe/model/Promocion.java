@@ -94,6 +94,11 @@ public class Promocion extends DescuentoBase {
         return CATEGORIA;
     }
 
+    /** Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT; una promoción nueva nace con id 0. */
+    public void asignarId(int idPromocion) {
+        this.idPromocion = Ids.asignar(this.idPromocion, idPromocion, "la promoción");
+    }
+
     public int getIdPromocion() { return idPromocion; }
     public String getNombre() { return nombre; }
     public String getDescripcion() { return descripcion; }

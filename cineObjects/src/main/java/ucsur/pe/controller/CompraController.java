@@ -3,17 +3,21 @@ package ucsur.pe.controller;
 import ucsur.pe.model.Butaca;
 import ucsur.pe.model.Cliente;
 import ucsur.pe.model.Compra;
+import ucsur.pe.model.DetallePedido;
 import ucsur.pe.model.Entrada;
 import ucsur.pe.model.Funcion;
 import ucsur.pe.model.MapaButacas;
-import ucsur.pe.model.Pedido;
+import ucsur.pe.model.Producto;
 import ucsur.pe.model.Promocion;
 import ucsur.pe.model.Sede;
 import ucsur.pe.model.TipoEntrada;
 import ucsur.pe.service.CompraService;
 import java.util.List;
 
-/** Acciones de la compra: butacas, dulcería, descuentos, cancelación y comprobante. */
+/**
+ * Acciones de la compra: butacas, dulcería, descuentos y cancelación. El comprobante (ver, imprimir o enviar)
+ * está en EmisionController.
+ */
 public class CompraController extends ControllerBase {
     private final CompraService servicio;
 
@@ -36,6 +40,11 @@ public class CompraController extends ControllerBase {
         return ejecutar("", () -> servicio.recomendarAsientos(compra, funcion, cantidad, incluirAccesibles));
     }
 
+    /** Tarifas que este cliente puede elegir (General, Niño, Socio...). */
+    public Respuesta<List<TipoEntrada>> listarTiposEntrada(Cliente cliente) {
+        return ejecutar("", () -> servicio.listarTiposEntrada(cliente));
+    }
+
     public Respuesta<Entrada> agregarEntrada(Compra compra, Funcion funcion, Butaca butaca, TipoEntrada tipo) {
         return ejecutar("Butaca agregada", () -> servicio.agregarEntrada(compra, funcion, butaca, tipo));
     }
@@ -52,8 +61,17 @@ public class CompraController extends ControllerBase {
         return ejecutar("Butacas liberadas: puedes cambiarlas", () -> servicio.liberarAsientos(compra));
     }
 
-    public Respuesta<Void> asignarPedido(Compra compra, Pedido pedido) {
-        return ejecutar("Pedido agregado", () -> servicio.asignarPedido(compra, pedido));
+    // ---------- Dulcería ----------
+    public Respuesta<DetallePedido> agregarProducto(Compra compra, Producto producto, int cantidad, String personalizacion) {
+        return ejecutar("Producto agregado", () -> servicio.agregarProducto(compra, producto, cantidad, personalizacion));
+    }
+
+    public Respuesta<Void> cambiarCantidad(Compra compra, DetallePedido detalle, int cantidad) {
+        return ejecutar("Cantidad actualizada", () -> servicio.cambiarCantidad(compra, detalle, cantidad));
+    }
+
+    public Respuesta<Void> quitarProducto(Compra compra, DetallePedido detalle) {
+        return ejecutar("Producto quitado", () -> servicio.quitarProducto(compra, detalle));
     }
 
     public Respuesta<Void> aplicarCupon(Compra compra, String codigo) {
@@ -72,7 +90,4 @@ public class CompraController extends ControllerBase {
         return ejecutar("Compra cancelada", () -> servicio.cancelar(compra));
     }
 
-    public Respuesta<String> generarComprobante(Compra compra) {
-        return ejecutar("", () -> servicio.generarComprobante(compra));
-    }
 }

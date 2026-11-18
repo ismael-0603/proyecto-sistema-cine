@@ -56,24 +56,24 @@ public class MainRegistro {
 
         System.out.println("\n--- REGISTROS VALIDOS ---");
         System.out.println("Pedido: " + registrarPedido(pedidoValido, sede));
-        System.out.println("Reclamo: " + resultado(app.postventa().presentarReclamo(compraPrueba, Reclamo.ATENCION,
+        System.out.println("Reclamo: " + resultado(app.postventa().presentarReclamo(cliente, compraPrueba, Reclamo.ATENCION,
                 "El pedido demoró más de lo esperado")));
-        System.out.println("Calificacion: " + resultado(app.postventa().calificar(compraPrueba, 5, "Buena experiencia")));
+        System.out.println("Calificacion: " + resultado(app.postventa().calificar(cliente, compraPrueba, 5, "Buena experiencia")));
 
         System.out.println("\n--- DATOS INVALIDOS ---");
-        System.out.println("Reclamo: " + resultado(app.postventa().presentarReclamo(compraPrueba, "OTRO", "   ")));
+        System.out.println("Reclamo: " + resultado(app.postventa().presentarReclamo(cliente, compraPrueba, "OTRO", "   ")));
         Compra otraConfirmada = crearCompraConfirmada(app, cliente);
-        System.out.println("Calificacion: " + resultado(app.postventa().calificar(otraConfirmada, 6, "Fuera de rango")));
+        System.out.println("Calificacion: " + resultado(app.postventa().calificar(cliente, otraConfirmada, 6, "Fuera de rango")));
 
         System.out.println("\n--- REGISTROS RECHAZADOS ---");
         System.out.println("Pedido vacio: " + registrarPedido(new Pedido(2, app.reloj()), sede));
         Compra compraSinConfirmar = app.compra().iniciarCompra(cliente, sede).dato();
         System.out.println("Calificacion sin compra confirmada: "
-                + resultado(app.postventa().calificar(compraSinConfirmar, 4, "La compra no está confirmada")));
+                + resultado(app.postventa().calificar(cliente, compraSinConfirmar, 4, "La compra no está confirmada")));
 
         System.out.println("\n--- INTENTO DE REGISTRO DUPLICADO ---");
         System.out.println("Pedido: " + registrarPedido(pedidoValido, sede));
-        System.out.println("Calificacion: " + resultado(app.postventa().calificar(compraPrueba, 3, "Otra vez")));
+        System.out.println("Calificacion: " + resultado(app.postventa().calificar(cliente, compraPrueba, 3, "Otra vez")));
     }
 
     /** Arma una compra confirmada con el flujo real: butacas, entradas, bloqueo y pago aprobado. */

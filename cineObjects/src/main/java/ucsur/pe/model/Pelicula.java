@@ -39,8 +39,8 @@ public class Pelicula {
         this.sinopsis = sinopsis;
         this.duracion = duracion;
         this.clasificacionEdad = validarClasificacion(clasificacionEdad);
-        this.trailer = trailer;
-        this.poster = poster;
+        this.trailer = validarEnlace(trailer, "tráiler");
+        this.poster = validarEnlace(poster, "póster");
         this.fechaEstreno = fechaEstreno;
         setEstado(estado != null ? estado : EN_CARTELERA);
         this.generos = new ArrayList<>();
@@ -74,18 +74,14 @@ public class Pelicula {
                                       String trailer, String poster, DateTime fechaEstreno) {
         String nuevoTitulo = validarTitulo(titulo);
         String nuevaClasificacion = validarClasificacion(clasificacionEdad);
+        String nuevoTrailer = validarEnlace(trailer, "tráiler");
+        String nuevoPoster = validarEnlace(poster, "póster");
         this.titulo = nuevoTitulo;
         this.sinopsis = sinopsis;
         this.clasificacionEdad = nuevaClasificacion;
-        this.trailer = trailer;
-        this.poster = poster;
+        this.trailer = nuevoTrailer;
+        this.poster = nuevoPoster;
         this.fechaEstreno = fechaEstreno;
-    }
-
-    /** Quita un género de la película; devuelve false si no lo tenía. */
-    public boolean quitarGenero(Genero genero) {
-        if (genero == null) return false;
-        return generos.removeIf(g -> g.getIdGenero() == genero.getIdGenero());
     }
 
     /** El título es obligatorio y en la BD es VARCHAR(150). */
@@ -105,6 +101,14 @@ public class Pelicula {
         return clasificacionEdad.trim();
     }
 
+    /** Los enlaces son opcionales; en la BD trailer_url y poster_url son VARCHAR(255). */
+    private static String validarEnlace(String enlace, String campo) {
+        if (enlace != null && enlace.length() > 255) {
+            throw new IllegalArgumentException("El enlace del " + campo + " no puede superar 255 caracteres");
+        }
+        return enlace;
+    }
+
     /** Agrega el género si no se había agregado ya; un valor nulo se ignora. */
     public void agregarGenero(Genero genero) {
         if (genero == null) return;
@@ -112,6 +116,14 @@ public class Pelicula {
             if (g.getIdGenero() == genero.getIdGenero()) return; // ya está agregado
         }
         generos.add(genero);
+    }
+
+    /** Reemplaza los géneros por los indicados (sin repetir); una lista nula o vacía deja la película sin géneros. */
+    public void cambiarGeneros(List<Genero> nuevos) {
+        generos.clear();
+        if (nuevos != null) {
+            for (Genero g : nuevos) agregarGenero(g);
+        }
     }
 
     /** Comprueba si tiene el género indicado; un valor null significa que no se aplica filtro. */
@@ -124,6 +136,11 @@ public class Pelicula {
             }
         }
         return false;
+    }
+
+    /** Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT; una película nueva nace con id 0. */
+    public void asignarId(int idPelicula) {
+        this.idPelicula = Ids.asignar(this.idPelicula, idPelicula, "la película");
     }
 
     // Acceso a los datos de la película.

@@ -32,6 +32,26 @@ public class SeleccionAsientos {
         entradas.add(entrada);
     }
 
+    /**
+     * Carga las entradas de una compra leída de la base de datos, sin volver a revisar si la butaca está libre
+     * (ya la ocupa esa misma entrada). Solo la usa Compra.restaurar.
+     * Las butacas cuentan como bloqueadas si alguna entrada llegó a bloquearse o venderse, como tras bloquear().
+     */
+    void restaurar(List<Entrada> guardadas) {
+        if (!entradas.isEmpty()) {
+            throw new IllegalStateException("La selección ya tiene entradas");
+        }
+        for (Entrada e : guardadas) {
+            if (e == null) {
+                throw new IllegalArgumentException("La entrada no puede ser nula");
+            }
+            entradas.add(e);
+            if (Entrada.BLOQUEADA.equals(e.getEstado()) || Entrada.VENDIDA.equals(e.getEstado())) {
+                this.bloqueados = true;
+            }
+        }
+    }
+
     /** Quita una selección mientras los asientos sigan sin bloquearse. */
     public boolean quitar(Entrada entrada) {
         if (bloqueados) {
