@@ -1,6 +1,6 @@
 # Sistema de autoservicio de cine
 
-Modelo de dominio desarrollado en Java para representar las operaciones principales de un sistema de autoservicio de cine. Incluye entidades y reglas de negocio para la cartelera, la reserva de butacas, la venta de entradas, las compras y los pedidos de dulcería.
+Modelo de dominio desarrollado en Java para representar las operaciones principales de un sistema de autoservicio de cine. Incluye entidades y reglas de negocio para la cartelera, la reserva de butacas, la venta de entradas, las compras y los pedidos de dulcería. 
 
 ## Funcionalidades modeladas
 
@@ -9,7 +9,7 @@ Modelo de dominio desarrollado en Java para representar las operaciones principa
 - Entradas con estados y bloqueo temporal de asientos.
 - Compras con cálculo de subtotal, descuentos, IGV y total.
 - Cupones y promociones.
-- Pedidos de productos de dulcería e inventario.
+- Pedidos de productos de dulcería e inventario .
 - Clientes, puntos y niveles de socio.
 - Transacciones de pago y reglas de reembolso.
 - Reclamos y calificaciones.
