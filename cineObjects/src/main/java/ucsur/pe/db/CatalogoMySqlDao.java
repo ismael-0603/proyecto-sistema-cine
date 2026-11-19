@@ -106,7 +106,7 @@ public class CatalogoMySqlDao implements CatalogoDao {
     @Override
     public List<Producto> listarProductos(Map<Integer, Sede> sedes) {
         String sql = """
-                SELECT id_producto, nombre, descripcion, categoria, precio, es_combo, nivel_socio_minimo, estado
+                SELECT id_producto, nombre, descripcion, categoria, precio, es_combo, nivel_socio_minimo, estado, imagen_url
                 FROM producto
                 ORDER BY id_producto
                 """;
@@ -117,6 +117,7 @@ public class CatalogoMySqlDao implements CatalogoDao {
                 Producto p = new Producto(rs.getInt("id_producto"), rs.getString("nombre"), rs.getString("descripcion"),
                         rs.getString("categoria"), Dinero.leer(rs, "precio"), rs.getBoolean("es_combo"),
                         rs.getInt("nivel_socio_minimo"), rs.getBoolean("estado"));
+                p.asignarImagen(rs.getString("imagen_url"));
                 productos.put(p.getIdProducto(), p);
             }
         } catch (SQLException e) {

@@ -23,6 +23,7 @@ public class Producto implements Activable {
     /** Unidades disponibles en cada sede; equivale a las filas de inventario_sede de este producto. */
     private Map<Sede, Integer> stockPorSede = new HashMap<>();
     private boolean estado;
+    private String imagen; // ruta de la foto dentro del proyecto («productos/canchita-salada.jpg»); null = sin foto
 
     /** Crea un producto abierto para cualquier cliente, sin stock en ninguna sede. */
     public Producto(int idProducto, String nombre, String descripcion, String categoria,
@@ -148,6 +149,14 @@ public class Producto implements Activable {
         this.idProducto = Ids.asignar(this.idProducto, idProducto, "el producto");
     }
 
+    /** La foto es opcional; en la BD imagen_url es VARCHAR(255). Una ruta vacía se guarda como sin foto. */
+    public void asignarImagen(String imagen) {
+        if (imagen != null && imagen.trim().length() > 255) {
+            throw new IllegalArgumentException("La ruta de la imagen no puede superar 255 caracteres");
+        }
+        this.imagen = (imagen == null || imagen.isBlank()) ? null : imagen.trim();
+    }
+
     public int getIdProducto() { return idProducto; }
     public String getNombre() { return nombre; }
     public String getDescripcion() { return descripcion; }
@@ -155,6 +164,7 @@ public class Producto implements Activable {
     public long getPrecioCentavos() { return precioCentavos; }
     public boolean isEsCombo() { return esCombo; }
     public int getNivelSocioMinimo() { return nivelSocioMinimo; }
+    public String getImagen() { return imagen; }
     /** Unidades disponibles en la sede indicada; cero si la sede no tiene registro de este producto. */
     public int getStock(Sede sede) { return stockPorSede.getOrDefault(sede, 0); }
     @Override

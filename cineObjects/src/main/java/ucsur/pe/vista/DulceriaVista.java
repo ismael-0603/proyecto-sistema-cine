@@ -2,13 +2,13 @@ package ucsur.pe.vista;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Compra;
@@ -27,6 +27,9 @@ import java.util.Set;
 public class DulceriaVista extends Pantalla {
 
     private static final String TODOS = "Todos";
+    // Tarjeta de 280 px menos el relleno lateral (14 + 14); las fotos se guardan en 480×300 (misma proporción)
+    private static final double ANCHO_IMAGEN = 252;
+    private static final double ALTO_IMAGEN = 158;
 
     @FXML private EncabezadoCompraVista encabezadoController;
     @FXML private HBox categorias;
@@ -97,11 +100,8 @@ public class DulceriaVista extends Pantalla {
     }
 
     private VBox tarjeta(Producto p) {
-        // El modelo no guarda foto del producto: se muestra su categoría en el recuadro de imagen
-        Label cat = new Label(Formato.capitalizar(p.getCategoria()));
-        cat.getStyleClass().add("producto-categoria");
-        StackPane imagen = new StackPane(cat);
-        imagen.getStyleClass().add("producto-imagen");
+        // Foto del producto; sin foto, el recuadro muestra su categoría
+        Node imagen = Formato.imagenProducto(p, ANCHO_IMAGEN, ALTO_IMAGEN);
 
         Label nombre = new Label(p.getNombre().toUpperCase());
         nombre.getStyleClass().add("producto-nombre");

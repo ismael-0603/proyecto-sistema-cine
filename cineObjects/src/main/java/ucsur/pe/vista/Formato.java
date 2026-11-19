@@ -10,6 +10,7 @@ import javafx.scene.shape.Rectangle;
 import ucsur.pe.model.DateTime;
 import ucsur.pe.model.Funcion;
 import ucsur.pe.model.Pelicula;
+import ucsur.pe.model.Producto;
 import ucsur.pe.util.ConversorDinero;
 import java.net.URL;
 
@@ -214,27 +215,8 @@ public final class Formato {
 
     /** Igual que el anterior, con el título y la ruta sueltos (vista previa del formulario de película). */
     public static Node poster(String tituloPelicula, String ruta, double ancho, double alto) {
-        Image imagen = cargarPoster(ruta);
-        if (imagen != null && !imagen.isError()) {
-            ImageView vista = new ImageView(imagen);
-            vista.setFitWidth(ancho);
-            vista.setFitHeight(alto);
-            vista.setSmooth(true);
-            // Llena todo el recuadro recortando lo que sobra (sin franjas vacías si el póster no es 2:3)
-            if (imagen.getProgress() >= 1) recortarParaLlenar(vista, imagen, ancho, alto);
-            else imagen.progressProperty().addListener((o, antes, ahora) -> {
-                if (ahora.doubleValue() >= 1) recortarParaLlenar(vista, imagen, ancho, alto);
-            });
-            StackPane marco = new StackPane(vista);
-            marco.setPrefSize(ancho, alto);
-            marco.setMinSize(ancho, alto);
-            marco.setMaxSize(ancho, alto);
-            Rectangle esquinas = new Rectangle(ancho, alto);
-            esquinas.setArcWidth(16);
-            esquinas.setArcHeight(16);
-            marco.setClip(esquinas);
-            return marco;
-        }
+        Image imagen = cargarImagen(ruta);
+        if (imagen != null && !imagen.isError()) return marcoRecortado(imagen, ancho, alto, 16);
         Label titulo = new Label(tituloPelicula);
         titulo.getStyleClass().add("poster-reemplazo-titulo");
         titulo.setMaxWidth(ancho - 28);
@@ -246,6 +228,45 @@ public final class Formato {
         reemplazo.setMinSize(ancho, alto);
         reemplazo.setMaxSize(ancho, alto);
         return reemplazo;
+    }
+
+    /**
+     * La foto del producto de dulcería. La BD guarda la ruta («productos/canchita-salada.jpg») igual que el
+     * póster; si el producto no tiene foto (por ejemplo, uno recién creado por el administrador) se muestra su categoría.
+     */
+    public static Node imagenProducto(Producto producto, double ancho, double alto) {
+        Image imagen = cargarImagen(producto.getImagen());
+        if (imagen != null && !imagen.isError()) return marcoRecortado(imagen, ancho, alto, 10);
+        Label categoria = new Label(capitalizar(producto.getCategoria()));
+        categoria.getStyleClass().add("producto-categoria");
+        StackPane reemplazo = new StackPane(categoria);
+        reemplazo.getStyleClass().add("producto-imagen");
+        reemplazo.setPrefSize(ancho, alto);
+        reemplazo.setMinSize(ancho, alto);
+        reemplazo.setMaxSize(ancho, alto);
+        return reemplazo;
+    }
+
+    /** La imagen llena todo el recuadro (recortando lo que sobra) y con las esquinas redondeadas. */
+    private static Node marcoRecortado(Image imagen, double ancho, double alto, double radio) {
+        ImageView vista = new ImageView(imagen);
+        vista.setFitWidth(ancho);
+        vista.setFitHeight(alto);
+        vista.setSmooth(true);
+        // Sin franjas vacías aunque la imagen no tenga la proporción del recuadro
+        if (imagen.getProgress() >= 1) recortarParaLlenar(vista, imagen, ancho, alto);
+        else imagen.progressProperty().addListener((o, antes, ahora) -> {
+            if (ahora.doubleValue() >= 1) recortarParaLlenar(vista, imagen, ancho, alto);
+        });
+        StackPane marco = new StackPane(vista);
+        marco.setPrefSize(ancho, alto);
+        marco.setMinSize(ancho, alto);
+        marco.setMaxSize(ancho, alto);
+        Rectangle esquinas = new Rectangle(ancho, alto);
+        esquinas.setArcWidth(radio);
+        esquinas.setArcHeight(radio);
+        marco.setClip(esquinas);
+        return marco;
     }
 
     /** Toma de la imagen el trozo central con la proporción del recuadro (como «cover» en CSS web). */
@@ -263,7 +284,8 @@ public final class Formato {
         vista.setViewport(new javafx.geometry.Rectangle2D((w - cw) / 2, (h - ch) / 2, cw, ch));
     }
 
-    private static Image cargarPoster(String ruta) {
+    /** Póster o foto de producto: de internet, de un archivo elegido en el formulario o de los recursos del proyecto. */
+    private static Image cargarImagen(String ruta) {
         if (ruta == null || ruta.isBlank()) return null;
         if (ruta.startsWith("http://") || ruta.startsWith("https://")) {
             return new Image(ruta, true); // de internet: se carga en segundo plano
