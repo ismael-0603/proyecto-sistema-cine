@@ -528,10 +528,18 @@ public class Compra implements Totalizable{
      * Solo existe para compras pagadas: confirmadas o reembolsadas (estas ya sin QR válidos).
      */
     public DetalleCompra obtenerDetalle() {
+        return obtenerDetalle(null);
+    }
+
+    /**
+     * Igual, indicando con qué medio se pagó (TransaccionPago.TARJETA_CREDITO, YAPE...): la compra no guarda
+     * su pago, así que quien lo conoce (EmisionService) lo pasa. null si no se sabe.
+     */
+    public DetalleCompra obtenerDetalle(String medioPago) {
         if (serieNumero == null || (!CONFIRMADA.equals(estado) && !REEMBOLSADA.equals(estado))) {
             throw new IllegalStateException("Solo se puede ver el detalle de una compra pagada");
         }
-        return new DetalleCompra(this);
+        return new DetalleCompra(this, medioPago);
     }
 
     /** Reloj de la compra; TransaccionPago lo usa para que el pago y la compra miren la misma hora. */

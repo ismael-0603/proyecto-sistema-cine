@@ -2,26 +2,37 @@ package ucsur.pe.service;
 
 import ucsur.pe.exception.ReglaNegocioException;
 import ucsur.pe.model.Cliente;
+import ucsur.pe.model.Compra;
 import ucsur.pe.model.Empleado;
 import ucsur.pe.model.Pedido;
 import ucsur.pe.model.Producto;
+import ucsur.pe.model.Reloj;
 import ucsur.pe.model.Rol;
 import ucsur.pe.model.Sede;
+import ucsur.pe.repository.CompraRepository;
 import ucsur.pe.repository.PedidoRepository;
 import ucsur.pe.repository.ProductoRepository;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Por qué existe: casos de uso "Comprar dulcería" (menú, RF-12 y RF-31) y "Preparar / Entregar pedido"
  * (RF-15, RF-34). Exige que quien atiende tenga el permiso ATENDER_PEDIDO.
+ * Las compras sirven para encontrar un pedido por el código del comprobante (wireframes 15 y 16).
  */
 public class PedidoService {
     private final PedidoRepository pedidos;
     private final ProductoRepository productos;
+    private final CompraRepository compras;
+    private final Reloj reloj; // para saber qué pedidos se entregaron hoy
 
-    public PedidoService(PedidoRepository pedidos, ProductoRepository productos) {
+    public PedidoService(PedidoRepository pedidos, ProductoRepository productos, CompraRepository compras,
+                         Reloj reloj) {
+        if (reloj == null) throw new IllegalArgumentException("El reloj es obligatorio");
         this.pedidos = pedidos;
         this.productos = productos;
+        this.compras = compras;
+        this.reloj = reloj;
     }
 
     /** Productos que el cliente puede pedir en la sede: activos, con stock y para su nivel de socio. */
@@ -38,6 +49,55 @@ public class PedidoService {
         return pedidos.listarPorSede(empleado.getSede()).stream()
                 .filter(p -> Pedido.PENDIENTE.equals(p.getEstado()) || Pedido.EN_PREPARACION.equals(p.getEstado()))
                 .toList();
+    }
+
+    /** Columna «Listos para entregar» del panel (wireframe 15): pedidos LISTO de la sede del empleado. */
+    public List<Pedido> consultarListos(Empleado empleado) {
+        exigirPermiso(empleado);
+        return pedidos.listarPorSede(empleado.getSede()).stream()
+                .filter(p -> Pedido.LISTO.equals(p.getEstado()))
+                .toList();
+    }
+
+    /** Columna «Entregados hoy» del panel (wireframe 15): pedidos ENTREGADO cuya entrega fue hoy. */
+    public List<Pedido> consultarEntregadosHoy(Empleado empleado) {
+        exigirPermiso(empleado);
+        long hoy = reloj.ahora().toValorSoloFecha();
+        return pedidos.listarPorSede(empleado.getSede()).stream()
+                .filter(p -> Pedido.ENTREGADO.equals(p.getEstado()))
+                .filter(p -> p.getFechaEntrega() != null && p.getFechaEntrega().toValorSoloFecha() == hoy)
+                .toList();
+    }
+
+    /**
+     * «Buscar pedido» del panel (wireframe 15): por número de pedido (0003 o #0003) o por el código
+     * del comprobante (B001-000123). Solo encuentra pedidos de la sede del empleado.
+     */
+    public Pedido buscarPedido(Empleado empleado, String texto) {
+        exigirPermiso(empleado);
+        if (texto == null || texto.isBlank()) {
+            throw new IllegalArgumentException("Escribe el número de pedido o el código del comprobante");
+        }
+        String buscado = texto.trim();
+        Optional<Pedido> encontrado = pedidoDeLaSerie(buscado);
+        if (encontrado.isEmpty()) {
+            String digitos = buscado.startsWith("#") ? buscado.substring(1) : buscado;
+            if (digitos.matches("\\d{1,9}")) {
+                int id = Integer.parseInt(digitos);
+                encontrado = pedidos.listarPorSede(empleado.getSede()).stream()
+                        .filter(p -> p.getIdPedido() == id)
+                        .findFirst();
+            }
+        }
+        return encontrado
+                .filter(p -> empleado.getSede().equals(p.getSede()))
+                .orElseThrow(() -> new ReglaNegocioException("No hay un pedido con «" + buscado + "» en "
+                        + empleado.getSede().getNombre()));
+    }
+
+    /** Pedido de la compra cuyo comprobante tiene esa serie, si la compra tiene dulcería. */
+    private Optional<Pedido> pedidoDeLaSerie(String serie) {
+        return compras.buscarPorSerie(serie).map(Compra::getPedido);
     }
 
     public void prepararPedido(Empleado empleado, Pedido pedido) {
@@ -58,13 +118,16 @@ public class PedidoService {
     }
 
     /**
-     * Entrega el pedido solo si el cliente muestra el QR correcto. Lo puede entregar cualquier empleado
-     * activo de la sede (por ejemplo, si cambió el turno): el QR es lo que prueba que el pedido es del cliente.
+     * Entrega el pedido solo si el cliente muestra el QR del pedido o el código de su comprobante
+     * (B001-000123; wireframe 16: «O ingresa el código»). Lo puede entregar cualquier empleado activo
+     * de la sede (por ejemplo, si cambió el turno): el código es lo que prueba que el pedido es del cliente.
      */
-    public void entregarPedido(Empleado empleado, Pedido pedido, String codigoQR) {
+    public void entregarPedido(Empleado empleado, Pedido pedido, String codigo) {
         exigirPedidoDeSuSede(empleado, pedido);
-        if (!pedido.validarCodigo(codigoQR)) {
-            throw new ReglaNegocioException("El código QR no corresponde al pedido");
+        boolean esSuComprobante = codigo != null
+                && pedidoDeLaSerie(codigo.trim()).filter(p -> p == pedido).isPresent();
+        if (!pedido.validarCodigo(codigo) && !esSuComprobante) {
+            throw new ReglaNegocioException("El código no corresponde al pedido");
         }
         pedido.entregar(); // exige un pedido LISTO; si no, lanza el error con el estado actual
         pedidos.guardar(pedido);

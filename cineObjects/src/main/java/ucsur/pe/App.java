@@ -162,11 +162,12 @@ public class App {
                 calculadora, gestorPuntos, reloj));
         PagoService pagoService = new PagoService(repos.pagos(), repos.compras(), repos.pedidos(), pasarela, reloj);
         this.pago = new PagoController(pagoService);
-        this.dulceria = new DulceriaController(new PedidoService(repos.pedidos(), repos.productos()));
+        this.dulceria = new DulceriaController(new PedidoService(repos.pedidos(), repos.productos(),
+                repos.compras(), reloj));
         this.admin = new AdminController(new AdministracionService(repos.sedes(), repos.salas(), repos.peliculas(),
                 repos.productos(), repos.cupones(), repos.promociones(), repos.compras(), pagoService, reloj));
         this.postventa = new PostventaController(new PostventaService(repos.reclamos(), repos.calificaciones(), correo));
-        this.emision = new EmisionController(new EmisionService(repos.compras(), correo, reloj));
+        this.emision = new EmisionController(new EmisionService(repos.compras(), repos.pagos(), correo, reloj));
     }
 
     public LoginController login() { return login; }

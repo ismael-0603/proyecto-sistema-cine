@@ -24,6 +24,21 @@ public class DulceriaController extends ControllerBase {
         return ejecutar("", () -> servicio.consultarPendientes(empleado));
     }
 
+    /** Columna «Listos para entregar» del panel de dulcería. */
+    public Respuesta<List<Pedido>> consultarListos(Empleado empleado) {
+        return ejecutar("", () -> servicio.consultarListos(empleado));
+    }
+
+    /** Columna «Entregados hoy» del panel de dulcería. */
+    public Respuesta<List<Pedido>> consultarEntregadosHoy(Empleado empleado) {
+        return ejecutar("", () -> servicio.consultarEntregadosHoy(empleado));
+    }
+
+    /** «Buscar pedido»: número de pedido o código del comprobante (B001-000123). */
+    public Respuesta<Pedido> buscarPedido(Empleado empleado, String texto) {
+        return ejecutar("", () -> servicio.buscarPedido(empleado, texto));
+    }
+
     /** Productos de la sede del empleado que tienen stock bajo o están agotados. */
     public Respuesta<List<Producto>> consultarStockBajo(Empleado empleado) {
         return ejecutar("", () -> servicio.consultarStockBajo(empleado));
@@ -37,7 +52,8 @@ public class DulceriaController extends ControllerBase {
         return ejecutar("Pedido listo", () -> servicio.marcarListo(empleado, pedido));
     }
 
-    public Respuesta<Void> entregarPedido(Empleado empleado, Pedido pedido, String codigoQR) {
-        return ejecutar("Pedido entregado", () -> servicio.entregarPedido(empleado, pedido, codigoQR));
+    /** El código es el QR del pedido o el código del comprobante de su compra. */
+    public Respuesta<Void> entregarPedido(Empleado empleado, Pedido pedido, String codigo) {
+        return ejecutar("Pedido entregado", () -> servicio.entregarPedido(empleado, pedido, codigo));
     }
 }

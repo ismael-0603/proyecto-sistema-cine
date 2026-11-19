@@ -20,6 +20,19 @@ public class TransaccionPago {
     public static final List<String> MEDIOS_DISPONIBLES =
             List.of(TARJETA_CREDITO, TARJETA_DEBITO, YAPE, PLIN, PAGO_QR);
 
+    /** Nombre del medio para el comprobante (wireframes 9 y 23: «Pagado con …»). */
+    public static String describirMedio(String medioPago) {
+        if (medioPago == null) return null;
+        return switch (medioPago) {
+            case TARJETA_CREDITO -> "Tarjeta de crédito";
+            case TARJETA_DEBITO -> "Tarjeta de débito";
+            case YAPE -> "Yape";
+            case PLIN -> "Plin";
+            case PAGO_QR -> "Pago con QR";
+            default -> medioPago;
+        };
+    }
+
     // Estados de un pago (constantes: se usan como TransaccionPago.NOMBRE y su valor no cambia).
     public static final String PENDIENTE = "PENDIENTE"; // creado, aún sin procesar
     public static final String APROBADO = "APROBADO"; // cobrado y con la compra confirmada

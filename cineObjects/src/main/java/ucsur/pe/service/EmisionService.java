@@ -6,7 +6,9 @@ import ucsur.pe.model.Compra;
 import ucsur.pe.model.DateTime;
 import ucsur.pe.model.DetalleCompra;
 import ucsur.pe.model.Reloj;
+import ucsur.pe.model.TransaccionPago;
 import ucsur.pe.repository.CompraRepository;
+import ucsur.pe.repository.PagoRepository;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +22,7 @@ public class EmisionService {
     public static final int MINUTOS_BLOQUEO = 5;       // cuánto dura el bloqueo
 
     private final CompraRepository compras;
+    private final PagoRepository pagos; // para mostrar con qué medio se pagó
     private final ServicioCorreo correo;
     private final Reloj reloj; // de dónde sale la hora actual (el real o uno fijo en pruebas)
 
@@ -27,17 +30,23 @@ public class EmisionService {
     private int intentosFallidos;
     private DateTime bloqueadoHasta; // null si no está bloqueado
 
-    public EmisionService(CompraRepository compras, ServicioCorreo correo, Reloj reloj) {
+    public EmisionService(CompraRepository compras, PagoRepository pagos, ServicioCorreo correo, Reloj reloj) {
         if (reloj == null) throw new IllegalArgumentException("El reloj es obligatorio");
         this.compras = compras;
+        this.pagos = pagos;
         this.correo = correo;
         this.reloj = reloj;
     }
 
-    /** Resumen con el QR que se muestra al tocar «Ver» en Mis compras. */
+    /** Resumen con el QR y el medio de pago: comprobante (wireframe 9) y «Ver» en Mis compras (wireframe 23). */
     public DetalleCompra verDetalle(Compra compra) {
         if (compra == null) throw new IllegalArgumentException("La compra es obligatoria");
-        return compra.obtenerDetalle();
+        String medio = pagos.listarPorCompra(compra).stream()
+                .filter(p -> TransaccionPago.APROBADO.equals(p.getEstadoPago()))
+                .map(TransaccionPago::getMedioPago)
+                .findFirst()
+                .orElse(null);
+        return compra.obtenerDetalle(medio);
     }
 
     /** Texto del ticket que se manda a la impresora del kiosco (RF-21); la impresión real es de la vista. */

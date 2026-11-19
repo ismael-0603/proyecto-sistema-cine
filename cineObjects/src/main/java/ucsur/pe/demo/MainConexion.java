@@ -484,8 +484,8 @@ public class MainConexion {
                 new AutenticacionService(clientes, empleados, correo, reloj),
                 new CompraService(compras, cupones, tipos, calculadora, gestorPuntos, reloj),
                 new PagoService(pagos, compras, pedidos, new PasarelaSimulada(reloj), reloj),
-                new PedidoService(pedidos, productos),
-                new EmisionService(compras, correo, reloj),
+                new PedidoService(pedidos, productos, compras, reloj),
+                new EmisionService(compras, pagos, correo, reloj),
                 new PostventaService(reclamos, calificaciones, correo));
     }
 

@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Por qué existe: es lo que se ve al tocar «Ver» en Mis compras (y lo que se imprime o envía por correo):
- * el resumen de una compra ya pagada con sus códigos QR, sin los mensajes de «compra exitosa» ni los puntos.
+ * Por qué existe: es lo que se ve en el comprobante (wireframe 9), al tocar «Ver» en Mis compras (wireframe 23)
+ * y lo que se imprime o envía por correo: el resumen de una compra ya pagada con sus códigos QR, el medio
+ * de pago y, si el cliente es socio, los puntos ganados, su saldo y su nivel.
+ * No guarda datos de la tarjeta: el pago pasa por la pasarela y el kiosco solo conoce el medio.
  * Es una foto de la compra en ese momento; no cambia nada.
  */
 public final class DetalleCompra {
@@ -24,8 +26,18 @@ public final class DetalleCompra {
     private final ResumenImporte importe;
     private final long montoReembolsadoCentavos; // 0 si la compra no se reembolsó
     private final List<String> codigosQR = new ArrayList<>(); // de las entradas vendidas y del pedido
+    private final String medioPago;     // "Tarjeta de crédito", "Yape"...; null si no se conoce
+    private final int puntosGanados;    // 0 para invitados
+    private final Integer saldoPuntos;  // null si el cliente no es socio
+    private final Integer nivelSocio;   // null si el cliente no es socio
 
-    DetalleCompra(Compra compra) {
+    DetalleCompra(Compra compra, String medioPago) {
+        this.medioPago = TransaccionPago.describirMedio(medioPago);
+        this.puntosGanados = compra.getPuntosOtorgados();
+        Cliente cliente = compra.getCliente();
+        boolean socio = cliente != null && cliente.esSocio();
+        this.saldoPuntos = socio ? cliente.consultarPuntos() : null;
+        this.nivelSocio = socio ? cliente.getNivelSocio() : null;
         this.serieNumero = compra.getSerieNumero();
         this.estado = compra.getEstado();
         this.fechaCompra = compra.getFechaHora();
@@ -80,6 +92,12 @@ public final class DetalleCompra {
         lineas.add("Descuento: -" + ConversorDinero.formatear(importe.getDescuentoCentavos()));
         lineas.add("IGV: " + ConversorDinero.formatear(importe.getIgvCentavos()));
         lineas.add("Total pagado: " + ConversorDinero.formatear(importe.getTotalCentavos()));
+        if (medioPago != null) {
+            lineas.add("Pagado con: " + medioPago);
+        }
+        if (puntosGanados > 0) {
+            lineas.add("Puntos ganados: +" + puntosGanados);
+        }
         if (Compra.REEMBOLSADA.equals(estado)) {
             lineas.add("Devuelto (función cancelada): " + ConversorDinero.formatear(montoReembolsadoCentavos));
         }
@@ -101,6 +119,12 @@ public final class DetalleCompra {
     public ResumenImporte getImporte() { return importe; }
     public long getMontoReembolsadoCentavos() { return montoReembolsadoCentavos; }
     public List<String> getCodigosQR() { return List.copyOf(codigosQR); }
+    public String getMedioPago() { return medioPago; }
+    public int getPuntosGanados() { return puntosGanados; }
+    /** Saldo de puntos del socio al ver el comprobante; null para invitados. */
+    public Integer getSaldoPuntos() { return saldoPuntos; }
+    /** Nivel de socio (1 a 4); null para invitados. */
+    public Integer getNivelSocio() { return nivelSocio; }
 
     @Override
     public String toString() {

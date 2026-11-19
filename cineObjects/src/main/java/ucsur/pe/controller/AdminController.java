@@ -1,5 +1,6 @@
 package ucsur.pe.controller;
 
+import ucsur.pe.model.Compra;
 import ucsur.pe.model.Cupon;
 import ucsur.pe.model.DateTime;
 import ucsur.pe.model.Empleado;
@@ -13,6 +14,7 @@ import ucsur.pe.model.Sede;
 import ucsur.pe.model.TipoSala;
 import ucsur.pe.service.AdministracionService;
 import ucsur.pe.service.ResultadoCancelacion;
+import ucsur.pe.util.ConversorDinero;
 import java.util.List;
 
 /**
@@ -44,9 +46,9 @@ public class AdminController extends ControllerBase {
 
     public Respuesta<Void> actualizarPelicula(Empleado admin, Pelicula pelicula, String titulo, String sinopsis,
                                               String clasificacion, String trailer, String poster, DateTime estreno,
-                                              List<Genero> generos) {
+                                              String estado, List<Genero> generos) {
         return ejecutar("Película actualizada", () -> servicio.actualizarPelicula(admin, pelicula, titulo, sinopsis,
-                clasificacion, trailer, poster, estreno, generos));
+                clasificacion, trailer, poster, estreno, estado, generos));
     }
 
     public Respuesta<Void> retirarPelicula(Empleado admin, Pelicula pelicula) {
@@ -71,6 +73,12 @@ public class AdminController extends ControllerBase {
     public Respuesta<ResultadoCancelacion> cancelarFuncion(Empleado admin, Funcion funcion) {
         Respuesta<ResultadoCancelacion> r = ejecutar("Función cancelada", () -> servicio.cancelarFuncion(admin, funcion));
         return r.ok() ? Respuesta.exito("Función cancelada: " + r.dato(), r.dato()) : r;
+    }
+
+    /** «Reintentar» del aviso de cancelación: vuelve a pedir el reembolso de una compra pendiente. */
+    public Respuesta<Long> reintentarReembolso(Empleado admin, Compra compra) {
+        Respuesta<Long> r = ejecutar("", () -> servicio.reintentarReembolso(admin, compra));
+        return r.ok() ? Respuesta.exito("Reembolso hecho: " + ConversorDinero.formatear(r.dato()), r.dato()) : r;
     }
 
     public Respuesta<Void> reactivarFuncion(Empleado admin, Funcion funcion) {

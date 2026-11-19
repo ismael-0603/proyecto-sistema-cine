@@ -74,12 +74,22 @@ public class AdministracionService {
         return pelicula;
     }
 
+    /**
+     * «Guardar película» al editar (wireframe 17.1): datos, estado y géneros. La duración no se edita.
+     * Sacarla de la cartelera (Próximamente o Fuera de cartelera) exige que no tenga funciones pendientes,
+     * igual que «Retirar».
+     */
     public void actualizarPelicula(Empleado admin, Pelicula pelicula, String titulo, String sinopsis,
                                    String clasificacion, String trailer, String poster, DateTime fechaEstreno,
-                                   List<Genero> generos) {
+                                   String estado, List<Genero> generos) {
         exigirAdmin(admin);
         if (pelicula == null) throw new IllegalArgumentException("La película es obligatoria");
-        pelicula.actualizarInformacion(titulo, sinopsis, clasificacion, trailer, poster, fechaEstreno);
+        boolean saleDeCartelera = !Pelicula.EN_CARTELERA.equals(estado) && !Pelicula.PREESTRENO.equals(estado)
+                && !Pelicula.REESTRENO.equals(estado);
+        if (pelicula.estaEnCartelera() && saleDeCartelera) {
+            exigirSinFuncionesPendientes(pelicula);
+        }
+        pelicula.actualizarInformacion(titulo, sinopsis, clasificacion, trailer, poster, fechaEstreno, estado);
         pelicula.cambiarGeneros(generos);
         peliculas.guardar(pelicula);
     }
@@ -94,6 +104,13 @@ public class AdministracionService {
     public void retirarPelicula(Empleado admin, Pelicula pelicula) {
         exigirAdmin(admin);
         if (pelicula == null) throw new IllegalArgumentException("La película es obligatoria");
+        exigirSinFuncionesPendientes(pelicula);
+        pelicula.setEstado(Pelicula.FUERA_DE_CARTELERA);
+        peliculas.guardar(pelicula);
+    }
+
+    /** Una película con funciones pendientes en alguna sede no puede salir de la cartelera (wireframe 17.3). */
+    private void exigirSinFuncionesPendientes(Pelicula pelicula) {
         for (Sede sede : sedes.listarTodas()) {
             for (Funcion f : sede.getCartelera()) {
                 if (f.getPelicula() == pelicula && f.estaPendiente()) {
@@ -102,8 +119,6 @@ public class AdministracionService {
                 }
             }
         }
-        pelicula.setEstado(Pelicula.FUERA_DE_CARTELERA);
-        peliculas.guardar(pelicula);
     }
 
     public List<Pelicula> listarPeliculas(Empleado admin) {
@@ -114,11 +129,15 @@ public class AdministracionService {
     // ---------- Funciones (wireframe 18) ----------
     /**
      * Programa una función en una sala de la sede del administrador; la sede rechaza una sala de otra sede
-     * y la sala, los cruces de horario (RF-47). La base le genera el id.
+     * y la sala, los cruces de horario (RF-47). Solo se programan películas en cartelera, en preestreno
+     * o reestrenadas (wireframe 18.1). La base le genera el id.
      */
     public Funcion programarFuncion(Empleado admin, Pelicula pelicula, Sala sala, DateTime fecha, DateTime hora,
                                     String idioma) {
         exigirAdmin(admin);
+        if (pelicula != null && !pelicula.estaEnCartelera()) {
+            throw new ReglaNegocioException("Solo se programan películas en cartelera, en preestreno o reestrenadas");
+        }
         Funcion funcion = new Funcion(0, fecha, hora, idioma, Funcion.DISPONIBLE, pelicula, sala, reloj);
         admin.getSede().agregarFuncion(funcion);
         sedes.guardar(admin.getSede());
@@ -144,6 +163,7 @@ public class AdministracionService {
         int enProcesoCanceladas = 0;
         long devuelto = 0;
         List<String> pendientes = new ArrayList<>();
+        List<Compra> comprasPendientes = new ArrayList<>();
         for (Compra compra : compras.listarPorFuncion(funcion)) {
             try {
                 if (Compra.CONFIRMADA.equals(compra.getEstado())) {
@@ -156,10 +176,24 @@ public class AdministracionService {
                 }
             } catch (IllegalStateException | IllegalArgumentException e) {
                 pendientes.add("Compra #" + compra.getIdCompra() + ": " + e.getMessage());
+                comprasPendientes.add(compra);
             }
         }
         sedes.guardar(admin.getSede());
-        return new ResultadoCancelacion(reembolsadas, devuelto, enProcesoCanceladas, pendientes);
+        return new ResultadoCancelacion(reembolsadas, devuelto, enProcesoCanceladas, pendientes, comprasPendientes);
+    }
+
+    /**
+     * «Reintentar» del aviso de cancelación (wireframe 18): vuelve a pedir a la pasarela el reembolso de una
+     * compra que quedó pendiente. Solo para compras de la sede del administrador; devuelve el monto en céntimos.
+     */
+    public long reintentarReembolso(Empleado admin, Compra compra) {
+        exigirAdmin(admin);
+        if (compra == null) throw new IllegalArgumentException("La compra es obligatoria");
+        if (!compra.getSede().equals(admin.getSede())) {
+            throw new ReglaNegocioException("La compra es de otra sede; el administrador gestiona " + admin.getSede().getNombre());
+        }
+        return pagos.reembolsar(compra); // valida que esté CONFIRMADA y que su función esté cancelada
     }
 
     /** Vuelve a poner a la venta una función cancelada que aún no empieza (wireframe 18, «Reactivar»). */
