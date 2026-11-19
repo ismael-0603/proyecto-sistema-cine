@@ -24,6 +24,11 @@ public class DulceriaController extends ControllerBase {
         return ejecutar("", () -> servicio.consultarPendientes(empleado));
     }
 
+    /** Productos de la sede del empleado que tienen stock bajo o están agotados. */
+    public Respuesta<List<Producto>> consultarStockBajo(Empleado empleado) {
+        return ejecutar("", () -> servicio.consultarStockBajo(empleado));
+    }
+
     public Respuesta<Void> prepararPedido(Empleado empleado, Pedido pedido) {
         return ejecutar("Pedido en preparación", () -> servicio.prepararPedido(empleado, pedido));
     }

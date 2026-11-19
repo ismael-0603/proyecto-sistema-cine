@@ -24,7 +24,7 @@ public class MainInicioSesion {
         System.out.println("=== INICIO DE SESION (Persona) ===");
 
         Cliente cliente = app.login().registrarCliente("12345678", "Ismael", "Chipana",
-                new DateTime(1, 1, 2000), "ismael@mail.com", null, "clave123").dato();
+                new DateTime(1, 1, 2000), "ismael@mail.com", null, "clave123", "clave123").dato();
 
         Sede sede = new Sede(1, "Cine Prueba", "Av. Lima 123", "Miraflores", null, null, Sede.ACTIVA);
         Rol rol = new Rol(1, "Dulceria", "Atiende pedidos", Rol.NIVEL_DULCERIA);

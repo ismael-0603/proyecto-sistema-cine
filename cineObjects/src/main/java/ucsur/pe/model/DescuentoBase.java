@@ -3,18 +3,35 @@ package ucsur.pe.model;
 import ucsur.pe.tipo.CalculoDescuento;
 
 /**
- * Por qué existe: junta lo común de Cupon y Promocion (forma de cálculo, fechas y si está activo)
- * para no repetirlo. Cada hija decide cuándo se aplica a una compra; el cálculo lo hace su CalculoDescuento.
+ * Por qué existe: junta lo común de Cupon y Promocion (forma de cálculo, fechas, nivel de socio mínimo
+ * y si está activo) para no repetirlo. Cada hija decide cuándo se aplica a una compra; el cálculo lo hace su CalculoDescuento.
  */
 public abstract class DescuentoBase implements Descuento, Activable {
     private CalculoDescuento calculo; // porcentaje, monto fijo...: cada forma calcula a su manera
     private DateTime fechaInicio; // solo fecha: DateTime(dia, mes, anio)
     private DateTime fechaFin;    // solo fecha: DateTime(dia, mes, anio)
     private boolean estado; // habilitado o no; es independiente de las fechas
+    /** 0 = todos; 1 = cualquier socio; 2 a 4 = socios de ese nivel o superior (igual que en Producto). */
+    private int nivelSocioMinimo;
 
-    protected DescuentoBase(CalculoDescuento calculo, DateTime fechaInicio, DateTime fechaFin, boolean estado) {
+    protected DescuentoBase(CalculoDescuento calculo, DateTime fechaInicio, DateTime fechaFin,
+                            int nivelSocioMinimo, boolean estado) {
         cambiarCalculoYVigencia(calculo, fechaInicio, fechaFin);
+        cambiarNivelSocioMinimo(nivelSocioMinimo);
         this.estado = estado;
+    }
+
+    /** Lo usan las hijas al crearse y al editarse: el nivel va de 0 (todos) a Cliente.NIVEL_MAXIMO. */
+    protected final void cambiarNivelSocioMinimo(int nivelSocioMinimo) {
+        if (nivelSocioMinimo < 0 || nivelSocioMinimo > Cliente.NIVEL_MAXIMO) {
+            throw new IllegalArgumentException("El nivel de socio mínimo debe estar entre 0 y " + Cliente.NIVEL_MAXIMO);
+        }
+        this.nivelSocioMinimo = nivelSocioMinimo;
+    }
+
+    /** Comprueba que el cliente de la compra tenga el nivel de socio que pide este descuento. */
+    protected boolean cumpleNivelSocio(ContextoDescuento contexto) {
+        return contexto.cumpleNivel(nivelSocioMinimo);
     }
 
     /** Lo usan las hijas al editarse: valida y cambia la forma de cálculo y las fechas. */
@@ -64,6 +81,7 @@ public abstract class DescuentoBase implements Descuento, Activable {
     public long getValor() { return calculo.getValor(); }
     public DateTime getFechaInicio() { return fechaInicio; }
     public DateTime getFechaFin() { return fechaFin; }
+    public int getNivelSocioMinimo() { return nivelSocioMinimo; }
     @Override
     public boolean isEstado() { return estado; }
 

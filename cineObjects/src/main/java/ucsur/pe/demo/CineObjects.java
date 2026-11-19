@@ -27,6 +27,9 @@ import ucsur.pe.model.SeleccionAsientos;
 import ucsur.pe.model.TipoEntrada;
 import ucsur.pe.model.TipoSala;
 import ucsur.pe.model.TransaccionPago;
+import ucsur.pe.repository.ClienteMemoriaRepository;
+import ucsur.pe.repository.EmpleadoMemoriaRepository;
+import ucsur.pe.service.AutenticacionService;
 import ucsur.pe.tipo.CalculoPorcentaje;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +57,12 @@ public class CineObjects {
     }
 
     /** Ultimo correo que "envio" el proveedor simulado. */
+    /** El código de 6 dígitos del último correo enviado (la vista real lo escribe el usuario). */
+    private static String codigoDelUltimoCorreo(App app) {
+        List<CorreoSimulado.Mensaje> enviados = ((CorreoSimulado) app.correo()).getEnviados();
+        return enviados.get(enviados.size() - 1).cuerpo().replaceAll("(?s).*?(\\d{6}).*", "$1");
+    }
+
     private static String ultimoCorreo(App app) {
         List<CorreoSimulado.Mensaje> enviados = ((CorreoSimulado) app.correo()).getEnviados();
         if (enviados.isEmpty()) return "(ninguno)";
@@ -127,7 +136,7 @@ public class CineObjects {
         // ---------- 2. Compra basica ----------
         titulo("2. Compra basica");
         Cliente cliente = app.login().registrarCliente("12345678", "Ismael", "Chipana",
-                new DateTime(1, 1, 2000), "ismael@mail.com", null, "clave123").dato();
+                new DateTime(1, 1, 2000), "ismael@mail.com", null, "clave123", "clave123").dato();
         TipoEntrada general = new TipoEntrada(1, "GENERAL", "Entrada general", ConversorDinero.aCentavos("20.00"), 2, false, true);
 
         Compra compra = app.compra().iniciarCompra(cliente, sede).dato();
@@ -170,10 +179,10 @@ public class CineObjects {
         // ---------- 4. Dulceria, cupon y pedido ----------
         titulo("4. Entrada + combo + cupon + pedido");
         Producto combo = app.admin().registrarProducto(admin, "Combo Mediano", "Canchita y gaseosa", "Combos",
-                ConversorDinero.aCentavos("25.00"), true, 0).dato();
+                ConversorDinero.aCentavos("25.00"), true, 0, 0).dato();
         app.admin().reponerStock(admin, combo, 10);
         Cupon cupon = app.admin().registrarCupon(admin, "CINE10", CalculoPorcentaje.TIPO, 10,
-                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 5).dato();
+                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 5, 0).dato();
         System.out.println("Menu de dulceria: " + app.dulceria().consultarMenu(sede, cliente).dato());
 
         Compra c3 = app.compra().iniciarCompra(cliente, sede).dato();
@@ -232,9 +241,9 @@ public class CineObjects {
         TipoEntrada normal = new TipoEntrada(2, "GENERAL", "Entrada general", ConversorDinero.aCentavos("30.00"), 2, false, true);
         TipoEntrada socio50 = new TipoEntrada(3, "SOCIO", "Entrada socio a mitad de precio", ConversorDinero.aCentavos("15.00"), 3, true, true, 40);
         Producto comboNivel2 = app.admin().registrarProducto(admin, "Combo Oferta Nivel 2", "Oferta para socios nivel 2",
-                "Combos", ConversorDinero.aCentavos("30.00"), true, 2).dato();
+                "Combos", ConversorDinero.aCentavos("30.00"), true, 2, 0).dato();
         Producto comboSocio = app.admin().registrarProducto(admin, "Combo Socio", "Oferta para socios", "Combos",
-                ConversorDinero.aCentavos("25.00"), true, 1).dato();
+                ConversorDinero.aCentavos("25.00"), true, 1, 0).dato();
         app.admin().reponerStock(admin, comboNivel2, 5);
         app.admin().reponerStock(admin, comboSocio, 5);
         System.out.println("Tarifa normal: " + ConversorDinero.formatear(normal.getTarifaCentavos()));
@@ -264,7 +273,7 @@ public class CineObjects {
 
         // Un socio sin puntos suficientes tampoco
         Cliente nuevo = app.login().registrarCliente("11112222", "Luis", "Perez", new DateTime(1, 1, 1995),
-                "luis@mail.com", null, "clave789").dato();
+                "luis@mail.com", null, "clave789", "clave789").dato();
         Compra c8 = app.compra().iniciarCompra(nuevo, sede).dato();
         app.compra().agregarEntrada(c8, funcion, sala.obtenerMapaButacas().get(3), socio50); // A4
         System.out.println("Socio sin puntos - error esperado: " + app.compra().validarBeneficiosSocio(c8).mensaje());
@@ -292,7 +301,7 @@ public class CineObjects {
 
         // 10 compras confirmadas en el anio suben al nivel 2
         Cliente frecuente = app.login().registrarCliente("33334444", "Rosa", "Diaz", new DateTime(10, 10, 1990),
-                "rosa@mail.com", null, "clave000").dato();
+                "rosa@mail.com", null, "clave000", "clave000").dato();
         Compra ultimaFrecuente = null;
         for (int i = 0; i < 10; i++) {
             Compra cv = app.compra().iniciarCompra(frecuente, sede).dato();
@@ -318,9 +327,9 @@ public class CineObjects {
         List<Integer> otroDia = new ArrayList<>();
         otroDia.add(diaHoy % 7 + 1);
         Promocion pHoy = app.admin().registrarPromocion(admin, "Promo hoy", "20% solo hoy", CalculoPorcentaje.TIPO, 20,
-                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), false, soloHoy).dato();
+                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 0, soloHoy).dato();
         Promocion pOtro = app.admin().registrarPromocion(admin, "Promo otro dia", "20% otro dia", CalculoPorcentaje.TIPO, 20,
-                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), false, otroDia).dato();
+                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 0, otroDia).dato();
         System.out.println("Promociones vigentes hoy: " + app.cartelera().consultarPromociones().dato());
         Compra cp = app.compra().iniciarCompra(cliente, sede).dato();
         System.out.println("Hoy es dia " + diaHoy
@@ -351,9 +360,113 @@ public class CineObjects {
         app.compra().cancelar(pendiente);
 
         System.out.println("Cliente con DNI de 3 digitos - error esperado: " + app.login().registrarCliente(
-                "123", "Ana", "Lopez", new DateTime(1, 1, 2000), "ana.lopez@mail.com", null, "clave").mensaje());
+                "123", "Ana", "Lopez", new DateTime(1, 1, 2000), "ana.lopez@mail.com", null, "clave123", "clave123").mensaje());
         System.out.println("Correo ya registrado - error esperado: " + app.login().registrarCliente(
-                "55556666", "Otro", "Ismael", null, "ismael@mail.com", null, "clave").mensaje());
+                "55556666", "Otro", "Ismael", null, "ismael@mail.com", null, "clave123", "clave123").mensaje());
+        // Reglas del wireframe 5 (Crear cuenta)
+        System.out.println("Contrasena de 5 caracteres - error esperado: " + app.login().registrarCliente(
+                "55557777", "Ana", "Ruiz", null, "ana.ruiz@mail.com", null, "clave", "clave").mensaje());
+        System.out.println("Contrasenas que no coinciden - error esperado: " + app.login().registrarCliente(
+                "55557777", "Ana", "Ruiz", null, "ana.ruiz@mail.com", null, "clave123", "clave124").mensaje());
+        System.out.println("Telefono de 7 digitos - error esperado: " + app.login().registrarCliente(
+                "55557777", "Ana", "Ruiz", null, "ana.ruiz@mail.com", "9876543", "clave123", "clave123").mensaje());
+
+        // Cupones con nivel de socio minimo (wireframe 19: «Nivel mín.»); el cliente es socio nivel 1
+        app.admin().registrarCupon(admin, "SOCIO1", CalculoPorcentaje.TIPO, 10,
+                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 5, 1);
+        app.admin().registrarCupon(admin, "SOCIO3", CalculoPorcentaje.TIPO, 10,
+                new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 5, 3);
+        Compra conCupon = app.compra().iniciarCompra(cliente, sede).dato();
+        System.out.println("Socio nivel " + cliente.getNivelSocio() + " usa cupon de nivel 1: "
+                + resultado(app.compra().aplicarCupon(conCupon, "SOCIO1")));
+        System.out.println("Socio nivel " + cliente.getNivelSocio() + " usa cupon de nivel 3 - error esperado: "
+                + app.compra().aplicarCupon(conCupon, "SOCIO3").mensaje());
+        app.compra().cancelar(conCupon);
+        Cliente invitadoCupon = app.login().ingresarComoInvitado("invitado.cupon@mail.com").dato();
+        Compra compraInvitado = app.compra().iniciarCompra(invitadoCupon, sede).dato();
+        System.out.println("Invitado usa cupon de nivel 1 - error esperado: "
+                + app.compra().aplicarCupon(compraInvitado, "SOCIO1").mensaje());
+        app.compra().cancelar(compraInvitado);
+
+        // Stock solo en la sede del administrador y aviso de stock bajo (wireframe 20: «Stock bajo» / «Agotado»)
+        Producto bebida = app.admin().registrarProducto(admin, "Bebida mediana", "Gaseosa 22 oz", "Bebidas",
+                ConversorDinero.aCentavos("9.00"), false, 0, 20).dato();
+        System.out.println("Stock inicial de la bebida en " + sede.getNombre() + ": " + bebida.getStock(sede));
+        Producto agua = app.admin().registrarProducto(admin, "Agua sin gas", "Botella 625 ml", "Bebidas",
+                ConversorDinero.aCentavos("5.00"), false, 0, 0).dato();
+        Compra conBebidas = app.compra().iniciarCompra(cliente, sede).dato();
+        Funcion enVenta = app.admin().programarFuncion(admin, peli, sala, fechaFuncion, new DateTime(12, 0), "Doblada").dato();
+        app.compra().agregarEntrada(conBebidas, enVenta, enVenta.obtenerButacasDisponibles().get(0), general);
+        app.compra().agregarProducto(conBebidas, bebida, 6, null);
+        app.compra().confirmarAsientos(conBebidas);
+        System.out.println("Venta con 6 bebidas: "
+                + resultado(app.pago().pagar(conBebidas, conBebidas.getTotalCentavos(), TransaccionPago.YAPE)));
+        System.out.println("Tras vender 6 bebidas quedan " + bebida.getStock(sede) + " | stock bajo: "
+                + bebida.tieneStockBajo(sede) + " | agua agotada: " + agua.estaAgotado(sede));
+        Respuesta<List<Producto>> alerta = app.admin().listarProductosConStockBajo(admin);
+        System.out.println("Alerta del administrador: " + alerta.mensaje() + " -> " + alerta.dato());
+        System.out.println("Panel de dulceria: " + app.dulceria().consultarStockBajo(empleado).dato());
+        System.out.println(app.admin().reponerStock(admin, bebida, 1).mensaje());
+        System.out.println(app.admin().reponerStock(admin, bebida, 10).mensaje());
+        Sede otraSede = new Sede(2, "Cineplanet Norte", "Av. Mendiola 1400", "Independencia", null, null, Sede.ACTIVA);
+        Empleado adminNorte = new Empleado(9, "99887766", "Luis", "Paz", new DateTime(1, 1, 1985),
+                "luis.paz@cine.com", null, "admin456", "Tarde", rolAdmin, otraSede, app.reloj());
+        System.out.println(app.admin().reponerStock(adminNorte, agua, 30).mensaje() + " (admin de " + otraSede.getNombre() + ")");
+        System.out.println("Agua: en " + otraSede.getNombre() + " hay " + agua.getStock(otraSede)
+                + " y en " + sede.getNombre() + " sigue en " + agua.getStock(sede));
+        System.out.println("Alerta del admin de " + otraSede.getNombre() + " incluye el agua: "
+                + app.admin().listarProductosConStockBajo(adminNorte).dato().contains(agua)
+                + " | alerta del admin de " + sede.getNombre() + " la incluye: "
+                + app.admin().listarProductosConStockBajo(admin).dato().contains(agua));
+
+        // Recuperar contrasena con un codigo enviado al correo (wireframe 4: «¿Olvidaste tu contraseña?»)
+        titulo("Recuperar contrasena");
+        int correosAntes = ((CorreoSimulado) app.correo()).getEnviados().size();
+        System.out.println("Correo que no existe: " + app.login().solicitarRecuperacion("nadie@mail.com").mensaje()
+                + " | correos enviados: " + (((CorreoSimulado) app.correo()).getEnviados().size() - correosAntes));
+        System.out.println("Correo de un invitado: " + app.login().solicitarRecuperacion("invitado.cupon@mail.com").mensaje()
+                + " | correos enviados: " + (((CorreoSimulado) app.correo()).getEnviados().size() - correosAntes));
+        System.out.println("Socio: " + app.login().solicitarRecuperacion("ismael@mail.com").mensaje()
+                + " -> " + ultimoCorreo(app));
+        String codigo = codigoDelUltimoCorreo(app);
+        String malo = codigo.equals("000000") ? "111111" : "000000";
+        System.out.println("Codigo equivocado - error esperado: "
+                + app.login().restablecerContrasena("ismael@mail.com", malo, "nueva1234", "nueva1234").mensaje());
+        System.out.println("Contrasenas distintas - error esperado: "
+                + app.login().restablecerContrasena("ismael@mail.com", codigo, "nueva1234", "nueva9999").mensaje());
+        System.out.println("Contrasena corta - error esperado: "
+                + app.login().restablecerContrasena("ismael@mail.com", codigo, "corta", "corta").mensaje());
+        System.out.println("Codigo correcto: "
+                + app.login().restablecerContrasena("ISMAEL@mail.com", codigo, "nueva1234", "nueva1234").mensaje());
+        System.out.println("Reusar el codigo - error esperado: "
+                + app.login().restablecerContrasena("ismael@mail.com", codigo, "otra12345", "otra12345").mensaje());
+        System.out.println("Login con la contrasena anterior - error esperado: "
+                + app.login().iniciarSesion("ismael@mail.com", "clave123").mensaje());
+        System.out.println("Login con la nueva: " + resultado(app.login().iniciarSesion("ismael@mail.com", "nueva1234")));
+        app.login().solicitarRecuperacion("ismael@mail.com");
+        Respuesta<Void> intento = null;
+        for (int i = 0; i < AutenticacionService.MAX_INTENTOS_CODIGO; i++) {
+            intento = app.login().restablecerContrasena("ismael@mail.com", "abc", "nueva5678", "nueva5678");
+        }
+        System.out.println("5 codigos equivocados - error esperado: " + intento.mensaje());
+        System.out.println("El codigo real ya no sirve - error esperado: " + app.login().restablecerContrasena(
+                "ismael@mail.com", codigoDelUltimoCorreo(app), "nueva5678", "nueva5678").mensaje());
+        // Vencimiento: un servicio aparte con un reloj que se puede adelantar
+        DateTime[] hora = {new DateTime(18, 11, 2026, 10, 0, 0)};
+        CorreoSimulado buzon = new CorreoSimulado();
+        ClienteMemoriaRepository soloClientes = new ClienteMemoriaRepository();
+        AutenticacionService auth = new AutenticacionService(soloClientes, new EmpleadoMemoriaRepository(), buzon,
+                () -> hora[0]);
+        auth.registrarCliente("44445555", "Eva", "Luna", null, "eva@mail.com", null, "clave123", "clave123");
+        auth.solicitarRecuperacion("eva@mail.com");
+        String codigoEva = buzon.getEnviados().get(0).cuerpo().replaceAll("(?s).*?(\\d{6}).*", "$1");
+        hora[0] = hora[0].sumarMinutos(AutenticacionService.MINUTOS_VIGENCIA_CODIGO + 1);
+        try {
+            auth.restablecerContrasena("eva@mail.com", codigoEva, "nueva1234", "nueva1234");
+            System.out.println("Codigo vencido: FALLA, se acepto");
+        } catch (IllegalStateException e) {
+            System.out.println("Codigo vencido a los 11 minutos - error esperado: " + e.getMessage());
+        }
 
         System.out.println("Correo enviado al cliente: " + ultimoCorreo(app));
 
@@ -424,7 +537,7 @@ public class CineObjects {
         System.out.println("Editar combo: " + resultado(app.admin().actualizarProducto(admin, combo, "Combo Mediano",
                 "Canchita salada y gaseosa", "Combos", ConversorDinero.aCentavos("27.50"), true, 0)) + " | " + combo);
         System.out.println("Bajar limite del cupon por debajo de sus usos: " + resultado(app.admin().actualizarCupon(admin, cupon,
-                "CINE10", CalculoPorcentaje.TIPO, 10, new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 0)));
+                "CINE10", CalculoPorcentaje.TIPO, 10, new DateTime(1, 1, 2026), new DateTime(31, 12, 2030), 0, 0)));
         System.out.println("Editar funcion con entradas vendidas: " + resultado(app.admin().editarFuncion(admin, funcion4,
                 fechaFuncion, new DateTime(11, 0), "Doblada")));
         System.out.println("Reactivar funcion 3: " + resultado(app.admin().reactivarFuncion(admin, funcion3))

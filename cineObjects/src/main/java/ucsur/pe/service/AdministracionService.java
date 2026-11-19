@@ -175,11 +175,16 @@ public class AdministracionService {
     }
 
     // ---------- Productos de dulcería (wireframe 20) ----------
-    /** Crea el producto activo y sin stock (se repone con reponerStock); la base le genera el id. */
+    /**
+     * Crea el producto activo con su stock inicial en la sede del administrador (0 = sin stock);
+     * cada administrador solo maneja el inventario de la sede donde trabaja. La base le genera el id.
+     */
     public Producto registrarProducto(Empleado admin, String nombre, String descripcion, String categoria,
-                                      long precioCentavos, boolean esCombo, int nivelSocioMinimo) {
+                                      long precioCentavos, boolean esCombo, int nivelSocioMinimo, int stockInicial) {
         exigirAdmin(admin);
+        if (stockInicial < 0) throw new IllegalArgumentException("El stock inicial no puede ser negativo");
         Producto producto = new Producto(0, nombre, descripcion, categoria, precioCentavos, esCombo, nivelSocioMinimo, true);
+        if (stockInicial > 0) producto.reponerStock(admin.getSede(), stockInicial);
         productos.guardar(producto);
         return producto;
     }
@@ -192,12 +197,22 @@ public class AdministracionService {
         productos.guardar(producto);
     }
 
-    /** Repone stock del producto en la sede del administrador. */
-    public void reponerStock(Empleado admin, Producto producto, int cantidad) {
+    /**
+     * Repone stock del producto solo en la sede donde trabaja el administrador (no en otras sedes).
+     * Devuelve el stock que queda, para avisar si sigue en stock bajo.
+     */
+    public int reponerStock(Empleado admin, Producto producto, int cantidad) {
         exigirAdmin(admin);
         if (producto == null) throw new IllegalArgumentException("El producto es obligatorio");
         producto.reponerStock(admin.getSede(), cantidad);
         productos.guardar(producto);
+        return producto.getStock(admin.getSede());
+    }
+
+    /** Alerta del wireframe 20: productos activos con stock bajo o agotados en la sede del administrador. */
+    public List<Producto> listarProductosConStockBajo(Empleado admin) {
+        exigirAdmin(admin);
+        return productos.listarTodos().stream().filter(p -> p.requiereReposicion(admin.getSede())).toList();
     }
 
     public List<Producto> listarProductos(Empleado admin) {
@@ -210,23 +225,25 @@ public class AdministracionService {
      * Crea un cupón activo; el código no puede repetirse (uq_cupon_codigo).
      * El descuento llega como tipo (uno de tiposDescuento(), por ejemplo "PORCENTAJE") y valor:
      * el porcentaje (10 = 10%) o el monto en céntimos (500 = S/ 5.00).
+     * nivelSocioMinimo: 0 = todos, 1 = cualquier socio, 2 a 4 = socios de ese nivel o más (wireframe 19: «Nivel mín.»).
      */
     public Cupon registrarCupon(Empleado admin, String codigo, String tipoDescuento, long valor,
-                                DateTime fechaInicio, DateTime fechaFin, int limiteUso) {
+                                DateTime fechaInicio, DateTime fechaFin, int limiteUso, int nivelSocioMinimo) {
         exigirAdmin(admin);
         exigirCodigoLibre(codigo, null);
         Cupon cupon = new Cupon(0, codigo, FabricaCalculoDescuento.crear(tipoDescuento, valor),
-                fechaInicio, fechaFin, limiteUso, true);
+                fechaInicio, fechaFin, limiteUso, nivelSocioMinimo, true);
         cupones.guardar(cupon);
         return cupon;
     }
 
     public void actualizarCupon(Empleado admin, Cupon cupon, String codigo, String tipoDescuento, long valor,
-                                DateTime fechaInicio, DateTime fechaFin, int limiteUso) {
+                                DateTime fechaInicio, DateTime fechaFin, int limiteUso, int nivelSocioMinimo) {
         exigirAdmin(admin);
         if (cupon == null) throw new IllegalArgumentException("El cupón es obligatorio");
         exigirCodigoLibre(codigo, cupon);
-        cupon.actualizar(codigo, FabricaCalculoDescuento.crear(tipoDescuento, valor), fechaInicio, fechaFin, limiteUso);
+        cupon.actualizar(codigo, FabricaCalculoDescuento.crear(tipoDescuento, valor), fechaInicio, fechaFin,
+                limiteUso, nivelSocioMinimo);
         cupones.guardar(cupon);
     }
 
@@ -235,24 +252,27 @@ public class AdministracionService {
         return cupones.listarTodos();
     }
 
-    /** Crea una promoción activa; el descuento llega como tipo y valor, igual que en registrarCupon. */
+    /**
+     * Crea una promoción activa; el descuento llega como tipo y valor, y el nivel de socio mínimo
+     * con la misma escala, igual que en registrarCupon (wireframe 10: «Socio nivel 2+»).
+     */
     public Promocion registrarPromocion(Empleado admin, String nombre, String descripcion, String tipoDescuento,
-                                        long valor, DateTime fechaInicio, DateTime fechaFin, boolean soloSocios,
+                                        long valor, DateTime fechaInicio, DateTime fechaFin, int nivelSocioMinimo,
                                         List<Integer> diasAplicables) {
         exigirAdmin(admin);
         Promocion promocion = new Promocion(0, nombre, descripcion, FabricaCalculoDescuento.crear(tipoDescuento, valor),
-                fechaInicio, fechaFin, soloSocios, diasAplicables, true);
+                fechaInicio, fechaFin, nivelSocioMinimo, diasAplicables, true);
         promociones.guardar(promocion);
         return promocion;
     }
 
     public void actualizarPromocion(Empleado admin, Promocion promocion, String nombre, String descripcion,
                                     String tipoDescuento, long valor, DateTime fechaInicio, DateTime fechaFin,
-                                    boolean soloSocios, List<Integer> diasAplicables) {
+                                    int nivelSocioMinimo, List<Integer> diasAplicables) {
         exigirAdmin(admin);
         if (promocion == null) throw new IllegalArgumentException("La promoción es obligatoria");
         CalculoDescuento calculo = FabricaCalculoDescuento.crear(tipoDescuento, valor);
-        promocion.actualizar(nombre, descripcion, calculo, fechaInicio, fechaFin, soloSocios, diasAplicables);
+        promocion.actualizar(nombre, descripcion, calculo, fechaInicio, fechaFin, nivelSocioMinimo, diasAplicables);
         promociones.guardar(promocion);
     }
 

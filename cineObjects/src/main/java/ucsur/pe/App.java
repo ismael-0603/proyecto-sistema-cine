@@ -155,7 +155,7 @@ public class App {
         CalculadoraImporte calculadora = new CalculadoraImporte();
         GestorPuntos gestorPuntos = new GestorPuntos();
 
-        this.login = new LoginController(new AutenticacionService(repos.clientes(), repos.empleados(), reloj));
+        this.login = new LoginController(new AutenticacionService(repos.clientes(), repos.empleados(), correo, reloj));
         this.cartelera = new CarteleraController(new CarteleraService(repos.sedes(), repos.promociones(),
                 repos.peliculas(), reloj));
         this.compra = new CompraController(new CompraService(repos.compras(), repos.cupones(), repos.tiposEntrada(),

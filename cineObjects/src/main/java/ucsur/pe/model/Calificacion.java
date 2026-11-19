@@ -4,6 +4,7 @@ package ucsur.pe.model;
  * Por qué existe: guarda la nota (1 a 5) y el comentario que el cliente da a una compra confirmada.
  */
 public class Calificacion {
+    public static final int MAX_COMENTARIO = 300; // wireframe 14: «Máximo 300 caracteres»
     private int idCalificacion;
     private int puntuacion; // Valor permitido: de 1 a 5.
     private String comentario;
@@ -16,8 +17,8 @@ public class Calificacion {
         if (!esPuntuacionValida(puntuacion)) {
             throw new IllegalArgumentException("La puntuación debe estar entre 1 y 5");
         }
-        if (comentario != null && comentario.length() > 255) {
-            throw new IllegalArgumentException("El comentario no puede superar 255 caracteres");
+        if (comentario != null && comentario.length() > MAX_COMENTARIO) {
+            throw new IllegalArgumentException("El comentario no puede superar " + MAX_COMENTARIO + " caracteres");
         }
         if (compra == null) {
             throw new IllegalArgumentException("La compra es obligatoria");

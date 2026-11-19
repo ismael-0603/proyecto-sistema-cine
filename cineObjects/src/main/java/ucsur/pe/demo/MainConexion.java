@@ -327,7 +327,7 @@ public class MainConexion {
         // Un segundo objeto con un id ya usado se rechaza (habría dos objetos para la misma fila)
         try {
             cupones.guardar(Cupon.restaurar(cupon.getIdCupon(), "OTRO", new CalculoPorcentaje(5), cupon.getFechaInicio(),
-                    cupon.getFechaFin(), 1, 0, true));
+                    cupon.getFechaFin(), 1, 0, 0, true));
             comprobar("id repetido es rechazado", false);
         } catch (RepositoryException e) {
             comprobar("id repetido -> \"" + e.getMessage() + "\"", true);
@@ -336,7 +336,7 @@ public class MainConexion {
         // Registrar una promoción nueva (con sus días, en una transacción) y luego borrarla.
         // Nace con id 0: la base lo genera (AUTO_INCREMENT) y el DAO se lo asigna.
         Promocion nueva = new Promocion(0, "Prueba MainConexion", "Se borra al terminar",
-                new CalculoPorcentaje(5), DateTime.ahora(), DateTime.ahora().sumarDias(1), false, List.of(1, 3), true);
+                new CalculoPorcentaje(5), DateTime.ahora(), DateTime.ahora().sumarDias(1), 0, List.of(1, 3), true);
         try {
             promociones.guardar(nueva);
             comprobar("promoción nueva con id generado por la base (" + nueva.getIdPromocion() + ") y 2 días",
@@ -344,7 +344,7 @@ public class MainConexion {
                     && entero(cn, "SELECT COUNT(*) FROM promocion_dia WHERE id_promocion = " + nueva.getIdPromocion()) == 2);
             try {
                 promociones.guardar(new Promocion(99999, "Id a mano", null, new CalculoPorcentaje(5),
-                        DateTime.ahora(), DateTime.ahora().sumarDias(1), false, List.of(), true));
+                        DateTime.ahora(), DateTime.ahora().sumarDias(1), 0, List.of(), true));
                 comprobar("un id puesto a mano es rechazado", false);
             } catch (RepositoryException e) {
                 comprobar("id puesto a mano -> \"" + e.getMessage() + "\"", true);
@@ -369,7 +369,7 @@ public class MainConexion {
         PersonaMySqlDao dao = new PersonaMySqlDao(cn, reloj);
         ClienteJdbcRepository clientes = new ClienteJdbcRepository(dao);
         EmpleadoJdbcRepository empleados = new EmpleadoJdbcRepository(dao, sedes);
-        AutenticacionService auth = new AutenticacionService(clientes, empleados, reloj);
+        AutenticacionService auth = new AutenticacionService(clientes, empleados, new CorreoSimulado(), reloj);
 
         comprobar("clientes: " + clientes.listarTodos().size(),
                 clientes.listarTodos().size() == entero(cn, "SELECT COUNT(*) FROM cliente"));
@@ -411,7 +411,7 @@ public class MainConexion {
         try {
             String dni = dniLibre(cn);
             Cliente nuevo = auth.registrarCliente(dni, "Prueba", "Main Conexion", new DateTime(1, 1, 2000),
-                    correo, null, "clave123");
+                    correo, null, "clave123", "clave123");
             comprobar("cliente registrado con id " + nuevo.getIdCliente(),
                     entero(cn, "SELECT COUNT(*) FROM cliente WHERE id_cliente = " + nuevo.getIdCliente()
                             + " AND dni = '" + dni + "'") == 1);
@@ -420,14 +420,14 @@ public class MainConexion {
             comprobar("actualizar teléfono queda en la BD", "987654321".equals(
                     textoDe(cn, "SELECT telefono FROM cliente WHERE id_cliente = " + nuevo.getIdCliente())));
             try {
-                auth.registrarCliente(dniLibre(cn), "Otra", "Persona", null, correo, null, "clave123");
+                auth.registrarCliente(dniLibre(cn), "Otra", "Persona", null, correo, null, "clave123", "clave123");
                 comprobar("correo repetido es rechazado", false);
             } catch (IllegalStateException e) {
                 comprobar("correo repetido -> \"" + e.getMessage() + "\"", true);
             }
             try {
                 // El servicio no revisa el DNI: lo rechaza la BD (uq_cliente_dni) y debe llegar en español
-                auth.registrarCliente(dni, "Otra", "Persona", null, String.format(CORREO_PRUEBA, 1L), null, "clave123");
+                auth.registrarCliente(dni, "Otra", "Persona", null, String.format(CORREO_PRUEBA, 1L), null, "clave123", "clave123");
                 comprobar("DNI repetido es rechazado", false);
             } catch (RepositoryException e) {
                 comprobar("DNI repetido -> \"" + e.getMessage() + "\"", true);
@@ -481,7 +481,7 @@ public class MainConexion {
         CorreoSimulado correo = new CorreoSimulado();
         return new Sesion(reloj, sedes, clientes, empleados, productos, cupones, tipos, compras, pagos, pedidos,
                 reclamos, calificaciones,
-                new AutenticacionService(clientes, empleados, reloj),
+                new AutenticacionService(clientes, empleados, correo, reloj),
                 new CompraService(compras, cupones, tipos, calculadora, gestorPuntos, reloj),
                 new PagoService(pagos, compras, pedidos, new PasarelaSimulada(reloj), reloj),
                 new PedidoService(pedidos, productos),
@@ -561,7 +561,7 @@ public class MainConexion {
         int stockAntes = producto.getStock(sede);
         String correo = "prueba.ventas." + System.currentTimeMillis() + "@test.pe";
         Cliente cliente = s.auth().registrarCliente(dniLibre(cn), "Prueba", "Ventas", new DateTime(1, 1, 2000),
-                correo, null, "clave123");
+                correo, null, "clave123", "clave123");
         System.out.println("   (función " + funcion + ", producto " + producto.getNombre() + ", cupón " + cupon.getCodigo() + ")");
         try {
             // ---------- 1. Compra con 2 entradas, dulcería y cupón ----------
@@ -869,7 +869,7 @@ public class MainConexion {
                 .filter(t -> t.getPuntosCanje() == 0).findFirst().orElseThrow();
         String correo = "prueba.app." + System.currentTimeMillis() + "@test.pe";
         Respuesta<Cliente> registro = app.login().registrarCliente(dniLibre(cn), "Prueba", "App", new DateTime(1, 1, 2000),
-                correo, null, "clave123");
+                correo, null, "clave123", "clave123");
         comprobar("registrar cliente: " + registro.mensaje(), registro.ok());
         if (!registro.ok()) return;
         Cliente cliente = registro.dato();
@@ -938,7 +938,7 @@ public class MainConexion {
             }
 
             Respuesta<Producto> rpr = app.admin().registrarProducto(admin, "Prueba MainConexion", null, "Pruebas",
-                    150, false, 0);
+                    150, false, 0, 0);
             producto = rpr.dato();
             comprobar("producto registrado con id " + (producto != null ? producto.getIdProducto() : 0),
                     rpr.ok() && producto.getIdProducto() > 0);

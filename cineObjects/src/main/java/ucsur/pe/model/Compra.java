@@ -81,7 +81,8 @@ public class Compra implements Totalizable{
      * No aplica reglas (no cobra, no descuenta stock, no mueve puntos ni usos del cupón, no recalcula el importe):
      * todo eso ya pasó cuando la compra cambió de estado. La agrega al historial de su cliente,
      * como hace CompraService al crearla.
-     * El monto reembolsado se recibe aparte porque la tabla compra no lo guarda (ver CompraMySqlDao).
+     * El monto reembolsado llega de la columna compra.monto_reembolsado: el total, o solo las entradas
+     * si la dulcería ya se había entregado (ver CompraMySqlDao).
      */
     public static Compra restaurar(int idCompra, DateTime fechaHora, DateTime expiraCompra, String serieNumero,
                                    String estado, ResumenImporte importe, int puntosCanjeados, int puntosOtorgados,
@@ -298,7 +299,7 @@ public class Compra implements Totalizable{
             throw new IllegalArgumentException("El descuento es obligatorio");
         }
         if (!descuento.esAplicable(contextoDescuento())) {
-            throw new IllegalStateException("El descuento " + descuento + " no aplica a esta compra (fechas, día, usos o solo socios)");
+            throw new IllegalStateException("El descuento " + descuento + " no aplica a esta compra (fechas, día, usos o nivel de socio)");
         }
         descuentos.removeIf(d -> d.getCategoria().equals(descuento.getCategoria()));
         descuentos.add(descuento);
@@ -321,7 +322,7 @@ public class Compra implements Totalizable{
 
     /** Datos de esta compra que un descuento necesita para decidir si aplica. */
     private ContextoDescuento contextoDescuento() {
-        return new ContextoDescuento(fechaHora, cliente.esSocio());
+        return new ContextoDescuento(fechaHora, cliente.esSocio() ? cliente.getNivelSocio() : 0);
     }
 
     // ---------- Confirmación, cancelación y reembolso ----------

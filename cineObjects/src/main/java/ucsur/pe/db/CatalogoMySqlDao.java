@@ -207,7 +207,7 @@ public class CatalogoMySqlDao implements CatalogoDao {
     public List<Cupon> listarCupones() {
         String sql = """
                 SELECT id_cupon, codigo, tipo_descuento, descuento, fecha_inicio, fecha_fin,
-                       limite_uso, usos_realizados, estado
+                       limite_uso, usos_realizados, nivel_socio_minimo, estado
                 FROM cupon
                 ORDER BY id_cupon
                 """;
@@ -218,7 +218,7 @@ public class CatalogoMySqlDao implements CatalogoDao {
                 cupones.add(Cupon.restaurar(rs.getInt("id_cupon"), rs.getString("codigo"),
                         leerCalculo(rs, "descuento"), Fechas.desdeDate(rs.getDate("fecha_inicio")),
                         Fechas.desdeDate(rs.getDate("fecha_fin")), rs.getInt("limite_uso"),
-                        rs.getInt("usos_realizados"), rs.getBoolean("estado")));
+                        rs.getInt("usos_realizados"), rs.getInt("nivel_socio_minimo"), rs.getBoolean("estado")));
             }
         } catch (SQLException e) {
             throw new RepositoryException("No se pudieron cargar los cupones.", e);
@@ -230,8 +230,8 @@ public class CatalogoMySqlDao implements CatalogoDao {
     public void insertarCupon(Cupon cupon) {
         String sql = """
                 INSERT INTO cupon (codigo, tipo_descuento, descuento, fecha_inicio, fecha_fin,
-                                   limite_uso, usos_realizados, estado)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                                   limite_uso, usos_realizados, nivel_socio_minimo, estado)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         escribirCupon(sql, cupon, true, "No se pudo registrar el cupón " + cupon.getCodigo() + ".");
     }
@@ -241,7 +241,7 @@ public class CatalogoMySqlDao implements CatalogoDao {
         String sql = """
                 UPDATE cupon
                 SET codigo = ?, tipo_descuento = ?, descuento = ?, fecha_inicio = ?, fecha_fin = ?,
-                    limite_uso = ?, usos_realizados = ?, estado = ?
+                    limite_uso = ?, usos_realizados = ?, nivel_socio_minimo = ?, estado = ?
                 WHERE id_cupon = ?
                 """;
         escribirCupon(sql, cupon, false, "No se pudo actualizar el cupón " + cupon.getCodigo() + ".");
@@ -257,8 +257,9 @@ public class CatalogoMySqlDao implements CatalogoDao {
             ps.setDate(5, Fechas.aDate(cupon.getFechaFin()));
             ps.setInt(6, cupon.getLimiteUso());
             ps.setInt(7, cupon.getUsosRealizados());
-            ps.setBoolean(8, cupon.isEstado());
-            if (!nuevo) ps.setInt(9, cupon.getIdCupon());
+            ps.setInt(8, cupon.getNivelSocioMinimo());
+            ps.setBoolean(9, cupon.isEstado());
+            if (!nuevo) ps.setInt(10, cupon.getIdCupon());
             ps.executeUpdate();
             if (nuevo) cupon.asignarId(Claves.generada(ps));
         } catch (SQLException e) {
@@ -283,7 +284,7 @@ public class CatalogoMySqlDao implements CatalogoDao {
         }
         String sql = """
                 SELECT id_promocion, nombre, descripcion, tipo_descuento, valor, fecha_inicio, fecha_fin,
-                       solo_socios, estado
+                       nivel_socio_minimo, estado
                 FROM promocion
                 ORDER BY id_promocion
                 """;
@@ -294,7 +295,7 @@ public class CatalogoMySqlDao implements CatalogoDao {
                 int id = rs.getInt("id_promocion");
                 promociones.add(new Promocion(id, rs.getString("nombre"), rs.getString("descripcion"),
                         leerCalculo(rs, "valor"), Fechas.desdeDate(rs.getDate("fecha_inicio")),
-                        Fechas.desdeDate(rs.getDate("fecha_fin")), rs.getBoolean("solo_socios"),
+                        Fechas.desdeDate(rs.getDate("fecha_fin")), rs.getInt("nivel_socio_minimo"),
                         dias.getOrDefault(id, List.of()), rs.getBoolean("estado")));
             }
         } catch (SQLException e) {
@@ -307,7 +308,7 @@ public class CatalogoMySqlDao implements CatalogoDao {
     public void insertarPromocion(Promocion promocion) {
         String sql = """
                 INSERT INTO promocion (nombre, descripcion, tipo_descuento, valor, fecha_inicio, fecha_fin,
-                                       solo_socios, estado)
+                                       nivel_socio_minimo, estado)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         escribirPromocion(sql, promocion, true, "No se pudo registrar la promoción " + promocion.getNombre() + ".");
@@ -318,7 +319,7 @@ public class CatalogoMySqlDao implements CatalogoDao {
         String sql = """
                 UPDATE promocion
                 SET nombre = ?, descripcion = ?, tipo_descuento = ?, valor = ?, fecha_inicio = ?, fecha_fin = ?,
-                    solo_socios = ?, estado = ?
+                    nivel_socio_minimo = ?, estado = ?
                 WHERE id_promocion = ?
                 """;
         escribirPromocion(sql, promocion, false, "No se pudo actualizar la promoción " + promocion.getNombre() + ".");
@@ -338,7 +339,7 @@ public class CatalogoMySqlDao implements CatalogoDao {
                 ps.setBigDecimal(4, valorParaBD(promocion.getCalculo()));
                 ps.setDate(5, Fechas.aDate(promocion.getFechaInicio()));
                 ps.setDate(6, Fechas.aDate(promocion.getFechaFin()));
-                ps.setBoolean(7, promocion.isSoloSocios());
+                ps.setInt(7, promocion.getNivelSocioMinimo());
                 ps.setBoolean(8, promocion.isEstado());
                 if (!nuevo) ps.setInt(9, id[0]);
                 ps.executeUpdate();

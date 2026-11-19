@@ -7,6 +7,7 @@ package ucsur.pe.model;
 public abstract class Persona implements Activable {
     // private (encapsulamiento): ni las subclases cambian estos datos sin pasar por las validaciones;
     // Cliente y Empleado los leen con los getters y cambian el estado con activar() y desactivar().
+    public static final int MIN_CONTRA = 8; // wireframe 5: «Mínimo 8 caracteres»
     private String dni;
     private String nombres;
     private String apellidos;
@@ -116,18 +117,27 @@ public abstract class Persona implements Activable {
         return c;
     }
 
-    /** Permite omitir el teléfono y limita a veinte caracteres el valor informado. */
+    /**
+     * Cambia la contraseña al recuperarla («¿Olvidaste tu contraseña?»); aplica las mismas reglas que al registrarse.
+     * Quien verifica el código enviado al correo es AutenticacionService.
+     */
+    public void cambiarContrasena(String nueva) {
+        if (nueva == null) throw new IllegalArgumentException("La contraseña es obligatoria");
+        this.contra = validarContra(nueva);
+    }
+
+    /** Permite omitir el teléfono; si se informa, debe tener exactamente 9 dígitos (celular de Perú). */
     private static String validarTelefono(String telefono) {
-        if (telefono != null && telefono.length() > 20) {
-            throw new IllegalArgumentException("El teléfono no puede superar 20 caracteres");
+        if (telefono != null && !telefono.matches("\\d{9}")) {
+            throw new IllegalArgumentException("El teléfono debe tener exactamente 9 dígitos");
         }
         return telefono;
     }
 
-    /** Permite contraseña nula para invitados; si se informa, no puede estar vacía ni exceder 255 caracteres. */
+    /** Permite contraseña nula para invitados; si se informa, debe tener entre 8 y 255 caracteres. */
     private static String validarContra(String contra) {
-        if (contra != null && (contra.isEmpty() || contra.length() > 255)) {
-            throw new IllegalArgumentException("La contraseña no puede estar vacía ni superar 255 caracteres");
+        if (contra != null && (contra.length() < MIN_CONTRA || contra.length() > 255)) {
+            throw new IllegalArgumentException("La contraseña debe tener entre " + MIN_CONTRA + " y 255 caracteres");
         }
         return contra;
     }

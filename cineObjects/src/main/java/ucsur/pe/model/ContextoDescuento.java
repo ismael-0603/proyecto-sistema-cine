@@ -5,7 +5,17 @@ package ucsur.pe.model;
  * Así la interfaz Descuento no depende de la clase Compra entera. Es inmutable (record).
  *
  * @param fecha fecha y hora de la compra (para la vigencia y el día de la semana)
- * @param clienteEsSocio si el cliente es socio (para las promociones solo para socios)
+ * @param nivelSocio nivel de socio del cliente: 0 si es invitado o no es socio, 1 a 4 si lo es
  */
-public record ContextoDescuento(DateTime fecha, boolean clienteEsSocio) {
+public record ContextoDescuento(DateTime fecha, int nivelSocio) {
+
+    /** Indica si el cliente es socio (cualquier nivel). */
+    public boolean clienteEsSocio() {
+        return nivelSocio > 0;
+    }
+
+    /** Un nivel mínimo de 0 deja pasar a todos; si no, el cliente debe tener ese nivel o uno mayor. */
+    public boolean cumpleNivel(int nivelMinimo) {
+        return nivelMinimo <= 0 || nivelSocio >= nivelMinimo;
+    }
 }

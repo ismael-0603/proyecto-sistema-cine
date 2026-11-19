@@ -1,5 +1,6 @@
 package ucsur.pe.service;
 
+import ucsur.pe.correo.ServicioCorreo;
 import ucsur.pe.exception.ReglaNegocioException;
 import ucsur.pe.model.Cliente;
 import ucsur.pe.model.DateTime;
@@ -8,21 +9,48 @@ import ucsur.pe.model.Persona;
 import ucsur.pe.model.Reloj;
 import ucsur.pe.repository.ClienteRepository;
 import ucsur.pe.repository.EmpleadoRepository;
+import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
- * Por qué existe: casos de uso "Registrar usuario" e "Iniciar sesión" (RF-01, RF-27).
+ * Por qué existe: casos de uso "Registrar usuario", "Iniciar sesión" y "Recuperar contraseña" (RF-01, RF-27).
  * Busca las cuentas en los repositorios y aplica las reglas que dependen de los datos guardados,
  * como que el correo de una cuenta registrada sea único.
  */
 public class AutenticacionService {
+    public static final int MINUTOS_VIGENCIA_CODIGO = 10; // el código de recuperación vence a los 10 minutos
+    public static final int MAX_INTENTOS_CODIGO = 5;      // tras 5 códigos equivocados hay que pedir otro
+    /** Mismo mensaje exista o no la cuenta: así no se revela qué correos están registrados. */
+    public static final String MENSAJE_CODIGO_ENVIADO =
+            "Si el correo está registrado, te enviamos un código para cambiar tu contraseña";
+
     private final ClienteRepository clientes;
     private final EmpleadoRepository empleados;
+    private final ServicioCorreo correo;
     private final Reloj reloj;
+    private final SecureRandom azar = new SecureRandom(); // el código no se debe poder adivinar
+    /** Códigos pendientes por correo (en minúsculas). Viven en memoria: si el kiosco se reinicia, se pide otro. */
+    private final Map<String, CodigoRecuperacion> codigos = new HashMap<>();
 
-    public AutenticacionService(ClienteRepository clientes, EmpleadoRepository empleados, Reloj reloj) {
+    /** Código enviado a una cuenta, cuándo vence y cuántas veces se escribió mal. */
+    private static final class CodigoRecuperacion {
+        private final String codigo;
+        private final DateTime vence;
+        private int intentosFallidos;
+
+        private CodigoRecuperacion(String codigo, DateTime vence) {
+            this.codigo = codigo;
+            this.vence = vence;
+        }
+    }
+
+    public AutenticacionService(ClienteRepository clientes, EmpleadoRepository empleados, ServicioCorreo correo,
+                                Reloj reloj) {
         this.clientes = clientes;
         this.empleados = empleados;
+        this.correo = correo;
         this.reloj = reloj;
     }
 
@@ -33,9 +61,15 @@ public class AutenticacionService {
         return invitado;
     }
 
-    /** Registra un socio nuevo; rechaza un correo que ya usa otra cuenta registrada. */
+    /**
+     * Registra un socio nuevo; rechaza un correo que ya usa otra cuenta registrada y una confirmación
+     * de contraseña que no coincide (wireframe 5: «Confirmar contraseña»).
+     */
     public Cliente registrarCliente(String dni, String nombres, String apellidos, DateTime fechaNac,
-                                    String correo, String telefono, String contra) {
+                                    String correo, String telefono, String contra, String confirmarContra) {
+        if (contra == null || !contra.equals(confirmarContra)) {
+            throw new ReglaNegocioException("Las contraseñas no coinciden");
+        }
         exigirCorreoLibre(correo, null);
         Cliente cliente = new Cliente(0, dni, nombres, apellidos, fechaNac, correo, telefono, contra, reloj);
         clientes.guardar(cliente); // la base le genera el id (AUTO_INCREMENT)
@@ -80,6 +114,78 @@ public class AutenticacionService {
         exigirCorreoLibre(correo, empleado);
         empleado.modificarDatos(telefono, correo);
         empleados.guardar(empleado);
+    }
+
+    // ---------- Recuperar contraseña («¿Olvidaste tu contraseña?», wireframe 4) ----------
+    /**
+     * Paso 1: si el correo es de un socio o empleado activo, le envía un código de 6 dígitos que vence en
+     * MINUTOS_VIGENCIA_CODIGO minutos (pedir otro reemplaza al anterior). Los invitados no tienen contraseña.
+     * Siempre devuelve MENSAJE_CODIGO_ENVIADO, exista o no la cuenta.
+     */
+    public String solicitarRecuperacion(String correoCuenta) {
+        Optional<Persona> cuenta = buscarCuenta(correoCuenta == null ? null : correoCuenta.trim());
+        if (cuenta.isPresent() && puedeRecuperar(cuenta.get())) {
+            String codigo = String.format("%06d", azar.nextInt(1_000_000));
+            codigos.put(clave(correoCuenta),
+                    new CodigoRecuperacion(codigo, reloj.ahora().sumarMinutos(MINUTOS_VIGENCIA_CODIGO)));
+            String cuerpo = "Hola " + cuenta.get().getNombreCompleto() + ",\n\nTu código para cambiar la contraseña es "
+                    + codigo + ". Vence en " + MINUTOS_VIGENCIA_CODIGO + " minutos.\n"
+                    + "Si no lo pediste, ignora este mensaje: tu contraseña no cambia.";
+            if (!correo.enviar(cuenta.get().getCorreo(), "Código para cambiar tu contraseña", cuerpo)) {
+                codigos.remove(clave(correoCuenta));
+                throw new ReglaNegocioException("No se pudo enviar el código; inténtalo de nuevo");
+            }
+        }
+        return MENSAJE_CODIGO_ENVIADO;
+    }
+
+    /**
+     * Paso 2: con el código recibido cambia la contraseña. El código sirve una sola vez, vence a los
+     * MINUTOS_VIGENCIA_CODIGO minutos y se anula tras MAX_INTENTOS_CODIGO intentos equivocados.
+     */
+    public void restablecerContrasena(String correoCuenta, String codigo, String nueva, String confirmar) {
+        CodigoRecuperacion pendiente = correoCuenta == null ? null : codigos.get(clave(correoCuenta));
+        if (pendiente == null) {
+            throw new ReglaNegocioException("El código no es válido; solicita uno nuevo");
+        }
+        if (reloj.ahora().esDespuesDe(pendiente.vence)) {
+            codigos.remove(clave(correoCuenta));
+            throw new ReglaNegocioException("El código venció; solicita uno nuevo");
+        }
+        if (codigo == null || !pendiente.codigo.equals(codigo.trim())) {
+            pendiente.intentosFallidos++;
+            if (pendiente.intentosFallidos >= MAX_INTENTOS_CODIGO) {
+                codigos.remove(clave(correoCuenta));
+                throw new ReglaNegocioException("Demasiados intentos con un código incorrecto; solicita uno nuevo");
+            }
+            throw new ReglaNegocioException("El código no es correcto (te quedan "
+                    + (MAX_INTENTOS_CODIGO - pendiente.intentosFallidos) + " intentos)");
+        }
+        if (nueva == null || !nueva.equals(confirmar)) {
+            throw new ReglaNegocioException("Las contraseñas no coinciden");
+        }
+        Optional<Persona> cuenta = buscarCuenta(correoCuenta.trim());
+        if (cuenta.isEmpty() || !puedeRecuperar(cuenta.get())) {
+            codigos.remove(clave(correoCuenta));
+            throw new ReglaNegocioException("El código no es válido; solicita uno nuevo");
+        }
+        cuenta.get().cambiarContrasena(nueva); // valida el largo (mínimo 8) antes de gastar el código
+        if (cuenta.get() instanceof Cliente cliente) {
+            clientes.guardar(cliente);
+        } else {
+            empleados.guardar((Empleado) cuenta.get());
+        }
+        codigos.remove(clave(correoCuenta));
+    }
+
+    /** Recupera la contraseña una cuenta activa que la tenga: socio registrado o empleado, nunca un invitado. */
+    private static boolean puedeRecuperar(Persona cuenta) {
+        if (!cuenta.isEstado()) return false;
+        return !(cuenta instanceof Cliente cliente) || !cliente.esInvitado();
+    }
+
+    private static String clave(String correoCuenta) {
+        return correoCuenta.trim().toLowerCase();
     }
 
     private Optional<Persona> buscarCuenta(String correo) {

@@ -82,10 +82,12 @@ public class AdminController extends ControllerBase {
         return ejecutar("", () -> servicio.listarProductos(admin));
     }
 
+    /** stockInicial: unidades con las que arranca en la sede del administrador (0 = sin stock). */
     public Respuesta<Producto> registrarProducto(Empleado admin, String nombre, String descripcion, String categoria,
-                                                 long precioCentavos, boolean esCombo, int nivelSocioMinimo) {
+                                                 long precioCentavos, boolean esCombo, int nivelSocioMinimo,
+                                                 int stockInicial) {
         return ejecutar("Producto registrado", () -> servicio.registrarProducto(admin, nombre, descripcion, categoria,
-                precioCentavos, esCombo, nivelSocioMinimo));
+                precioCentavos, esCombo, nivelSocioMinimo, stockInicial));
     }
 
     public Respuesta<Void> actualizarProducto(Empleado admin, Producto producto, String nombre, String descripcion,
@@ -94,8 +96,19 @@ public class AdminController extends ControllerBase {
                 categoria, precioCentavos, esCombo, nivelSocioMinimo));
     }
 
-    public Respuesta<Void> reponerStock(Empleado admin, Producto producto, int cantidad) {
-        return ejecutar("Stock repuesto", () -> servicio.reponerStock(admin, producto, cantidad));
+    /** Repone en la sede del administrador; el mensaje avisa si el producto sigue en stock bajo. */
+    public Respuesta<Integer> reponerStock(Empleado admin, Producto producto, int cantidad) {
+        Respuesta<Integer> r = ejecutar("", () -> servicio.reponerStock(admin, producto, cantidad));
+        if (!r.ok()) return r;
+        String aviso = r.dato() <= Producto.UMBRAL_STOCK_BAJO ? ", sigue en stock bajo" : "";
+        return Respuesta.exito("Stock repuesto: quedan " + r.dato() + aviso, r.dato());
+    }
+
+    /** Productos con stock bajo o agotados en la sede del administrador (alerta de «Productos de dulcería»). */
+    public Respuesta<List<Producto>> listarProductosConStockBajo(Empleado admin) {
+        Respuesta<List<Producto>> r = ejecutar("", () -> servicio.listarProductosConStockBajo(admin));
+        if (!r.ok() || r.dato().isEmpty()) return r;
+        return Respuesta.exito(r.dato().size() + " producto(s) con stock bajo o agotados", r.dato());
     }
 
     public Respuesta<Void> cambiarEstadoProducto(Empleado admin, Producto producto, boolean activo) {
@@ -113,17 +126,20 @@ public class AdminController extends ControllerBase {
         return ejecutar("", servicio::tiposDescuento);
     }
 
-    /** El valor es el porcentaje (10 = 10%) o el monto en céntimos (500 = S/ 5.00), según el tipo. */
+    /**
+     * El valor es el porcentaje (10 = 10%) o el monto en céntimos (500 = S/ 5.00), según el tipo.
+     * nivelSocioMinimo: 0 = todos, 1 = cualquier socio, 2 a 4 = ese nivel o más.
+     */
     public Respuesta<Cupon> registrarCupon(Empleado admin, String codigo, String tipoDescuento, long valor,
-                                           DateTime inicio, DateTime fin, int limiteUso) {
+                                           DateTime inicio, DateTime fin, int limiteUso, int nivelSocioMinimo) {
         return ejecutar("Cupón registrado", () -> servicio.registrarCupon(admin, codigo, tipoDescuento, valor,
-                inicio, fin, limiteUso));
+                inicio, fin, limiteUso, nivelSocioMinimo));
     }
 
     public Respuesta<Void> actualizarCupon(Empleado admin, Cupon cupon, String codigo, String tipoDescuento, long valor,
-                                           DateTime inicio, DateTime fin, int limiteUso) {
+                                           DateTime inicio, DateTime fin, int limiteUso, int nivelSocioMinimo) {
         return ejecutar("Cupón actualizado", () -> servicio.actualizarCupon(admin, cupon, codigo, tipoDescuento, valor,
-                inicio, fin, limiteUso));
+                inicio, fin, limiteUso, nivelSocioMinimo));
     }
 
     public Respuesta<Void> cambiarEstadoCupon(Empleado admin, Cupon cupon, boolean activo) {
@@ -137,16 +153,16 @@ public class AdminController extends ControllerBase {
 
     public Respuesta<Promocion> registrarPromocion(Empleado admin, String nombre, String descripcion,
                                                    String tipoDescuento, long valor, DateTime inicio, DateTime fin,
-                                                   boolean soloSocios, List<Integer> dias) {
+                                                   int nivelSocioMinimo, List<Integer> dias) {
         return ejecutar("Promoción registrada", () -> servicio.registrarPromocion(admin, nombre, descripcion,
-                tipoDescuento, valor, inicio, fin, soloSocios, dias));
+                tipoDescuento, valor, inicio, fin, nivelSocioMinimo, dias));
     }
 
     public Respuesta<Void> actualizarPromocion(Empleado admin, Promocion promocion, String nombre, String descripcion,
                                                String tipoDescuento, long valor, DateTime inicio, DateTime fin,
-                                               boolean soloSocios, List<Integer> dias) {
+                                               int nivelSocioMinimo, List<Integer> dias) {
         return ejecutar("Promoción actualizada", () -> servicio.actualizarPromocion(admin, promocion, nombre, descripcion,
-                tipoDescuento, valor, inicio, fin, soloSocios, dias));
+                tipoDescuento, valor, inicio, fin, nivelSocioMinimo, dias));
     }
 
     public Respuesta<Void> cambiarEstadoPromocion(Empleado admin, Promocion promocion, boolean activo) {

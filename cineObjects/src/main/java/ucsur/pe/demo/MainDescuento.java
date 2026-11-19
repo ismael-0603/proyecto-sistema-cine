@@ -27,9 +27,9 @@ public class MainDescuento {
         DateTime inicio = new DateTime(hoy.getDia(), hoy.getMes(), hoy.getAnio());
         DateTime fin = inicio.sumarDias(30);
 
-        Cupon cupon = new Cupon(1, "CINE10", new CalculoPorcentaje(10), inicio, fin, 5, true);
+        Cupon cupon = new Cupon(1, "CINE10", new CalculoPorcentaje(10), inicio, fin, 5, 0, true);
         Promocion promo = new Promocion(1, "Promo 5 soles", "S/ 5 de descuento", new CalculoMontoFijo(ConversorDinero.aCentavos("5.00")),
-                inicio, fin, false, null, true);
+                inicio, fin, 0, null, true);
 
         List<Descuento> descuentos = new ArrayList<>();
         descuentos.add(cupon);

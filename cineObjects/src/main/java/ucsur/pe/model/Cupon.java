@@ -4,7 +4,7 @@ import ucsur.pe.tipo.CalculoDescuento;
 
 /**
  * Por qué existe: es un código de descuento que escribe el cliente (por ejemplo CINE10),
- * con fechas de vigencia y un límite de usos.
+ * con fechas de vigencia, un límite de usos y, si se quiere, un nivel de socio mínimo.
  */
 public class Cupon extends DescuentoBase implements DescuentoConUsos {
     public static final String CATEGORIA = "CUPON";
@@ -17,8 +17,8 @@ public class Cupon extends DescuentoBase implements DescuentoConUsos {
     private int usosRealizados;
 
     public Cupon(int idCupon, String codigo, CalculoDescuento calculo,
-                 DateTime fechaInicio, DateTime fechaFin, int limiteUso, boolean estado) {
-        super(calculo, fechaInicio, fechaFin, estado);
+                 DateTime fechaInicio, DateTime fechaFin, int limiteUso, int nivelSocioMinimo, boolean estado) {
+        super(calculo, fechaInicio, fechaFin, nivelSocioMinimo, estado);
         if (codigo == null || codigo.trim().isEmpty() || codigo.trim().length() > 30) {
             throw new IllegalArgumentException("El código es obligatorio (máx. 30 caracteres)");
         }
@@ -36,8 +36,9 @@ public class Cupon extends DescuentoBase implements DescuentoConUsos {
      * (cupon.usos_realizados), que el constructor siempre deja en cero.
      */
     public static Cupon restaurar(int idCupon, String codigo, CalculoDescuento calculo, DateTime fechaInicio,
-                                  DateTime fechaFin, int limiteUso, int usosRealizados, boolean estado) {
-        Cupon cupon = new Cupon(idCupon, codigo, calculo, fechaInicio, fechaFin, limiteUso, estado);
+                                  DateTime fechaFin, int limiteUso, int usosRealizados, int nivelSocioMinimo,
+                                  boolean estado) {
+        Cupon cupon = new Cupon(idCupon, codigo, calculo, fechaInicio, fechaFin, limiteUso, nivelSocioMinimo, estado);
         if (usosRealizados < 0 || usosRealizados > limiteUso) {
             throw new IllegalArgumentException("Los usos realizados deben estar entre 0 y " + limiteUso); // ck_cupon_usos
         }
@@ -49,7 +50,8 @@ public class Cupon extends DescuentoBase implements DescuentoConUsos {
      * El administrador edita el cupón (wireframe 19). El servicio comprueba que el código no lo use otro cupón;
      * el límite no puede quedar por debajo de los usos que ya tuvo.
      */
-    public void actualizar(String codigo, CalculoDescuento calculo, DateTime fechaInicio, DateTime fechaFin, int limiteUso) {
+    public void actualizar(String codigo, CalculoDescuento calculo, DateTime fechaInicio, DateTime fechaFin,
+                           int limiteUso, int nivelSocioMinimo) {
         if (codigo == null || codigo.trim().isEmpty() || codigo.trim().length() > 30) {
             throw new IllegalArgumentException("El código es obligatorio (máx. 30 caracteres)");
         }
@@ -57,6 +59,7 @@ public class Cupon extends DescuentoBase implements DescuentoConUsos {
             throw new IllegalArgumentException("El límite no puede ser menor a los " + usosRealizados + " usos ya realizados");
         }
         cambiarCalculoYVigencia(calculo, fechaInicio, fechaFin);
+        cambiarNivelSocioMinimo(nivelSocioMinimo);
         this.codigo = codigo.trim();
         this.limiteUso = limiteUso;
     }
@@ -67,10 +70,10 @@ public class Cupon extends DescuentoBase implements DescuentoConUsos {
         return super.validarVigencia(fecha) && usosRealizados < limiteUso;
     }
 
-    /** Un cupón se aplica a una compra mientras esté vigente en la fecha de esa compra. */
+    /** Un cupón se aplica si está vigente en la fecha de la compra y el cliente tiene el nivel pedido. */
     @Override
     public boolean esAplicable(ContextoDescuento contexto) {
-        return contexto != null && validarVigencia(contexto.fecha());
+        return contexto != null && validarVigencia(contexto.fecha()) && cumpleNivelSocio(contexto);
     }
 
     /** El cupón va después de las promociones: descuenta sobre lo que ya quedó. */

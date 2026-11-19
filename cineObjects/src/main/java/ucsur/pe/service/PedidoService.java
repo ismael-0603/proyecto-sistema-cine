@@ -70,6 +70,12 @@ public class PedidoService {
         pedidos.guardar(pedido);
     }
 
+    /** Aviso para el panel de dulcería: productos con stock bajo o agotados en la sede del empleado. */
+    public List<Producto> consultarStockBajo(Empleado empleado) {
+        exigirPermiso(empleado);
+        return productos.listarTodos().stream().filter(p -> p.requiereReposicion(empleado.getSede())).toList();
+    }
+
     /** El empleado debe tener la cuenta activa y el permiso ATENDER_PEDIDO. */
     private void exigirPermiso(Empleado empleado) {
         if (empleado == null || !empleado.isEstado()) {

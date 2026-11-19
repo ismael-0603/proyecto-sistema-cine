@@ -11,6 +11,7 @@ import java.util.Map;
 public class Producto implements Activable {
     // Valores fijos de los productos (constantes: se usan como Producto.NOMBRE y su valor no cambia).
     public static final int PUNTOS_COMBO = 2; // puntos que da cada combo vendido
+    public static final int UMBRAL_STOCK_BAJO = 15; // con 15 unidades o menos en una sede se avisa «Stock bajo»
 
     private int idProducto;
     private String nombre;
@@ -96,6 +97,22 @@ public class Producto implements Activable {
             throw new IllegalStateException("Stock insuficiente o producto inactivo: " + nombre);
         }
         stockPorSede.put(sede, getStock(sede) - cant);
+    }
+
+    /** Stock bajo en la sede: le quedan entre 1 y UMBRAL_STOCK_BAJO unidades (wireframe 20: «Stock bajo»). */
+    public boolean tieneStockBajo(Sede sede) {
+        int stock = getStock(sede);
+        return stock > 0 && stock <= UMBRAL_STOCK_BAJO;
+    }
+
+    /** Agotado en la sede: no le queda ninguna unidad (wireframe 20: «Agotado»). */
+    public boolean estaAgotado(Sede sede) {
+        return getStock(sede) == 0;
+    }
+
+    /** Un producto activo con stock bajo o agotado en la sede necesita reposición; los inactivos no avisan. */
+    public boolean requiereReposicion(Sede sede) {
+        return estado && (tieneStockBajo(sede) || estaAgotado(sede));
     }
 
     /** Aumenta el stock de la sede; rechaza una sede nula y cantidades iguales o menores que cero. */

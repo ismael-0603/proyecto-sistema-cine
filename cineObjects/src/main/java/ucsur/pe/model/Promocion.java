@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * Por qué existe: es un descuento que el cine aplica por fechas y días de la semana,
- * opcionalmente solo para socios.
+ * opcionalmente solo para socios de cierto nivel (wireframe 10: «Socio nivel 2+»).
  */
 public class Promocion extends DescuentoBase {
     public static final String CATEGORIA = "PROMOCION";
@@ -14,14 +14,13 @@ public class Promocion extends DescuentoBase {
     private int idPromocion;
     private String nombre;
     private String descripcion;
-    private boolean soloSocios; // si es true, solo la aprovechan clientes socios
     /** Días en que aplica: 1 es lunes y 7 domingo; una lista vacía permite cualquier día. */
     private List<Integer> diasAplicables;
 
     public Promocion(int idPromocion, String nombre, String descripcion, CalculoDescuento calculo,
                      DateTime fechaInicio, DateTime fechaFin,
-                     boolean soloSocios, List<Integer> diasAplicables, boolean estado) {
-        super(calculo, fechaInicio, fechaFin, estado);
+                     int nivelSocioMinimo, List<Integer> diasAplicables, boolean estado) {
+        super(calculo, fechaInicio, fechaFin, nivelSocioMinimo, estado);
         if (nombre == null || nombre.trim().isEmpty() || nombre.trim().length() > 40) {
             throw new IllegalArgumentException("El nombre es obligatorio (máx. 40 caracteres)");
         }
@@ -31,13 +30,12 @@ public class Promocion extends DescuentoBase {
         this.idPromocion = idPromocion;
         this.nombre = nombre.trim();
         this.descripcion = descripcion;
-        this.soloSocios = soloSocios;
         this.diasAplicables = validarDias(diasAplicables);
     }
 
     /** El administrador edita la promoción (wireframe 19); se valida igual que al crearla. */
     public void actualizar(String nombre, String descripcion, CalculoDescuento calculo, DateTime fechaInicio,
-                           DateTime fechaFin, boolean soloSocios, List<Integer> diasAplicables) {
+                           DateTime fechaFin, int nivelSocioMinimo, List<Integer> diasAplicables) {
         if (nombre == null || nombre.trim().isEmpty() || nombre.trim().length() > 40) {
             throw new IllegalArgumentException("El nombre es obligatorio (máx. 40 caracteres)");
         }
@@ -46,9 +44,9 @@ public class Promocion extends DescuentoBase {
         }
         List<Integer> dias = validarDias(diasAplicables);
         cambiarCalculoYVigencia(calculo, fechaInicio, fechaFin);
+        cambiarNivelSocioMinimo(nivelSocioMinimo);
         this.nombre = nombre.trim();
         this.descripcion = descripcion;
-        this.soloSocios = soloSocios;
         this.diasAplicables = dias;
     }
 
@@ -71,15 +69,12 @@ public class Promocion extends DescuentoBase {
         return diasAplicables.isEmpty() || diasAplicables.contains(fecha.diaDeLaSemana());
     }
 
-    /** Comprueba estado, fechas, día de semana y, cuando corresponde, que el cliente sea socio. */
+    /** Comprueba estado, fechas, día de semana y que el cliente tenga el nivel de socio pedido. */
     @Override
     public boolean esAplicable(ContextoDescuento contexto) {
         if (contexto == null || !validarVigencia(contexto.fecha())) return false;
         if (!aplicaEnDia(contexto.fecha())) return false;
-        if (soloSocios) {
-            return contexto.clienteEsSocio();
-        }
-        return true;
+        return cumpleNivelSocio(contexto);
     }
 
     /** Las promociones del cine van primero: descuentan sobre el subtotal completo. */
@@ -102,7 +97,8 @@ public class Promocion extends DescuentoBase {
     public int getIdPromocion() { return idPromocion; }
     public String getNombre() { return nombre; }
     public String getDescripcion() { return descripcion; }
-    public boolean isSoloSocios() { return soloSocios; }
+    /** Si pide algún nivel de socio (1 o más), los invitados no la pueden usar. */
+    public boolean isSoloSocios() { return getNivelSocioMinimo() > 0; }
     public List<Integer> getDiasAplicables() { return new ArrayList<>(diasAplicables); }
 
     @Override
