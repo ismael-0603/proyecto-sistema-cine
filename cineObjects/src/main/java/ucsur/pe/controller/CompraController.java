@@ -36,10 +36,6 @@ public class CompraController extends ControllerBase {
         return (r.ok() && r.dato().aviso() != null) ? Respuesta.exito(r.dato().aviso(), r.dato()) : r;
     }
 
-    public Respuesta<List<Butaca>> recomendarAsientos(Compra compra, Funcion funcion, int cantidad, boolean incluirAccesibles) {
-        return ejecutar("", () -> servicio.recomendarAsientos(compra, funcion, cantidad, incluirAccesibles));
-    }
-
     /** Tarifas que este cliente puede elegir (General, Niño, Socio...). */
     public Respuesta<List<TipoEntrada>> listarTiposEntrada(Cliente cliente) {
         return ejecutar("", () -> servicio.listarTiposEntrada(cliente));
@@ -80,10 +76,6 @@ public class CompraController extends ControllerBase {
 
     public Respuesta<Void> aplicarPromocion(Compra compra, Promocion promocion) {
         return ejecutar("Promoción aplicada", () -> servicio.aplicarPromocion(compra, promocion));
-    }
-
-    public Respuesta<Void> validarBeneficiosSocio(Compra compra) {
-        return ejecutar("Beneficios válidos", () -> servicio.validarBeneficiosSocio(compra));
     }
 
     public Respuesta<Void> cancelar(Compra compra) {

@@ -7,7 +7,7 @@ import java.util.Optional;
 
 /**
  * Contrato de persistencia de Pelicula: define QUÉ se puede guardar y buscar, no CÓMO.
- * Lo cumplen PeliculaMemoriaRepository (demos en memoria) y PeliculaJdbcRepository (MySQL).
+ * Lo cumple PeliculaJdbcRepository (MySQL).
  */
 public interface PeliculaRepository {
     void guardar(Pelicula pelicula);

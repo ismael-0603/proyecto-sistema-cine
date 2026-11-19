@@ -1,11 +1,9 @@
 package ucsur.pe.pasarela;
 
-import ucsur.pe.model.TransaccionPago;
-
 /**
  * Por qué existe: es el actor externo "pasarela de pagos" del diagrama de contexto (RF-17).
- * TransaccionPago depende de esta interfaz y no de una pasarela concreta: se puede cambiar la
- * simulación por una real (Niubiz, Izipay, Culqi...) o por una falsa en pruebas sin tocar el modelo.
+ * PagoService depende de esta interfaz y no de una pasarela concreta: se puede cambiar la
+ * simulación por una real (Niubiz, Izipay, Culqi...) o por una falsa en pruebas sin tocar el servicio.
  */
 public interface PasarelaPago {
     /** Intenta cobrar el monto (en céntimos) con el medio indicado; devuelve si se aprobó, con su referencia o el motivo. */

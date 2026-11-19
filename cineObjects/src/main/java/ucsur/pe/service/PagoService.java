@@ -11,7 +11,6 @@ import ucsur.pe.pasarela.ResultadoPago;
 import ucsur.pe.repository.CompraRepository;
 import ucsur.pe.repository.PagoRepository;
 import ucsur.pe.repository.PedidoRepository;
-import java.util.List;
 
 /**
  * Por qué existe: caso de uso "Realizar pago" (RF-16 a RF-18, RF-45) y el reembolso automático (RF-24).
@@ -34,11 +33,6 @@ public class PagoService {
         this.reloj = reloj;
     }
 
-    /** Medios que la vista muestra al cliente. */
-    public List<String> mediosDisponibles() {
-        return TransaccionPago.MEDIOS_DISPONIBLES;
-    }
-
     /**
      * Intenta pagar la compra y devuelve la transacción: APROBADO, o RECHAZADO con su motivo.
      * Si se rechaza, la compra sigue EN_PROCESO para reintentar mientras dure el plazo (RF-18).
@@ -46,6 +40,7 @@ public class PagoService {
      * confirmada sin el pago que permite reembolsarla, ni un pago aprobado de una compra que no se guardó.
      * Si ese guardado falla después de cobrar, se devuelve el cobro y la compra se anula (ver deshacerCobro);
      * el pago se guarda RECHAZADO con el motivo.
+     * El pedido de dulcería se guarda en esa misma transacción, junto con la compra, y desde ahí entra a la cola.
      */
     public TransaccionPago pagar(Compra compra, long montoCentavos, String medioPago) {
         TransaccionPago pago = new TransaccionPago(0, montoCentavos, medioPago, compra);
@@ -61,9 +56,6 @@ public class PagoService {
         }
         if (!guardado) {
             pagos.guardar(pago); // rechazado (o cobro devuelto): queda registrado con su motivo
-        }
-        if (TransaccionPago.APROBADO.equals(pago.getEstadoPago()) && compra.getPedido() != null) {
-            pedidos.guardar(compra.getPedido()); // el pedido entra a la cola de la dulcería
         }
         return pago;
     }

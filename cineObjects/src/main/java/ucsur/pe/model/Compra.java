@@ -276,15 +276,6 @@ public class Compra implements Totalizable{
         this.importe = calculadora.calcular(validas, pedido, descuentos);
     }
 
-    // ---------- Puntos (delegado en GestorPuntos) ----------
-    /**
-     * Comprueba que las entradas de socio y los combos de oferta los use un cliente con el nivel requerido,
-     * y que el saldo de puntos alcance para los tipos de entrada que cuestan puntos.
-     */
-    public void validarBeneficiosSocio() {
-        gestorPuntos.validarBeneficiosSocio(cliente, asientos.getEntradasValidas(), pedido);
-    }
-
     // ---------- Descuentos (cupones y promociones vistos como Descuento) ----------
     /**
      * Aplica cualquier descuento (cupón, promoción...) si cumple sus condiciones para esta compra.

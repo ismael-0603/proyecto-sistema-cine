@@ -3,7 +3,6 @@ package ucsur.pe.controller;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.TransaccionPago;
 import ucsur.pe.service.PagoService;
-import java.util.List;
 
 /**
  * Acciones del pago: medios disponibles y pagar. El cliente no pide reembolsos: se hacen solos cuando
@@ -14,10 +13,6 @@ public class PagoController extends ControllerBase {
 
     public PagoController(PagoService servicio) {
         this.servicio = servicio;
-    }
-
-    public Respuesta<List<String>> mediosDisponibles() {
-        return ejecutar("", servicio::mediosDisponibles);
     }
 
     /**

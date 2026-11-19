@@ -68,7 +68,7 @@ public class Entrada {
         entrada.fechaEmision = fechaEmision;
         entrada.expiraBloqueo = expiraBloqueo;
         if (!PRESELECCIONADA.equals(estado)) {
-            funcion.restaurarEntrada(entrada); // igual que en memoria: la función guarda las entradas que se bloquearon
+            funcion.restaurarEntrada(entrada); // la función guarda las entradas que se bloquearon
         }
         return entrada;
     }

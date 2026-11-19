@@ -45,7 +45,7 @@ public class Pedido implements Totalizable {
     /**
      * Solo para la capa de base de datos (ucsur.pe.db): reconstruye un pedido tal como quedó guardado.
      * No vuelve a descontar ni a reponer stock. El pedido está registrado si tiene QR, porque el QR se crea
-     * justo al registrarlo; como en memoria, solo un pedido registrado tiene sede
+     * justo al registrarlo; solo un pedido registrado tiene sede
      * (en la BD la sede no está en pedido: es la de su compra).
      */
     public static Pedido restaurar(int idPedido, String codigoQR, DateTime fechaHora, DateTime fechaEntrega,
@@ -231,7 +231,7 @@ public class Pedido implements Totalizable {
         return notificarCliente();
     }
 
-    /** Arma el aviso que recibe el cliente cuando el pedido pasa a LISTO; quien lo muestra es la vista (los Main). */
+    /** Arma el aviso que recibe el cliente cuando el pedido pasa a LISTO; quien lo muestra es la pantalla del panel de dulcería. */
     private String notificarCliente() {
         return "Notificación: Pedido #" + idPedido + " listo para recoger. QR: " + codigoQR;
     }

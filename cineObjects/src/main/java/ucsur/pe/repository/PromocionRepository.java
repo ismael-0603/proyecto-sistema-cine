@@ -6,7 +6,7 @@ import java.util.Optional;
 
 /**
  * Contrato de persistencia de Promocion: define QUÉ se puede guardar y buscar, no CÓMO.
- * Lo cumplen PromocionMemoriaRepository (demos en memoria) y PromocionJdbcRepository (MySQL).
+ * Lo cumple PromocionJdbcRepository (MySQL).
  */
 public interface PromocionRepository {
     void guardar(Promocion promocion);

@@ -6,13 +6,15 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import ucsur.pe.controller.Respuesta;
+import ucsur.pe.model.DateTime;
 import ucsur.pe.model.Funcion;
 import ucsur.pe.model.Genero;
 import ucsur.pe.model.Pelicula;
@@ -20,28 +22,46 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
- * 1 · Cartelera: las películas con funciones en la sede elegida. Los filtros de idioma, clasificación
- * y género los aplica el servicio (filtrarCartelera); la búsqueda por título filtra lo ya mostrado.
+ * 1 · Cartelera de la sede elegida. A la izquierda, «Filtrar por:» fecha, género, idioma y formato
+ * (los aplica el servicio con filtrarCartelera; la búsqueda por título filtra lo ya mostrado).
+ * Arriba de las películas, tres pestañas: «En cartelera» (en cartelera y reestrenos con funciones),
+ * «Preventa» (preestrenos que ya venden funciones) y «Próximamente» (anunciadas, aún sin funciones).
+ * Las películas van siempre en 4 columnas: las tarjetas toman el ancho de su columna.
  */
 public class CarteleraVista extends Pantalla {
 
-    private static final String TODOS_IDIOMAS = "Idioma";
-    private static final String TODAS_CLASIF = "Clasificación";
+    private static final int COLUMNAS = 4;
+    private static final double HUECO = 22;     // hgap del GridPane
+    private static final double RELLENO = 20;   // padding izquierdo + derecho de .tarjeta-pelicula
+
+    /** Una opción de los desplegables: lo que se ve y el valor que se filtra (null = sin filtro). */
+    private record Opcion<T>(String texto, T valor) {
+        @Override public String toString() { return texto; }
+    }
+
+    private enum Pestana { CARTELERA, PREVENTA, PROXIMAMENTE }
 
     @FXML private EncabezadoVista encabezadoController;
     @FXML private TextField txtBuscar;
-    @FXML private ComboBox<String> cmbIdioma;
-    @FXML private ComboBox<String> cmbClasificacion;
-    @FXML private HBox generos;
+    @FXML private ComboBox<Opcion<DateTime>> cmbFecha;
+    @FXML private ComboBox<Opcion<Genero>> cmbGenero;
+    @FXML private ComboBox<Opcion<String>> cmbIdioma;
+    @FXML private ComboBox<Opcion<String>> cmbFormato;
+    @FXML private Button tabCartelera;
+    @FXML private Button tabPreventa;
+    @FXML private Button tabProximamente;
     @FXML private Label lblCantidad;
     @FXML private Label lblMensaje;
-    @FXML private FlowPane peliculas;
+    @FXML private ScrollPane scroll;
+    @FXML private GridPane peliculas;
 
-    private Genero generoElegido; // null = «Todos»
-    private final List<Button> chips = new ArrayList<>();
+    private Pestana pestana = Pestana.CARTELERA;
+    private final List<Pelicula> mostradas = new ArrayList<>();
+    private double anchoTarjeta = 268;
 
     public CarteleraVista(Navegador nav) {
         super(nav);
@@ -60,97 +80,162 @@ public class CarteleraVista extends Pantalla {
             return;
         }
         cargarOpciones(r.dato());
-        cargarGeneros();
         txtBuscar.textProperty().addListener((o, a, b) -> filtrar());
+        cmbFecha.valueProperty().addListener((o, a, b) -> filtrar());
+        cmbGenero.valueProperty().addListener((o, a, b) -> filtrar());
         cmbIdioma.valueProperty().addListener((o, a, b) -> filtrar());
-        cmbClasificacion.valueProperty().addListener((o, a, b) -> filtrar());
-        filtrar();
+        cmbFormato.valueProperty().addListener((o, a, b) -> filtrar());
+        // Siempre 4 columnas: al cambiar el ancho, las tarjetas (y sus pósters) se rehacen a la medida
+        scroll.viewportBoundsProperty().addListener((o, a, b) -> ajustarAncho(b.getWidth()));
+        elegirPestana(Pestana.CARTELERA);
     }
 
-    /** Idiomas y clasificaciones que realmente hay en la cartelera de esta sede. */
+    // ---------- Filtros ----------
+
+    /** Fechas, idiomas y formatos que realmente hay en la cartelera de esta sede; los géneros, todos. */
     private void cargarOpciones(List<Funcion> funciones) {
+        TreeMap<Long, DateTime> dias = new TreeMap<>();
         TreeSet<String> idiomas = new TreeSet<>();
-        TreeSet<String> clasificaciones = new TreeSet<>();
+        TreeSet<String> formatos = new TreeSet<>();
         for (Funcion f : funciones) {
+            dias.putIfAbsent(f.getFecha().toValorSoloFecha(), f.getFecha());
             idiomas.add(Formato.capitalizar(f.getIdioma()));
-            clasificaciones.add(f.getPelicula().getClasificacionEdad());
+            formatos.add(f.getSala().getTipoSala().getFormato());
         }
-        List<String> listaIdiomas = new ArrayList<>(List.of(TODOS_IDIOMAS));
-        listaIdiomas.addAll(idiomas);
-        List<String> listaClasif = new ArrayList<>(List.of(TODAS_CLASIF));
-        listaClasif.addAll(clasificaciones);
-        cmbIdioma.setItems(FXCollections.observableArrayList(listaIdiomas));
-        cmbClasificacion.setItems(FXCollections.observableArrayList(listaClasif));
+        List<Opcion<DateTime>> opcFechas = new ArrayList<>(List.of(new Opcion<>("Todas las fechas", null)));
+        // Con el mes: la preventa puede tener funciones semanas después («Mié 16 dic»)
+        for (DateTime d : dias.values()) opcFechas.add(new Opcion<>(Formato.diaCorto(d) + " " + Formato.mesCorto(d), d));
+
+        List<Opcion<Genero>> opcGeneros = new ArrayList<>(List.of(new Opcion<>("Todos los géneros", null)));
+        Respuesta<List<Genero>> generos = app().cartelera().listarGeneros();
+        if (generos.ok()) for (Genero g : generos.dato()) opcGeneros.add(new Opcion<>(g.getNombre(), g));
+
+        List<Opcion<String>> opcIdiomas = new ArrayList<>(List.of(new Opcion<>("Todos los idiomas", null)));
+        for (String i : idiomas) opcIdiomas.add(new Opcion<>(i, i));
+        List<Opcion<String>> opcFormatos = new ArrayList<>(List.of(new Opcion<>("Todos los formatos", null)));
+        for (String f : formatos) opcFormatos.add(new Opcion<>(f, f));
+
+        cmbFecha.setItems(FXCollections.observableArrayList(opcFechas));
+        cmbGenero.setItems(FXCollections.observableArrayList(opcGeneros));
+        cmbIdioma.setItems(FXCollections.observableArrayList(opcIdiomas));
+        cmbFormato.setItems(FXCollections.observableArrayList(opcFormatos));
+        seleccionarPrimeros();
+    }
+
+    private void seleccionarPrimeros() {
+        cmbFecha.getSelectionModel().selectFirst();
+        cmbGenero.getSelectionModel().selectFirst();
         cmbIdioma.getSelectionModel().selectFirst();
-        cmbClasificacion.getSelectionModel().selectFirst();
-    }
-
-    private void cargarGeneros() {
-        Button todos = chip("Todos", null);
-        generos.getChildren().add(todos);
-        Respuesta<List<Genero>> r = app().cartelera().listarGeneros();
-        if (r.ok()) {
-            for (Genero g : r.dato()) generos.getChildren().add(chip(g.getNombre(), g));
-        }
-        marcarChip(todos);
-    }
-
-    private Button chip(String texto, Genero genero) {
-        Button b = new Button(texto);
-        b.getStyleClass().add("chip");
-        b.setMinWidth(Region.USE_PREF_SIZE); // el nombre del género nunca se corta con «…»
-        b.setOnAction(e -> {
-            generoElegido = genero;
-            marcarChip(b);
-            filtrar();
-        });
-        chips.add(b);
-        return b;
-    }
-
-    private void marcarChip(Button elegido) {
-        for (Button b : chips) b.getStyleClass().remove("activo");
-        elegido.getStyleClass().add("activo");
+        cmbFormato.getSelectionModel().selectFirst();
     }
 
     @FXML
     private void onLimpiar() {
         txtBuscar.clear();
-        cmbIdioma.getSelectionModel().selectFirst();
-        cmbClasificacion.getSelectionModel().selectFirst();
-        generoElegido = null;
-        if (!chips.isEmpty()) marcarChip(chips.get(0));
+        seleccionarPrimeros();
         filtrar();
     }
 
+    private static <T> T valor(ComboBox<Opcion<T>> combo) {
+        return combo.getValue() == null ? null : combo.getValue().valor();
+    }
+
+    // ---------- Pestañas ----------
+
+    @FXML private void onTabCartelera() { elegirPestana(Pestana.CARTELERA); }
+    @FXML private void onTabPreventa() { elegirPestana(Pestana.PREVENTA); }
+    @FXML private void onTabProximamente() { elegirPestana(Pestana.PROXIMAMENTE); }
+
+    private void elegirPestana(Pestana nueva) {
+        pestana = nueva;
+        tabCartelera.getStyleClass().remove("activo");
+        tabPreventa.getStyleClass().remove("activo");
+        tabProximamente.getStyleClass().remove("activo");
+        (nueva == Pestana.CARTELERA ? tabCartelera : nueva == Pestana.PREVENTA ? tabPreventa : tabProximamente)
+                .getStyleClass().add("activo");
+        // Las películas de «Próximamente» aún no tienen funciones: solo se filtran por título y género
+        boolean conFunciones = nueva != Pestana.PROXIMAMENTE;
+        cmbFecha.setDisable(!conFunciones);
+        cmbIdioma.setDisable(!conFunciones);
+        cmbFormato.setDisable(!conFunciones);
+        filtrar();
+    }
+
+    // ---------- Películas ----------
+
     private void filtrar() {
-        String idioma = TODOS_IDIOMAS.equals(cmbIdioma.getValue()) ? null : cmbIdioma.getValue();
-        String clasif = TODAS_CLASIF.equals(cmbClasificacion.getValue()) ? null : cmbClasificacion.getValue();
-        Respuesta<List<Funcion>> r = app().cartelera().filtrarCartelera(estado().getSede(), idioma, clasif, generoElegido);
+        List<Pelicula> lista = pestana == Pestana.PROXIMAMENTE ? proximamente() : conFunciones();
+        if (lista == null) return; // el error ya se mostró
+        String buscado = txtBuscar.getText() == null ? "" : txtBuscar.getText().trim().toLowerCase();
+        mostradas.clear();
+        for (Pelicula p : lista) {
+            if (buscado.isEmpty() || p.getTitulo().toLowerCase().contains(buscado)) mostradas.add(p);
+        }
+        dibujar();
+        int n = mostradas.size();
+        lblCantidad.setText(n + (n == 1 ? " película" : " películas"));
+        if (n == 0) {
+            mostrarError(lblMensaje, pestana == Pestana.PREVENTA && hayFiltros()
+                    ? "No hay preventas con esos filtros. Prueba con «Limpiar filtros»."
+                    : pestana == Pestana.PREVENTA ? "Por ahora no hay películas en preventa en esta sede."
+                    : "No hay películas con esos filtros. Prueba con «Limpiar filtros».");
+        } else {
+            limpiar(lblMensaje);
+        }
+    }
+
+    private boolean hayFiltros() {
+        return valor(cmbFecha) != null || valor(cmbGenero) != null || valor(cmbIdioma) != null
+                || valor(cmbFormato) != null || !txtBuscar.getText().isBlank();
+    }
+
+    /** «En cartelera» y «Preventa»: una película por cada una que tenga funciones con los filtros elegidos. */
+    private List<Pelicula> conFunciones() {
+        Respuesta<List<Funcion>> r = app().cartelera().filtrarCartelera(estado().getSede(),
+                valor(cmbFecha), valor(cmbGenero), valor(cmbIdioma), valor(cmbFormato));
         if (!r.ok()) {
             mostrarError(lblMensaje, r.mensaje());
-            return;
+            return null;
         }
-        // Una tarjeta por película, en el orden en que llegan sus funciones
-        Map<Integer, Pelicula> unicas = new LinkedHashMap<>();
-        for (Funcion f : r.dato()) unicas.putIfAbsent(f.getPelicula().getIdPelicula(), f.getPelicula());
+        boolean preventa = pestana == Pestana.PREVENTA;
+        Map<Integer, Pelicula> unicas = new LinkedHashMap<>(); // en el orden en que llegan sus funciones
+        for (Funcion f : r.dato()) {
+            Pelicula p = f.getPelicula();
+            if (Pelicula.PREESTRENO.equals(p.getEstado()) == preventa) unicas.putIfAbsent(p.getIdPelicula(), p);
+        }
+        return new ArrayList<>(unicas.values());
+    }
 
-        String buscado = txtBuscar.getText() == null ? "" : txtBuscar.getText().trim().toLowerCase();
-        peliculas.getChildren().clear();
-        for (Pelicula p : unicas.values()) {
-            if (buscado.isEmpty() || p.getTitulo().toLowerCase().contains(buscado)) {
-                peliculas.getChildren().add(tarjeta(p));
-            }
+    private List<Pelicula> proximamente() {
+        Respuesta<List<Pelicula>> r = app().cartelera().listarProximamente();
+        if (!r.ok()) {
+            mostrarError(lblMensaje, r.mensaje());
+            return null;
         }
-        int n = peliculas.getChildren().size();
-        lblCantidad.setText(n + (n == 1 ? " película" : " películas"));
-        if (n == 0) mostrarError(lblMensaje, "No hay funciones con esos filtros. Prueba con «Limpiar filtros».");
-        else limpiar(lblMensaje);
+        Genero genero = valor(cmbGenero);
+        return r.dato().stream().filter(p -> p.tieneGenero(genero)).toList();
+    }
+
+    /** Con el ancho disponible, cada tarjeta mide un cuarto (menos los huecos); se rehace si cambió. */
+    private void ajustarAncho(double anchoVisible) {
+        if (anchoVisible <= 0) return;
+        double nuevo = Math.floor((anchoVisible - HUECO * (COLUMNAS - 1)) / COLUMNAS);
+        if (Math.abs(nuevo - anchoTarjeta) >= 2) {
+            anchoTarjeta = nuevo;
+            dibujar();
+        }
+    }
+
+    private void dibujar() {
+        peliculas.getChildren().clear();
+        for (int i = 0; i < mostradas.size(); i++) {
+            peliculas.add(tarjeta(mostradas.get(i)), i % COLUMNAS, i / COLUMNAS);
+        }
     }
 
     private VBox tarjeta(Pelicula p) {
-        // Póster a todo el ancho de la tarjeta, en proporción 2:3
-        VBox poster = new VBox(Formato.poster(p, 248, 372));
+        double anchoPoster = Math.max(120, anchoTarjeta - RELLENO);
+        VBox poster = new VBox(Formato.poster(p, anchoPoster, anchoPoster * 1.5)); // proporción 2:3
         poster.setAlignment(Pos.CENTER);
 
         Label titulo = new Label(p.getTitulo());
@@ -164,29 +249,56 @@ public class CarteleraVista extends Pantalla {
         if (!p.getGeneros().isEmpty()) {
             Label genero = new Label(p.getGeneros().get(0).getNombre());
             genero.getStyleClass().add("tag-genero");
+            genero.setMinWidth(Region.USE_PREF_SIZE); // si falta espacio, se acorta la duración, no el género
             datos.getChildren().add(genero);
         }
-        Label duracion = new Label(Formato.duracion(p.getDuracion()));
-        duracion.getStyleClass().add("nota");
+        Label detalle = new Label(pestana == Pestana.PROXIMAMENTE ? estreno(p) : Formato.duracion(p.getDuracion()));
+        detalle.getStyleClass().add("nota");
         Region espacio = new Region();
         HBox.setHgrow(espacio, Priority.ALWAYS);
         Label clasif = new Label(p.getClasificacionEdad());
         clasif.getStyleClass().add("tag-clasificacion");
+        clasif.setMinWidth(Region.USE_PREF_SIZE);
         if (p.getClasificacionEdad().toUpperCase().startsWith("APT")) clasif.getStyleClass().add("apta");
-        datos.getChildren().addAll(duracion, espacio, clasif);
+        datos.getChildren().addAll(detalle, espacio, clasif);
 
+        VBox tarjeta = new VBox(8, poster);
+        if (pestana == Pestana.PREVENTA) {
+            Label etiqueta = new Label("Preventa · " + estreno(p));
+            etiqueta.getStyleClass().add("tag-dorada");
+            tarjeta.getChildren().add(etiqueta);
+        }
+        tarjeta.getChildren().addAll(titulo, datos, boton(p));
+        tarjeta.getStyleClass().add("tarjeta-pelicula");
+        tarjeta.setMaxWidth(anchoTarjeta);
+        return tarjeta;
+    }
+
+    /** «Ver funciones» abre los horarios (en el día filtrado, si eligió uno); en «Próximamente», la sinopsis. */
+    private Button boton(Pelicula p) {
+        if (pestana == Pestana.PROXIMAMENTE) {
+            Button ver = new Button("Ver sinopsis");
+            ver.getStyleClass().add("btn-secundario");
+            ver.setMaxWidth(Double.MAX_VALUE);
+            ver.setOnAction(e -> {
+                SinopsisVista sinopsis = nav.modal("sinopsis");
+                sinopsis.mostrar(p, List.of());
+            });
+            return ver;
+        }
         Button ver = new Button("Ver funciones");
         ver.getStyleClass().add("btn-primario");
         ver.setMaxWidth(Double.MAX_VALUE);
         ver.setOnAction(e -> {
             estado().setPelicula(p);
+            estado().setDiaElegido(valor(cmbFecha));
             nav.ir("horario");
         });
+        return ver;
+    }
 
-        VBox tarjeta = new VBox(8, poster, titulo, datos, ver);
-        tarjeta.getStyleClass().add("tarjeta-pelicula");
-        tarjeta.setPrefWidth(268);
-        tarjeta.setMaxWidth(268);
-        return tarjeta;
+    private static String estreno(Pelicula p) {
+        DateTime f = p.getFechaEstreno();
+        return f == null ? "Estreno por confirmar" : "Estreno " + f.getDia() + " " + Formato.mesCorto(f);
     }
 }

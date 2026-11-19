@@ -7,7 +7,7 @@ import java.util.Optional;
 
 /**
  * Contrato de persistencia de Sala (con sus butacas): define QUÉ se puede guardar y buscar, no CÓMO.
- * Lo cumplen SalaMemoriaRepository (demos en memoria) y SalaJdbcRepository (MySQL).
+ * Lo cumple SalaJdbcRepository (MySQL).
  */
 public interface SalaRepository {
     void guardar(Sala sala);

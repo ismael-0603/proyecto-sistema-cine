@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * Contrato de persistencia de TransaccionPago: define QUÉ se puede guardar y buscar, no CÓMO.
- * Lo cumplen PagoMemoriaRepository (demos en memoria) y PagoJdbcRepository (MySQL).
+ * Lo cumple PagoJdbcRepository (MySQL).
  */
 public interface PagoRepository {
     void guardar(TransaccionPago pago);

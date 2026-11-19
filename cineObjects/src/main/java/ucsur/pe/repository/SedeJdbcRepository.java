@@ -18,7 +18,7 @@ import java.util.Optional;
 /**
  * Implementa SedeRepository con MySQL. Al crearse carga una sola vez todas las sedes con sus salas,
  * butacas, funciones y las entradas que ocupan butacas: así todas las pantallas comparten los mismos
- * objetos Funcion y Butaca, igual que en memoria.
+ * objetos Funcion y Butaca.
  * Guardar una sede escribe sus datos y su cartelera: inserta las funciones nuevas y actualiza
  * solo las que cambiaron (reprogramadas, canceladas, reactivadas o con otro estado).
  */

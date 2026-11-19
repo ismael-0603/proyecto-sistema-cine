@@ -8,18 +8,23 @@ import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TouchEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import ucsur.pe.App;
-import ucsur.pe.Principal;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Compra;
 import java.io.IOException;
@@ -43,8 +48,12 @@ public class Navegador {
     private final HostServices host;
     private final EstadoKiosco estado = new EstadoKiosco();
 
+    /** Correos simulados visibles a la vez; al llegar otro, se quita el más antiguo. */
+    private static final int MAX_CORREOS_VISIBLES = 3;
+
     private final StackPane raiz = new StackPane();
     private final StackPane capaModal = new StackPane();
+    private final VBox capaCorreos = new VBox(12);
     private final PauseTransition inactividad = new PauseTransition(Duration.seconds(SEGUNDOS_INACTIVIDAD));
     private Timeline cuentaAviso;
 
@@ -58,11 +67,15 @@ public class Navegador {
     public void empezar() {
         capaModal.getStyleClass().add("capa-modal");
         capaModal.setVisible(false);
-        raiz.getChildren().addAll(new Region(), capaModal);
+        // Los correos simulados van encima de todo, abajo a la derecha; los clics pasan donde no hay tarjeta
+        capaCorreos.setAlignment(Pos.BOTTOM_RIGHT);
+        capaCorreos.setPadding(new Insets(24));
+        capaCorreos.setPickOnBounds(false);
+        raiz.getChildren().addAll(new Region(), capaModal, capaCorreos);
         raiz.getStyleClass().add("fondo");
 
         Scene escena = new Scene(raiz, 1440, 900);
-        escena.getStylesheets().add(Principal.class.getResource("css/estilos.css").toExternalForm());
+        escena.getStylesheets().add(App.class.getResource("css/estilos.css").toExternalForm());
         // Cualquier toque, tecla o desplazamiento reinicia el contador de inactividad
         for (var tipo : java.util.List.of(MouseEvent.MOUSE_PRESSED, KeyEvent.KEY_PRESSED,
                 ScrollEvent.SCROLL, TouchEvent.TOUCH_PRESSED)) {
@@ -109,13 +122,6 @@ public class Navegador {
         capaModal.setVisible(true);
     }
 
-    /** Aviso para las secciones de las fases siguientes (promociones, recuperar entradas...). */
-    public void proximamente(String seccion) {
-        DialogoVista d = dialogo();
-        d.configurar(seccion, "Esta sección se agrega en la siguiente fase de la interfaz.", false);
-        d.botonPrincipal("Entendido", this::cerrarModal);
-    }
-
     /** La impresora del kiosco se simula: muestra el ticket que se imprimiría. */
     public void mostrarTicket(String texto) {
         javafx.scene.control.TextArea ticket = new javafx.scene.control.TextArea(texto);
@@ -128,6 +134,41 @@ public class Navegador {
         d.botonPrincipal("Listo", this::cerrarModal);
     }
 
+    /**
+     * El correo del kiosco se simula: cada correo "enviado" aparece como una tarjeta en la esquina, con el
+     * destinatario, el asunto y el texto (por ejemplo, el código para cambiar la contraseña). Se cierra con ✕.
+     */
+    public void mostrarCorreo(String destinatario, String asunto, String cuerpo) {
+        Label titulo = new Label("✉  Correo simulado");
+        titulo.getStyleClass().add("correo-titulo");
+        Button cerrar = new Button("✕");
+        cerrar.getStyleClass().add("correo-cerrar");
+        Region espacio = new Region();
+        HBox.setHgrow(espacio, Priority.ALWAYS);
+        HBox cabecera = new HBox(8, titulo, espacio, cerrar);
+        cabecera.setAlignment(Pos.CENTER_LEFT);
+
+        Label para = new Label("Para: " + destinatario);
+        para.getStyleClass().add("nota");
+        Label lblAsunto = new Label(asunto);
+        lblAsunto.getStyleClass().add("etiqueta-fuerte");
+        lblAsunto.setWrapText(true);
+        Label lblCuerpo = new Label(cuerpo);
+        lblCuerpo.getStyleClass().add("nota");
+        lblCuerpo.setWrapText(true);
+
+        VBox tarjeta = new VBox(6, cabecera, para, lblAsunto, lblCuerpo);
+        tarjeta.getStyleClass().add("correo-simulado");
+        tarjeta.setMaxWidth(400);
+        tarjeta.setMaxHeight(Region.USE_PREF_SIZE);
+        cerrar.setOnAction(e -> capaCorreos.getChildren().remove(tarjeta));
+
+        if (capaCorreos.getChildren().size() >= MAX_CORREOS_VISIBLES) {
+            capaCorreos.getChildren().remove(0);
+        }
+        capaCorreos.getChildren().add(tarjeta);
+    }
+
     /** Abre un enlace (por ejemplo, el tráiler) en el navegador web de la PC. */
     public void abrirEnlace(String url) {
         if (url != null && !url.isBlank()) host.showDocument(url);
@@ -136,7 +177,7 @@ public class Navegador {
     private record Cargado(Parent raiz, Object controller) { }
 
     private Cargado cargar(String nombre) {
-        FXMLLoader loader = new FXMLLoader(Principal.class.getResource("view/" + nombre + ".fxml"));
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("view/" + nombre + ".fxml"));
         // Cada controller de pantalla recibe el navegador por su constructor (inyección, como en MVCone)
         loader.setControllerFactory(this::crearController);
         try {
@@ -222,6 +263,7 @@ public class Navegador {
     public void volverAlInicio() {
         estado.terminarCompra();
         estado.cerrarSesion();
+        capaCorreos.getChildren().clear(); // la siguiente persona no ve los correos de la anterior
         ir("cartelera");
     }
 

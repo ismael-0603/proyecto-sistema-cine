@@ -77,7 +77,7 @@ public class HorarioVista extends Pantalla {
         cargarDias();
     }
 
-    /** Un botón por día con funciones; se elige el primero. */
+    /** Un botón por día con funciones; se elige el día filtrado en la cartelera o, si no hay, el primero. */
     private void cargarDias() {
         Map<Long, DateTime> unicos = new LinkedHashMap<>();
         for (Funcion f : funciones) unicos.putIfAbsent(f.getFecha().toValorComparable(), f.getFecha());
@@ -93,8 +93,13 @@ public class HorarioVista extends Pantalla {
             botonesDia.add(b);
             dias.getChildren().add(b);
         }
-        DateTime primero = unicos.values().iterator().next();
-        elegirDia(primero, botonesDia.get(0));
+        List<DateTime> lista = new ArrayList<>(unicos.values());
+        DateTime filtrado = estado().getDiaElegido();
+        int elegido = 0;
+        for (int i = 0; filtrado != null && i < lista.size(); i++) {
+            if (lista.get(i).toValorSoloFecha() == filtrado.toValorSoloFecha()) elegido = i;
+        }
+        elegirDia(lista.get(elegido), botonesDia.get(elegido));
     }
 
     private void elegirDia(DateTime dia, Button boton) {

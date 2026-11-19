@@ -6,7 +6,7 @@ import java.util.Optional;
 
 /**
  * Contrato de persistencia de Calificacion: define QUÉ se puede guardar y buscar, no CÓMO.
- * Lo cumplen CalificacionMemoriaRepository (demos en memoria) y CalificacionJdbcRepository (MySQL).
+ * Lo cumple CalificacionJdbcRepository (MySQL).
  */
 public interface CalificacionRepository {
     /** Guarda la calificación; si aún no tiene id, le asigna uno (como el AUTO_INCREMENT). */

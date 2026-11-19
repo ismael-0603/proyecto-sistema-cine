@@ -8,6 +8,7 @@ import javafx.util.Duration;
 import ucsur.pe.model.Butaca;
 import ucsur.pe.model.Cliente;
 import ucsur.pe.model.Compra;
+import ucsur.pe.model.DateTime;
 import ucsur.pe.model.DetalleCompra;
 import ucsur.pe.model.Funcion;
 import ucsur.pe.model.Pelicula;
@@ -31,6 +32,7 @@ public class EstadoKiosco {
     private Sesion sesion;          // cuenta que inició sesión (cliente o empleado); null si nadie
     private Cliente invitado;       // cliente invitado, si eligió continuar sin cuenta
     private Pelicula pelicula;
+    private DateTime diaElegido;    // día filtrado en la cartelera: «Horarios» abre en ese día (null = el primero)
     private Funcion funcion;
     private Compra compra;          // compra EN_PROCESO; null fuera del flujo de compra
     private String medioPago;       // medio elegido en «Resumen y pago»
@@ -45,6 +47,8 @@ public class EstadoKiosco {
     private int paginaCompras;
     // Administración: el registro que se abre en un formulario para editarlo (null = nuevo)
     private Object enEdicion;
+    // Correo escrito en «Iniciar sesión» o «Recuperar contraseña», para no volver a escribirlo al pasar de una a otra
+    private String correoLogin;
 
     private final IntegerProperty segundosRestantes = new SimpleIntegerProperty(0);
     private Timeline cuentaRegresiva;
@@ -73,6 +77,7 @@ public class EstadoKiosco {
         invitado = null;
         compraElegida = null;
         paginaCompras = 0;
+        correoLogin = null;
     }
 
     /** El cliente con sesión iniciada (no el invitado); null si no hay. */
@@ -140,6 +145,8 @@ public class EstadoKiosco {
     public Sesion getSesion() { return sesion; }
     public Pelicula getPelicula() { return pelicula; }
     public void setPelicula(Pelicula pelicula) { this.pelicula = pelicula; }
+    public DateTime getDiaElegido() { return diaElegido; }
+    public void setDiaElegido(DateTime dia) { this.diaElegido = dia; }
     public Funcion getFuncion() { return funcion; }
     public void setFuncion(Funcion funcion) { this.funcion = funcion; }
     public Compra getCompra() { return compra; }
@@ -150,6 +157,8 @@ public class EstadoKiosco {
     public void setCompraElegida(Compra compra) { this.compraElegida = compra; this.detalleRecuperado = null; }
     public DetalleCompra getDetalleRecuperado() { return detalleRecuperado; }
     public String getCorreoRecuperado() { return correoRecuperado; }
+    public String getCorreoLogin() { return correoLogin; }
+    public void setCorreoLogin(String correo) { this.correoLogin = (correo == null || correo.isBlank()) ? null : correo.trim(); }
     public void setDetalleRecuperado(DetalleCompra detalle, String correo) {
         this.detalleRecuperado = detalle;
         this.correoRecuperado = correo;

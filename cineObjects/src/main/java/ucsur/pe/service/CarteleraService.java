@@ -1,15 +1,16 @@
 package ucsur.pe.service;
 
-import ucsur.pe.model.Butaca;
 import ucsur.pe.model.DateTime;
 import ucsur.pe.model.Funcion;
 import ucsur.pe.model.Genero;
+import ucsur.pe.model.Pelicula;
 import ucsur.pe.model.Promocion;
 import ucsur.pe.model.Reloj;
 import ucsur.pe.model.Sede;
 import ucsur.pe.repository.PeliculaRepository;
 import ucsur.pe.repository.PromocionRepository;
 import ucsur.pe.repository.SedeRepository;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -39,19 +40,26 @@ public class CarteleraService {
         return exigirSede(sede).consultarCartelera();
     }
 
-    public List<Funcion> filtrarCartelera(Sede sede, String idioma, String clasificacion, Genero genero) {
-        return exigirSede(sede).filtrarCartelera(idioma, clasificacion, genero);
+    /** Filtros de la cartelera (RF-03): día, género, idioma y formato de sala; los nulos no filtran. */
+    public List<Funcion> filtrarCartelera(Sede sede, DateTime dia, Genero genero, String idioma, String formato) {
+        return exigirSede(sede).filtrarCartelera(dia, genero, idioma, formato);
+    }
+
+    /**
+     * Películas anunciadas que todavía no tienen funciones (pestaña «Próximamente»), de la que se estrena
+     * antes a la que se estrena después; las que no tienen fecha van al final.
+     */
+    public List<Pelicula> listarProximamente() {
+        return peliculas.listarTodas().stream()
+                .filter(p -> Pelicula.PROXIMAMENTE.equals(p.getEstado()))
+                .sorted(Comparator.comparingLong(p -> p.getFechaEstreno() == null
+                        ? Long.MAX_VALUE : p.getFechaEstreno().toValorSoloFecha()))
+                .toList();
     }
 
     /** Géneros para el filtro de la cartelera (RF-03), sin escribirlos en la vista. */
     public List<Genero> listarGeneros() {
         return peliculas.listarGeneros();
-    }
-
-    /** Mapa de butacas libres de una función. */
-    public List<Butaca> consultarButacasDisponibles(Funcion funcion) {
-        if (funcion == null) throw new IllegalArgumentException("La función es obligatoria");
-        return funcion.obtenerButacasDisponibles();
     }
 
     /** Promociones que el cliente puede aprovechar hoy: activas, dentro de sus fechas y válidas para este día (RF-28). */

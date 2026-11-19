@@ -2,9 +2,11 @@ package ucsur.pe.exception;
 
 /**
  * Por qué existe: error propio de la capa de persistencia. Las capas superiores no necesitan saber
- * si el fallo vino de la memoria o de MySQL.
+ * los detalles de MySQL (SQLException), solo el mensaje.
  */
 public class RepositoryException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
     public RepositoryException(String mensaje) {
         super(mensaje);
     }

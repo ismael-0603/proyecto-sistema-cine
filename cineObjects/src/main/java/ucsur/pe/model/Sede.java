@@ -123,18 +123,6 @@ public class Sede {
         return ACTIVA.equals(estado);
     }
 
-    /** Devuelve salas activas; una sede inactiva no ofrece salas disponibles. */
-    public List<Sala> consultarSalasDisponibles() {
-        List<Sala> disponibles = new ArrayList<>();
-        if (!estaOperativa()) return disponibles;
-        for (Sala s : salas) {
-            if (s.estaOperativa()) {
-                disponibles.add(s);
-            }
-        }
-        return disponibles;
-    }
-
     /** Devuelve las funciones vendibles en esta sede, con película y sala operativas. */
     public List<Funcion> consultarCartelera() {
         List<Funcion> activas = new ArrayList<>();
@@ -149,17 +137,20 @@ public class Sede {
         return activas;
     }
 
-    /** Filtra por idioma, clasificación y género; cada parámetro nulo o vacío omite ese filtro. */
-    public List<Funcion> filtrarCartelera(String idioma, String clasificacion, Genero genero) {
+    /**
+     * Filtra la cartelera por día, género, idioma y formato de sala (2D Tradicional, IMAX 2D...);
+     * cada parámetro nulo o vacío omite ese filtro. Del día solo cuenta la fecha, no la hora.
+     */
+    public List<Funcion> filtrarCartelera(DateTime dia, Genero genero, String idioma, String formato) {
         List<Funcion> filtradas = new ArrayList<>();
         for (Funcion f : consultarCartelera()) {
-            boolean okIdioma = (idioma == null || idioma.isEmpty()
-                    || f.getIdioma().equalsIgnoreCase(idioma));
-            boolean okClasif = (clasificacion == null || clasificacion.isEmpty()
-                    || f.getPelicula().getClasificacionEdad().equalsIgnoreCase(clasificacion));
+            boolean okDia = dia == null || f.getFecha().toValorSoloFecha() == dia.toValorSoloFecha();
             boolean okGenero = f.getPelicula().tieneGenero(genero);
+            boolean okIdioma = idioma == null || idioma.isEmpty() || f.getIdioma().equalsIgnoreCase(idioma);
+            boolean okFormato = formato == null || formato.isEmpty()
+                    || f.getSala().getTipoSala().getFormato().equalsIgnoreCase(formato);
 
-            if (okIdioma && okClasif && okGenero) {
+            if (okDia && okGenero && okIdioma && okFormato) {
                 filtradas.add(f);
             }
         }

@@ -47,5 +47,5 @@
         </VBox>
     </GridPane>
 
-    <Button text="Volver a los horarios" styleClass="btn-primario" maxWidth="Infinity" onAction="#onCerrar"/>
+    <Button fx:id="btnVolver" text="Volver a los horarios" styleClass="btn-primario" maxWidth="Infinity" onAction="#onCerrar"/>
 </VBox>

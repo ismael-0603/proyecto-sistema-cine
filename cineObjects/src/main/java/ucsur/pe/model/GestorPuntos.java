@@ -63,11 +63,6 @@ public class GestorPuntos {
         return motivoProductosSocio(cliente, pedido);
     }
 
-    /** Igual que motivoBeneficiosSocio, pero lanza un error con el motivo (para avisar al cliente). */
-    public void validarBeneficiosSocio(Cliente cliente, List<Entrada> entradasValidas, Pedido pedido) {
-        lanzarSiHayMotivo(motivoBeneficiosSocio(cliente, entradasValidas, pedido));
-    }
-
     /** Rechaza productos de oferta si el cliente no tiene el nivel de socio requerido. */
     public void validarProductosSocio(Cliente cliente, Pedido pedido) {
         lanzarSiHayMotivo(motivoProductosSocio(cliente, pedido));

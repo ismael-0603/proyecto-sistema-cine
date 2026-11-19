@@ -19,6 +19,7 @@ public class SinopsisVista extends Pantalla {
     @FXML private Button btnTrailer;
     @FXML private Label lblSinopsis;
     @FXML private Button btnVerMas;
+    @FXML private Button btnVolver;
     @FXML private Label lblIdioma;
     @FXML private Label lblFormatos;
     @FXML private Label lblDuracion;
@@ -45,6 +46,8 @@ public class SinopsisVista extends Pantalla {
         lblFormatos.setText(formatos.isEmpty() ? "—" : String.join(", ", formatos));
         lblDuracion.setText(Formato.duracion(p.getDuracion()));
         lblEstreno.setText(p.getFechaEstreno() == null ? "—" : Formato.fechaConAnio(p.getFechaEstreno()));
+        // Desde «Próximamente» (cartelera) la película aún no tiene horarios a los que volver
+        btnVolver.setText(funciones.isEmpty() ? "Cerrar" : "Volver a los horarios");
         completa = false;
         actualizarSinopsis();
     }

@@ -74,7 +74,7 @@ public class CompraService {
     }
 
     /** Mejores butacas para el grupo (RF-29); no repite las que la compra ya eligió. */
-    public List<Butaca> recomendarAsientos(Compra compra, Funcion funcion, int cantidad, boolean incluirAccesibles) {
+    private List<Butaca> recomendarAsientos(Compra compra, Funcion funcion, int cantidad, boolean incluirAccesibles) {
         if (funcion == null) throw new IllegalArgumentException("La función es obligatoria");
         List<Butaca> elegidas = (compra != null) ? compra.butacasElegidas(funcion) : List.of();
         return funcion.recomendarMejoresAsientos(cantidad, incluirAccesibles, elegidas);
@@ -146,11 +146,6 @@ public class CompraService {
 
     public void aplicarPromocion(Compra compra, Promocion promocion) {
         compra.aplicarDescuento(promocion);
-    }
-
-    /** Avisa antes de pagar si una entrada o combo es solo para socios o faltan puntos. */
-    public void validarBeneficiosSocio(Compra compra) {
-        compra.validarBeneficiosSocio();
     }
 
     public void cancelar(Compra compra) {

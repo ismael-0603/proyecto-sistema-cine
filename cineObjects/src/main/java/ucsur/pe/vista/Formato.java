@@ -46,6 +46,11 @@ public final class Formato {
         return DIAS[fecha.diaDeLaSemana() - 1].substring(0, 3) + " " + fecha.getDia();
     }
 
+    /** "nov" */
+    public static String mesCorto(DateTime fecha) {
+        return MESES[fecha.getMes() - 1].substring(0, 3);
+    }
+
     /** "16/11/2026" */
     public static String fecha(DateTime fecha) {
         return String.format("%02d/%02d/%04d", fecha.getDia(), fecha.getMes(), fecha.getAnio());

@@ -1,8 +1,9 @@
 package ucsur.pe.controller;
 
-import ucsur.pe.model.Butaca;
+import ucsur.pe.model.DateTime;
 import ucsur.pe.model.Funcion;
 import ucsur.pe.model.Genero;
+import ucsur.pe.model.Pelicula;
 import ucsur.pe.model.Promocion;
 import ucsur.pe.model.Sede;
 import ucsur.pe.service.CarteleraService;
@@ -24,16 +25,16 @@ public class CarteleraController extends ControllerBase {
         return ejecutar("", () -> servicio.consultarCartelera(sede));
     }
 
-    public Respuesta<List<Funcion>> filtrarCartelera(Sede sede, String idioma, String clasificacion, Genero genero) {
-        return ejecutar("", () -> servicio.filtrarCartelera(sede, idioma, clasificacion, genero));
+    public Respuesta<List<Funcion>> filtrarCartelera(Sede sede, DateTime dia, Genero genero, String idioma, String formato) {
+        return ejecutar("", () -> servicio.filtrarCartelera(sede, dia, genero, idioma, formato));
+    }
+
+    public Respuesta<List<Pelicula>> listarProximamente() {
+        return ejecutar("", servicio::listarProximamente);
     }
 
     public Respuesta<List<Genero>> listarGeneros() {
         return ejecutar("", servicio::listarGeneros);
-    }
-
-    public Respuesta<List<Butaca>> consultarButacasDisponibles(Funcion funcion) {
-        return ejecutar("", () -> servicio.consultarButacasDisponibles(funcion));
     }
 
     public Respuesta<List<Promocion>> consultarPromociones() {

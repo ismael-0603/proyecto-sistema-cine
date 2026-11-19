@@ -56,7 +56,6 @@ public class CompraJdbcRepository extends RepositorioJdbc<Compra> implements Com
         guardarCon(compra, c -> dao.guardarCompra(c, true), c -> dao.guardarCompra(c, false));
     }
 
-    @Override public Optional<Compra> buscarPorId(int idCompra) { return porId(idCompra); }
     @Override public List<Compra> listarTodas() { return todos(); }
 
     /** Guarda la compra y su pago aprobado en una sola transacción; lo usa PagoJdbcRepository.guardarConCompra. */

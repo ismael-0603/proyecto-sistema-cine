@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * Contrato de persistencia de Reclamo: define QUÉ se puede guardar y buscar, no CÓMO.
- * Lo cumplen ReclamoMemoriaRepository (demos en memoria) y ReclamoJdbcRepository (MySQL).
+ * Lo cumple ReclamoJdbcRepository (MySQL).
  */
 public interface ReclamoRepository {
     /** Guarda el reclamo; si aún no tiene id, le asigna uno (como el AUTO_INCREMENT). */

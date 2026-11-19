@@ -8,8 +8,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>26</maven.compiler.release>
-        <!-- mvn exec:java corre la demo por consola; mvn javafx:run abre las pantallas -->
-        <exec.mainClass>ucsur.pe.demo.CineObjects</exec.mainClass>
         <javafx.version>21.0.9</javafx.version>
     </properties>
     <dependencies>
@@ -39,7 +37,7 @@
                 <version>0.0.8</version>
                 <configuration>
                     <!-- Uso: mvn clean javafx:run -->
-                    <mainClass>ucsur.pe/ucsur.pe.Principal</mainClass>
+                    <mainClass>ucsur.pe/ucsur.pe.App</mainClass>
                 </configuration>
             </plugin>
         </plugins>

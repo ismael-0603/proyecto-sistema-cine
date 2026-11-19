@@ -46,7 +46,7 @@ public class Calificacion {
         return calificacion;
     }
 
-    /** Asigna el id real generado por la base tras el INSERT (en memoria, lo simula el repositorio). */
+    /** Asigna el id real generado por la base tras el INSERT. */
     public void asignarId(int idCalificacion) {
         this.idCalificacion = Ids.asignar(this.idCalificacion, idCalificacion, "la calificación");
     }

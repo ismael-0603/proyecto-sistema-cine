@@ -1,5 +1,11 @@
 package ucsur.pe;
 
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
+import javafx.scene.image.Image;
+import javafx.scene.text.Font;
+import javafx.stage.Stage;
 import ucsur.pe.controller.AdminController;
 import ucsur.pe.controller.CarteleraController;
 import ucsur.pe.controller.CompraController;
@@ -12,10 +18,12 @@ import ucsur.pe.correo.CorreoSimulado;
 import ucsur.pe.correo.ServicioCorreo;
 import ucsur.pe.db.CatalogoMySqlDao;
 import ucsur.pe.db.CompraMySqlDao;
+import ucsur.pe.db.DBConnection;
 import ucsur.pe.db.PeliculaMySqlDao;
 import ucsur.pe.db.PersonaMySqlDao;
 import ucsur.pe.db.PostventaMySqlDao;
 import ucsur.pe.db.SedeMySqlDao;
+import ucsur.pe.exception.RepositoryException;
 import ucsur.pe.model.CalculadoraImporte;
 import ucsur.pe.model.GestorPuntos;
 import ucsur.pe.model.Reloj;
@@ -31,144 +39,138 @@ import ucsur.pe.service.EmisionService;
 import ucsur.pe.service.PagoService;
 import ucsur.pe.service.PedidoService;
 import ucsur.pe.service.PostventaService;
+import ucsur.pe.vista.Navegador;
+import java.io.InputStream;
 import java.sql.Connection;
 
 /**
- * Por qué existe: crea y conecta las piezas de abajo hacia arriba (repositorios -> servicios -> controllers),
- * como App en el ejemplo del curso. Es el único lugar que decide qué implementaciones se usan:
- * repositorios en memoria (las demos por consola) o en MySQL (la aplicación con la base DB_Cine),
- * y la pasarela y el correo simulados. Los servicios y controllers son los mismos en los dos casos,
- * porque solo conocen las interfaces de los repositorios (DIP).
+ * Por qué existe: es la entrada de la aplicación, como App en el ejemplo MVCone.
+ * Abre la conexión con DB_Cine, crea y conecta las piezas de abajo hacia arriba
+ * (DAO -> repositorios -> servicios -> controllers), muestra la primera pantalla
+ * y cierra la conexión al salir. Es el único lugar que decide qué implementaciones se usan:
+ * repositorios JDBC, y la pasarela y el correo simulados. Los servicios solo conocen
+ * las interfaces de los repositorios (DIP).
  */
-public class App {
+public class App extends Application {
 
-    /** Los repositorios que usa la aplicación; se arman todos juntos, en memoria o en MySQL. */
-    private record Repositorios(ClienteRepository clientes, EmpleadoRepository empleados, SedeRepository sedes,
-                                SalaRepository salas, PeliculaRepository peliculas, ProductoRepository productos,
-                                CuponRepository cupones, PromocionRepository promociones, CompraRepository compras,
-                                PedidoRepository pedidos, PagoRepository pagos, ReclamoRepository reclamos,
-                                CalificacionRepository calificaciones, TipoEntradaRepository tiposEntrada) {
+    /** Pesos de Manrope que usa el diseño; cada uno queda como su propia familia ("Manrope SemiBold"...). */
+    private static final String[] FUENTES = {"Regular", "Medium", "SemiBold", "Bold", "ExtraBold"};
 
-        /** Listas en memoria: cada demo empieza vacía y carga sus propios datos de prueba. */
-        static Repositorios enMemoria() {
-            CompraMemoriaRepository compras = new CompraMemoriaRepository(); // los pagos aprobados se guardan con su compra
-            return new Repositorios(new ClienteMemoriaRepository(), new EmpleadoMemoriaRepository(),
-                    new SedeMemoriaRepository(), new SalaMemoriaRepository(), new PeliculaMemoriaRepository(),
-                    new ProductoMemoriaRepository(), new CuponMemoriaRepository(), new PromocionMemoriaRepository(),
-                    compras, new PedidoMemoriaRepository(), new PagoMemoriaRepository(compras),
-                    new ReclamoMemoriaRepository(), new CalificacionMemoriaRepository(),
-                    new TipoEntradaMemoriaRepository());
+    private DBConnection db;
+    private Reloj reloj;
+    private LoginController login;
+    private CarteleraController cartelera;
+    private CompraController compra;
+    private PagoController pago;
+    private DulceriaController dulceria;
+    private AdminController admin;
+    private PostventaController postventa;
+    private EmisionController emision;
+
+    @Override
+    public void start(Stage stage) {
+        cargarFuentes();
+        CorreoSimulado correo = new CorreoSimulado();
+        try {
+            // 1. Conexión con la base de datos.
+            db = DBConnection.getInstance();
+            // 2. Repositorios, servicios y controllers: cada repositorio carga sus datos al crearse.
+            reloj = new RelojSistema();
+            conectarCapas(db.getConexion(), new PasarelaSimulada(reloj), correo);
+        } catch (RepositoryException e) {
+            Alert error = new Alert(Alert.AlertType.ERROR, e.getMessage()
+                    + "\n\nRevise que XAMPP (MySQL) esté encendido y que db.properties tenga los datos correctos.");
+            error.setHeaderText("No se pudo abrir el kiosco");
+            error.showAndWait();
+            Platform.exit();
+            return;
         }
 
-        /**
-         * MySQL: cada repositorio carga sus datos al crearse. El orden importa, porque cada uno reutiliza
-         * los objetos que ya cargaron los anteriores (un solo objeto por id en toda la aplicación):
-         * catálogo -> sedes (con salas, butacas y funciones) -> personas -> compras -> pagos, pedidos y postventa.
-         */
-        static Repositorios enMySql(Connection conexion, Reloj reloj) {
-            CatalogoMySqlDao catalogo = new CatalogoMySqlDao(conexion);
-            SedeMySqlDao sedeDao = new SedeMySqlDao(conexion, reloj);
-            PeliculaJdbcRepository peliculas = new PeliculaJdbcRepository(new PeliculaMySqlDao(conexion));
-            TipoEntradaJdbcRepository tiposEntrada = new TipoEntradaJdbcRepository(catalogo);
-            SedeJdbcRepository sedes = new SedeJdbcRepository(sedeDao, peliculas, tiposEntrada);
-            SalaJdbcRepository salas = new SalaJdbcRepository(sedeDao, sedes, sedes.listarTiposSala());
-            ProductoJdbcRepository productos = new ProductoJdbcRepository(catalogo, sedes);
-            CuponJdbcRepository cupones = new CuponJdbcRepository(catalogo);
-            PromocionJdbcRepository promociones = new PromocionJdbcRepository(catalogo);
+        // 3. El navegador carga cada pantalla (FXML) en esta misma ventana y le pasa sus controllers.
+        Navegador navegador = new Navegador(stage, this, getHostServices());
+        // El correo es simulado: cada correo "enviado" aparece como aviso en la pantalla del kiosco
+        correo.alEnviar(m -> navegador.mostrarCorreo(m.destinatario(), m.asunto(), m.cuerpo()));
+        stage.setTitle("Cineplanet · Autoservicio");
+        InputStream icono = App.class.getResourceAsStream("img/logo-emblema.png");
+        if (icono != null) stage.getIcons().add(new Image(icono));
+        stage.setMinWidth(1280);
+        stage.setMinHeight(720);
+        stage.setMaximized(true);
+        navegador.empezar();
+        stage.show();
+    }
 
-            PersonaMySqlDao personaDao = new PersonaMySqlDao(conexion, reloj);
-            ClienteJdbcRepository clientes = new ClienteJdbcRepository(personaDao);
-            EmpleadoJdbcRepository empleados = new EmpleadoJdbcRepository(personaDao, sedes);
-
-            // Calculadora y gestor de puntos no guardan estado: las compras leídas de la BD calculan igual
-            CompraMySqlDao compraDao = new CompraMySqlDao(conexion, reloj, new CalculadoraImporte(), new GestorPuntos());
-            CompraJdbcRepository compras = new CompraJdbcRepository(compraDao, clientes, empleados, sedes, cupones,
-                    promociones, tiposEntrada, productos);
-            PagoJdbcRepository pagos = new PagoJdbcRepository(compraDao, compras);
-            PedidoJdbcRepository pedidos = new PedidoJdbcRepository(compraDao, compras);
-
-            PostventaMySqlDao postventaDao = new PostventaMySqlDao(conexion);
-            ReclamoJdbcRepository reclamos = new ReclamoJdbcRepository(postventaDao, compras);
-            CalificacionJdbcRepository calificaciones = new CalificacionJdbcRepository(postventaDao, compras);
-
-            return new Repositorios(clientes, empleados, sedes, salas, peliculas, productos, cupones, promociones,
-                    compras, pedidos, pagos, reclamos, calificaciones, tiposEntrada);
+    @Override
+    public void stop() {
+        // 4. Cerrar la conexión al salir (como setOnCloseRequest en MVCone).
+        if (db != null) {
+            try {
+                db.cerrar();
+            } catch (RepositoryException e) {
+                System.err.println(e.getMessage());
+            }
         }
     }
-
-    private final Repositorios repos;
-    private final LoginController login;
-    private final CarteleraController cartelera;
-    private final CompraController compra;
-    private final PagoController pago;
-    private final DulceriaController dulceria;
-    private final AdminController admin;
-    private final PostventaController postventa;
-    private final EmisionController emision;
-    private final Reloj reloj;
-    private final ServicioCorreo correo;
-
-    // ---------- En memoria (demos por consola) ----------
-
-    /** Uso normal: reloj del sistema y pasarela simulada. */
-    public App() {
-        this(new RelojSistema());
-    }
-
-    /** Cambia solo el reloj (por ejemplo, uno fijo en pruebas); la pasarela simulada usa ese mismo reloj. */
-    public App(Reloj reloj) {
-        this(reloj, new PasarelaSimulada(reloj));
-    }
-
-    /** Permite cambiar el reloj (por ejemplo, uno fijo en pruebas) y la pasarela. */
-    public App(Reloj reloj, PasarelaPago pasarela) {
-        this(reloj, pasarela, new CorreoSimulado());
-    }
-
-    /** Permite cambiar también el proveedor de correo (hoy simulado). */
-    public App(Reloj reloj, PasarelaPago pasarela, ServicioCorreo correo) {
-        this(Repositorios.enMemoria(), reloj, pasarela, correo);
-    }
-
-    // ---------- Con la base de datos ----------
 
     /**
-     * La aplicación con MySQL, como App.start en el ejemplo del curso: recibe la conexión
-     * (DBConnection.getInstance().getConexion()) y carga los datos de DB_Cine al crearse.
-     * Quien abre la conexión es quien la cierra al salir (DBConnection.cerrar()).
+     * Arma las capas de abajo hacia arriba. El orden de los repositorios importa, porque cada uno reutiliza
+     * los objetos que ya cargaron los anteriores (un solo objeto por id en toda la aplicación):
+     * catálogo -> sedes (con salas, butacas y funciones) -> personas -> compras -> pagos, pedidos y postventa.
      */
-    public App(Connection conexion, Reloj reloj, PasarelaPago pasarela, ServicioCorreo correo) {
-        this(Repositorios.enMySql(exigirConexion(conexion), reloj), reloj, pasarela, correo);
-    }
+    private void conectarCapas(Connection conexion, PasarelaPago pasarela, ServicioCorreo correo) {
+        // DAO y repositorios
+        CatalogoMySqlDao catalogo = new CatalogoMySqlDao(conexion);
+        SedeMySqlDao sedeDao = new SedeMySqlDao(conexion, reloj);
+        PeliculaJdbcRepository peliculas = new PeliculaJdbcRepository(new PeliculaMySqlDao(conexion));
+        TipoEntradaJdbcRepository tiposEntrada = new TipoEntradaJdbcRepository(catalogo);
+        SedeJdbcRepository sedes = new SedeJdbcRepository(sedeDao, peliculas, tiposEntrada);
+        SalaJdbcRepository salas = new SalaJdbcRepository(sedeDao, sedes, sedes.listarTiposSala());
+        ProductoJdbcRepository productos = new ProductoJdbcRepository(catalogo, sedes);
+        CuponJdbcRepository cupones = new CuponJdbcRepository(catalogo);
+        PromocionJdbcRepository promociones = new PromocionJdbcRepository(catalogo);
 
-    private static Connection exigirConexion(Connection conexion) {
-        if (conexion == null) throw new IllegalArgumentException("La conexión a la base de datos es obligatoria");
-        return conexion;
-    }
+        PersonaMySqlDao personaDao = new PersonaMySqlDao(conexion, reloj);
+        ClienteJdbcRepository clientes = new ClienteJdbcRepository(personaDao);
+        EmpleadoJdbcRepository empleados = new EmpleadoJdbcRepository(personaDao, sedes);
 
-    /** Constructor común: recibe los repositorios ya armados (en memoria o en MySQL) y conecta lo demás. */
-    private App(Repositorios repos, Reloj reloj, PasarelaPago pasarela, ServicioCorreo correo) {
-        this.repos = repos;
-        this.reloj = reloj;
-        this.correo = correo;
-        // Colaboradores sin estado de la compra: App decide cuáles se usan (DIP).
+        // Calculadora y gestor de puntos no guardan estado: las compras leídas de la BD calculan igual
         CalculadoraImporte calculadora = new CalculadoraImporte();
         GestorPuntos gestorPuntos = new GestorPuntos();
+        CompraMySqlDao compraDao = new CompraMySqlDao(conexion, reloj, calculadora, gestorPuntos);
+        CompraJdbcRepository compras = new CompraJdbcRepository(compraDao, clientes, empleados, sedes, cupones,
+                promociones, tiposEntrada, productos);
+        PagoJdbcRepository pagos = new PagoJdbcRepository(compraDao, compras);
+        PedidoJdbcRepository pedidos = new PedidoJdbcRepository(compraDao, compras);
 
-        this.login = new LoginController(new AutenticacionService(repos.clientes(), repos.empleados(), correo, reloj));
-        this.cartelera = new CarteleraController(new CarteleraService(repos.sedes(), repos.promociones(),
-                repos.peliculas(), reloj));
-        this.compra = new CompraController(new CompraService(repos.compras(), repos.cupones(), repos.tiposEntrada(),
+        PostventaMySqlDao postventaDao = new PostventaMySqlDao(conexion);
+        ReclamoJdbcRepository reclamos = new ReclamoJdbcRepository(postventaDao, compras);
+        CalificacionJdbcRepository calificaciones = new CalificacionJdbcRepository(postventaDao, compras);
+
+        // Servicios y controllers
+        login = new LoginController(new AutenticacionService(clientes, empleados, correo, reloj));
+        cartelera = new CarteleraController(new CarteleraService(sedes, promociones, peliculas, reloj));
+        compra = new CompraController(new CompraService(compras, cupones, tiposEntrada,
                 calculadora, gestorPuntos, reloj));
-        PagoService pagoService = new PagoService(repos.pagos(), repos.compras(), repos.pedidos(), pasarela, reloj);
-        this.pago = new PagoController(pagoService);
-        this.dulceria = new DulceriaController(new PedidoService(repos.pedidos(), repos.productos(),
-                repos.compras(), reloj));
-        this.admin = new AdminController(new AdministracionService(repos.sedes(), repos.salas(), repos.peliculas(),
-                repos.productos(), repos.cupones(), repos.promociones(), repos.compras(), pagoService, reloj));
-        this.postventa = new PostventaController(new PostventaService(repos.reclamos(), repos.calificaciones(), correo));
-        this.emision = new EmisionController(new EmisionService(repos.compras(), repos.pagos(), correo, reloj));
+        PagoService pagoService = new PagoService(pagos, compras, pedidos, pasarela, reloj);
+        pago = new PagoController(pagoService);
+        dulceria = new DulceriaController(new PedidoService(pedidos, productos, compras, reloj));
+        admin = new AdminController(new AdministracionService(sedes, salas, peliculas,
+                productos, cupones, promociones, compras, pagoService, reloj));
+        postventa = new PostventaController(new PostventaService(reclamos, calificaciones, correo));
+        emision = new EmisionController(new EmisionService(compras, pagos, correo, reloj));
     }
+
+    private static void cargarFuentes() {
+        for (String peso : FUENTES) {
+            try (InputStream in = App.class.getResourceAsStream("fonts/Manrope-" + peso + ".ttf")) {
+                if (in != null) Font.loadFont(in, 14);
+            } catch (Exception e) {
+                System.err.println("No se pudo cargar Manrope " + peso + ": " + e.getMessage());
+            }
+        }
+    }
+
+    // ---------- Controllers que usan las pantallas ----------
 
     public LoginController login() { return login; }
     public CarteleraController cartelera() { return cartelera; }
@@ -179,16 +181,7 @@ public class App {
     public PostventaController postventa() { return postventa; }
     public EmisionController emision() { return emision; }
 
-    // ---------- Solo para las demos por consola ----------
-    // La interfaz gráfica usa únicamente los controllers de arriba: nunca toca repositorios ni crea modelos.
-    // Las demos en memoria sí necesitan cargar datos de prueba (sedes, salas, empleados) que no tienen pantalla.
-
-    /** Solo demos: para cargar sedes y salas de prueba en memoria; con la BD ya vienen cargadas. */
-    public SedeRepository sedes() { return repos.sedes(); }
-    /** Solo demos: para cargar empleados de prueba en memoria; con la BD ya vienen cargados. */
-    public EmpleadoRepository empleados() { return repos.empleados(); }
-    /** Solo demos: el reloj de toda la aplicación, para crear datos de prueba con la misma hora. */
-    public Reloj reloj() { return reloj; }
-    /** Solo demos: el proveedor de correo, para revisar qué se "envió". */
-    public ServicioCorreo correo() { return correo; }
+    public static void main(String[] args) {
+        launch(args);
+    }
 }

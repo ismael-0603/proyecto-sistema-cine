@@ -11,7 +11,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
-import ucsur.pe.Principal;
+import ucsur.pe.App;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Promocion;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class PromocionesVista extends Pantalla {
     @FXML
     private void initialize() {
         encabezadoController.marcarPromociones();
-        var recurso = Principal.class.getResource("img/promo-entradas.png");
+        var recurso = App.class.getResource("img/promo-entradas.png");
         if (recurso != null) imagen = new Image(recurso.toExternalForm());
         Respuesta<List<Promocion>> r = app().cartelera().listarPromocionesVigentes();
         if (!r.ok()) {

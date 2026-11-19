@@ -7,6 +7,8 @@ package ucsur.pe.exception;
  * los atrapa a todos de la misma forma y muestra el mensaje.
  */
 public class ReglaNegocioException extends IllegalStateException {
+    private static final long serialVersionUID = 1L;
+
     public ReglaNegocioException(String mensaje) {
         super(mensaje);
     }

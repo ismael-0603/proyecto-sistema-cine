@@ -63,10 +63,9 @@ public class DBConnection {
     }
 
     /**
-     * Abre una conexión con los datos indicados. Es pública para poder probar en la demo
-     * qué pasa con una contraseña incorrecta sin tocar la instancia compartida.
+     * Abre una conexión con los datos de db.properties.
      */
-    public static Connection abrir(Properties props) {
+    private static Connection abrir(Properties props) {
         String url = props.getProperty("db.url") + props.getProperty("db.name") + OPCIONES;
         try {
             return DriverManager.getConnection(url, props.getProperty("db.user"), props.getProperty("db.password"));

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Como en el ejemplo MVCone: el botón «Run» de NetBeans abre la interfaz gráfica (mvn clean javafx:run).
-     La demo por consola sigue disponible con mvn exec:java. -->
+     Necesita XAMPP (MySQL) encendido con la base DB_Cine. -->
 <actions>
     <action>
         <actionName>run</actionName>

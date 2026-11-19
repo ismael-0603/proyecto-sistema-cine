@@ -30,6 +30,12 @@ public class IniciarSesionVista extends Pantalla {
         txtContraVisible.textProperty().bindBidirectional(txtContra.textProperty());
         txtContraVisible.visibleProperty().bind(btnVer.selectedProperty());
         txtContra.visibleProperty().bind(btnVer.selectedProperty().not());
+        // Al volver de «Recuperar contraseña» el correo ya viene escrito
+        String correo = estado().getCorreoLogin();
+        if (correo != null) {
+            txtCorreo.setText(correo);
+            txtContra.requestFocus();
+        }
     }
 
     @FXML
@@ -52,7 +58,8 @@ public class IniciarSesionVista extends Pantalla {
 
     @FXML
     private void onOlvide() {
-        nav.proximamente("Recuperar contraseña");
+        estado().setCorreoLogin(txtCorreo.getText()); // si ya escribió su correo, la otra pantalla lo trae
+        nav.ir("recuperar-contrasena");
     }
 
     @FXML

@@ -143,15 +143,6 @@ public final class DateTime {
         return base.sumarDias(diasExtra);
     }
 
-    /** Calcula los años cumplidos desde esta fecha hasta la indicada; nunca devuelve negativos. */
-    public int calcularAniosHasta(DateTime fechaActual) {
-        int edad = fechaActual.anio - this.anio;
-        if (fechaActual.mes < this.mes || (fechaActual.mes == this.mes && fechaActual.dia < this.dia)) {
-            edad--;
-        }
-        return Math.max(0, edad);
-    }
-
     /** Fecha con formato dd/MM/yyyy. */
     public String soloFecha() {
         return String.format("%02d/%02d/%04d", dia, mes, anio);

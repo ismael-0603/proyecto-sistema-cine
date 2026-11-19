@@ -7,13 +7,12 @@ import java.util.Optional;
 
 /**
  * Contrato de persistencia de Compra: define QUÉ se puede guardar y buscar, no CÓMO.
- * Lo cumplen CompraMemoriaRepository (demos en memoria) y CompraJdbcRepository (MySQL).
+ * Lo cumple CompraJdbcRepository (MySQL).
  * Las búsquedas que solo filtran listarTodas() están aquí como métodos default, para no repetirlas en cada implementación.
  */
 public interface CompraRepository {
     /** Guarda la compra; al guardar una compra CONFIRMADA sin serie le asigna la siguiente (como trg_compra_serie). */
     void guardar(Compra compra);
-    Optional<Compra> buscarPorId(int idCompra);
     List<Compra> listarTodas();
 
     /** Busca por la serie del comprobante (B001-000123), sin distinguir mayúsculas (RF-33). */

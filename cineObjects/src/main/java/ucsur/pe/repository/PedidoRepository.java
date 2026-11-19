@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * Contrato de persistencia de Pedido: define QUÉ se puede guardar y buscar, no CÓMO.
- * Lo cumplen PedidoMemoriaRepository (demos en memoria) y PedidoJdbcRepository (MySQL).
+ * Lo cumple PedidoJdbcRepository (MySQL).
  */
 public interface PedidoRepository {
     /** Guarda el pedido; si aún no tiene id, le asigna uno (como el AUTO_INCREMENT). */

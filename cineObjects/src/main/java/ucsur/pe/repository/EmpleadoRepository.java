@@ -6,7 +6,7 @@ import java.util.Optional;
 
 /**
  * Contrato de persistencia de Empleado: define QUÉ se puede guardar y buscar, no CÓMO.
- * Lo cumplen EmpleadoMemoriaRepository (demos en memoria) y EmpleadoJdbcRepository (MySQL).
+ * Lo cumple EmpleadoJdbcRepository (MySQL).
  * La búsqueda por correo solo filtra listarTodos(): está aquí como método default para no repetirla.
  */
 public interface EmpleadoRepository {

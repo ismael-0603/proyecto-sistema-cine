@@ -278,7 +278,30 @@
     -fx-spacing: 10;
     -fx-alignment: center-left;
 }
-.franja-generos .scroll-bar:horizontal { -fx-pref-height: 6; }
+/* Cartelera: columna «Filtrar por:» y pestañas En cartelera · Preventa · Próximamente */
+.panel-filtros {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-background-radius: 20;
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-border-radius: 20;
+    -fx-padding: 18;
+}
+.filtro-titulo { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: white; }
+.filtro-etiqueta { -fx-font-family: "Manrope SemiBold"; -fx-font-size: 13px; -fx-text-fill: rgba(255, 255, 255, 0.75); -fx-padding: 6 0 0 2; }
+.combo-oscuro:disabled { -fx-opacity: 0.35; }
+.pestanas-cartelera { -fx-border-color: transparent transparent rgba(255, 255, 255, 0.12) transparent; -fx-padding: 0 0 2 0; }
+.pestana-cartelera {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 3 0;
+    -fx-border-radius: 0;
+    -fx-text-fill: rgba(255, 255, 255, 0.65);
+    -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 22px;
+    -fx-padding: 0 14 6 14;
+}
+.pestana-cartelera:hover { -fx-text-fill: white; }
+.pestana-cartelera.activo { -fx-text-fill: white; -fx-border-color: transparent transparent #9b180c transparent; }
 .tarjeta-pelicula {
     -fx-background-color: white;
     -fx-background-radius: 14;
@@ -637,3 +660,26 @@
     -fx-background-radius: 24; -fx-border-radius: 24;
     -fx-font-size: 15px;
 }
+
+/* ===== CORREO SIMULADO (aviso en la esquina con cada correo "enviado") ===== */
+.correo-simulado {
+    -fx-background-color: #faf0e0;
+    -fx-background-radius: 16;
+    -fx-border-color: #e5a93c;
+    -fx-border-width: 1 1 1 5;
+    -fx-border-radius: 16;
+    -fx-padding: 14 18 16 18;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 24, 0, 0, 8);
+}
+.correo-titulo { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #9b180c; }
+.correo-cerrar {
+    -fx-background-color: transparent;
+    -fx-min-height: 28; -fx-min-width: 28; -fx-pref-height: 28; -fx-pref-width: 28;
+    -fx-padding: 0;
+    -fx-font-size: 14px;
+    -fx-font-family: "Manrope Medium"; -fx-font-weight: normal;
+    -fx-background-radius: 14;
+}
+.correo-cerrar:hover { -fx-background-color: rgba(3, 19, 44, 0.08); }
+/* Código de 6 dígitos de «Recuperar contraseña»: más grande y centrado, para leerlo como un código */
+.campo-codigo { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 20px; -fx-alignment: center; }

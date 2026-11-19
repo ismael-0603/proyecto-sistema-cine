@@ -6,7 +6,7 @@ import java.util.Optional;
 
 /**
  * Contrato de persistencia de Cliente: define QUÉ se puede guardar y buscar, no CÓMO.
- * Lo cumplen ClienteMemoriaRepository (demos en memoria) y ClienteJdbcRepository (MySQL).
+ * Lo cumple ClienteJdbcRepository (MySQL).
  * Las búsquedas que solo filtran listarTodos() están aquí como métodos default, para no repetirlas en cada implementación.
  */
 public interface ClienteRepository {

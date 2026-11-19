@@ -6,7 +6,7 @@ import java.util.Optional;
 
 /**
  * Contrato de persistencia de Cupon: define QUÉ se puede guardar y buscar, no CÓMO.
- * Lo cumplen CuponMemoriaRepository (demos en memoria) y CuponJdbcRepository (MySQL).
+ * Lo cumple CuponJdbcRepository (MySQL).
  * La búsqueda por código solo filtra listarTodos(): está aquí como método default para no repetirla.
  */
 public interface CuponRepository {

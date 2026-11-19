@@ -346,7 +346,7 @@ public class Funcion {
     /**
      * Cuelga de la función una entrada leída de la base de datos. No vuelve a validar la venta
      * (eso se hizo cuando se vendió): solo la llama Entrada.restaurar, que ya comprobó que es de esta función.
-     * Igual que en memoria, esButacaDisponible decide según el estado de la entrada y su bloqueo.
+     * Así, esButacaDisponible decide según el estado de la entrada y su bloqueo.
      */
     void restaurarEntrada(Entrada entrada) {
         if (entrada.getFuncion() != this) {
@@ -370,7 +370,6 @@ public class Funcion {
     public String getEstado() { return calcularEstado(); }
     public Pelicula getPelicula() { return pelicula; }
     public Sala getSala() { return sala; }
-    public List<Entrada> getEntradasEmitidas() { return new ArrayList<>(entradasEmitidas); }
 
     @Override
     public String toString() {

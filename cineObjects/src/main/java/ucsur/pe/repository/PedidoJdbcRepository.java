@@ -37,7 +37,7 @@ public class PedidoJdbcRepository implements PedidoRepository {
         }
     }
 
-    /** Pedidos registrados de la sede (como en memoria, solo un pedido registrado tiene sede). */
+    /** Pedidos registrados de la sede (solo un pedido registrado tiene sede). */
     @Override
     public List<Pedido> listarPorSede(Sede sede) {
         return compras.listarTodas().stream()

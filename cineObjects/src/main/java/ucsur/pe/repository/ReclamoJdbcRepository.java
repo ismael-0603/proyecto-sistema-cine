@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Implementa ReclamoRepository con MySQL. Carga todos los reclamos al crearse, cada uno con el mismo
  * objeto Compra que tiene CompraRepository (así la bandeja del administrador ve los de sesiones anteriores).
- * Un reclamo nuevo llega con id 0 y la base le genera uno, como el AUTO_INCREMENT que simula la versión en memoria.
+ * Un reclamo nuevo llega con id 0 y la base le genera uno (AUTO_INCREMENT).
  */
 public class ReclamoJdbcRepository extends RepositorioJdbc<Reclamo> implements ReclamoRepository {
     private final PostventaDao dao;

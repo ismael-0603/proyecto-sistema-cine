@@ -67,7 +67,7 @@ public class Reclamo {
         return reclamo;
     }
 
-    /** Asigna el id real generado por la base tras el INSERT (en memoria, lo simula el repositorio). */
+    /** Asigna el id real generado por la base tras el INSERT. */
     public void asignarId(int idReclamo) {
         this.idReclamo = Ids.asignar(this.idReclamo, idReclamo, "el reclamo");
     }

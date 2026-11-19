@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 4.1 · Recuperar contraseña («¿Olvidaste tu contraseña?» de la pantalla 4): pedir código y elegir la nueva -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.RecuperarContrasenaVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <center>
+        <StackPane>
+            <padding><Insets top="24" left="24" right="24" bottom="60"/></padding>
+            <VBox styleClass="tarjeta" spacing="10" maxWidth="720" maxHeight="-Infinity">
+                <padding><Insets top="34" left="48" right="48" bottom="34"/></padding>
+                <Label text="Recuperar contraseña" styleClass="titulo"/>
+                <Label fx:id="lblInstruccion" styleClass="etiqueta" wrapText="true"
+                       text="Escribe el correo de tu cuenta y te enviaremos un código de 6 dígitos."/>
+
+                <!-- Paso 1: correo de la cuenta -->
+                <Label text="Correo electrónico" styleClass="etiqueta-campo">
+                    <VBox.margin><Insets top="18"/></VBox.margin>
+                </Label>
+                <TextField fx:id="txtCorreo" promptText="nombre@correo.com" onAction="#onEnviar"/>
+                <Button fx:id="btnEnviar" text="Enviar código" styleClass="btn-primario" maxWidth="Infinity" onAction="#onEnviar">
+                    <VBox.margin><Insets top="8"/></VBox.margin>
+                </Button>
+
+                <!-- Paso 2: código recibido y contraseña nueva (aparece al enviar el código) -->
+                <VBox fx:id="pasoCodigo" spacing="10" visible="false" managed="false">
+                    <Label text="Código de 6 dígitos" styleClass="etiqueta-campo">
+                        <VBox.margin><Insets top="4"/></VBox.margin>
+                    </Label>
+                    <TextField fx:id="txtCodigo" promptText="000000" styleClass="campo-codigo"/>
+                    <GridPane hgap="20" vgap="6">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="50"/><ColumnConstraints percentWidth="50"/>
+                        </columnConstraints>
+                        <Label text="Nueva contraseña" styleClass="etiqueta-campo"/>
+                        <Label text="Confirmar contraseña" styleClass="etiqueta-campo" GridPane.columnIndex="1"/>
+                        <StackPane alignment="CENTER_RIGHT" GridPane.rowIndex="1">
+                            <PasswordField fx:id="txtNueva" promptText="Mínimo 8 caracteres"/>
+                            <TextField fx:id="txtNuevaVisible" promptText="Mínimo 8 caracteres" visible="false"/>
+                            <ToggleButton fx:id="btnVer" text="👁" styleClass="btn-cerrar" style="-fx-min-width: 36; -fx-min-height: 36; -fx-max-width: 36; -fx-max-height: 36; -fx-font-size: 14px;">
+                                <StackPane.margin><Insets right="6"/></StackPane.margin>
+                            </ToggleButton>
+                        </StackPane>
+                        <StackPane GridPane.rowIndex="1" GridPane.columnIndex="1">
+                            <PasswordField fx:id="txtConfirmar" promptText="Repite la contraseña" onAction="#onCambiar"/>
+                            <TextField fx:id="txtConfirmarVisible" promptText="Repite la contraseña" visible="false" onAction="#onCambiar"/>
+                        </StackPane>
+                    </GridPane>
+                    <Button text="Cambiar contraseña" styleClass="btn-primario" maxWidth="Infinity" onAction="#onCambiar">
+                        <VBox.margin><Insets top="8"/></VBox.margin>
+                    </Button>
+                    <HBox alignment="CENTER" spacing="18">
+                        <Button text="Reenviar código" styleClass="btn-link" onAction="#onEnviar"/>
+                        <Button text="Usar otro correo" styleClass="btn-link" onAction="#onOtroCorreo"/>
+                    </HBox>
+                </VBox>
+
+                <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
+            </VBox>
+        </StackPane>
+    </center>
+</BorderPane>

@@ -24,7 +24,7 @@ import java.util.Map;
  * Por qué existe: traduce entre las tablas de infraestructura (sede, sala, butaca, funcion, tipo_sala)
  * y los objetos del modelo. Lee con una consulta por tabla (no una por fila), como listarTodos de MVCone,
  * y arma las relaciones en Java usando los métodos del modelo (agregarSala, agregarButaca, agregarFuncion),
- * así los datos de la BD pasan por las mismas validaciones que los creados en memoria.
+ * así los datos de la BD pasan por las mismas validaciones que los creados desde las pantallas.
  */
 public class SedeMySqlDao implements SedeDao {
 
