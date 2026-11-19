@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 8.1 · Datos de tarjeta -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.PagoTarjetaVista" styleClass="fondo">
+    <top>
+        <fx:include fx:id="encabezado" source="encabezado-compra.fxml"/>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <HBox alignment="TOP_CENTER">
+                <padding><Insets top="30" left="24" right="24" bottom="24"/></padding>
+                <HBox spacing="36" maxWidth="1400">
+                    <VBox styleClass="tarjeta" spacing="8" HBox.hgrow="ALWAYS" minWidth="600" maxWidth="840">
+                        <Label text="Datos de tu tarjeta" styleClass="tarjeta-titulo"/>
+                        <Label text="Ingresa los datos de tu tarjeta de crédito o débito para completar tu compra." styleClass="nota"/>
+                        <GridPane hgap="18" vgap="6">
+                            <VBox.margin><Insets top="10"/></VBox.margin>
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="25"/>
+                                <ColumnConstraints percentWidth="25"/>
+                                <ColumnConstraints percentWidth="50"/>
+                            </columnConstraints>
+                            <Label text="Nombre del titular *" styleClass="etiqueta-campo" GridPane.rowIndex="0" GridPane.columnSpan="3"/>
+                            <TextField fx:id="txtTitular" promptText="Como figura en la tarjeta" GridPane.rowIndex="1" GridPane.columnSpan="3"/>
+
+                            <Label text="Número de tarjeta *" styleClass="etiqueta-campo" GridPane.rowIndex="2" GridPane.columnSpan="2"/>
+                            <TextField fx:id="txtNumero" promptText="0000 0000 0000 0000" GridPane.rowIndex="3" GridPane.columnSpan="2"/>
+                            <Label text="Tipo de tarjeta *" styleClass="etiqueta-campo" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                            <ComboBox fx:id="cmbTipo" promptText="Crédito o débito" maxWidth="Infinity" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+
+                            <Label text="Fecha de vencimiento *" styleClass="etiqueta-campo" GridPane.rowIndex="4" GridPane.columnSpan="2"/>
+                            <ComboBox fx:id="cmbMes" promptText="Mes" maxWidth="Infinity" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                            <ComboBox fx:id="cmbAnio" promptText="Año" maxWidth="Infinity" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+                            <Label text="CVV *" styleClass="etiqueta-campo" GridPane.rowIndex="4" GridPane.columnIndex="2"/>
+                            <PasswordField fx:id="txtCvv" promptText="•••" GridPane.rowIndex="5" GridPane.columnIndex="2"/>
+
+                            <Label text="Tipo de documento *" styleClass="etiqueta-campo" GridPane.rowIndex="6" GridPane.columnSpan="2"/>
+                            <ComboBox fx:id="cmbDocumento" promptText="DNI, CE..." maxWidth="Infinity" GridPane.rowIndex="7" GridPane.columnSpan="2"/>
+                            <Label text="Número de documento *" styleClass="etiqueta-campo" GridPane.rowIndex="6" GridPane.columnIndex="2"/>
+                            <TextField fx:id="txtDocumento" promptText="Ingresa tu número de documento" GridPane.rowIndex="7" GridPane.columnIndex="2"/>
+                        </GridPane>
+                        <CheckBox fx:id="chkTerminos" text="Acepto los términos y condiciones y la política de privacidad.">
+                            <VBox.margin><Insets top="14"/></VBox.margin>
+                        </CheckBox>
+                        <Label text="🔒  Tus datos de pago se procesan de forma segura mediante una pasarela de pago certificada. No almacenamos el número de tu tarjeta ni tu CVV."
+                               styleClass="nota" wrapText="true"/>
+                        <Label text="* Campos obligatorios" styleClass="nota-suave"/>
+                        <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false"/>
+                    </VBox>
+                    <VBox fx:id="resumen" minWidth="420" prefWidth="520" maxWidth="520"/>
+                </HBox>
+            </HBox>
+        </ScrollPane>
+    </center>
+    <bottom>
+        <HBox styleClass="pie">
+            <Button text="← Volver" styleClass="btn-secundario" onAction="#onVolver"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Total" styleClass="pie-etiqueta"/>
+            <Label fx:id="lblPieTotal" styleClass="pie-total"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnPagar" styleClass="btn-primario" onAction="#onPagar"/>
+        </HBox>
+    </bottom>
+</BorderPane>

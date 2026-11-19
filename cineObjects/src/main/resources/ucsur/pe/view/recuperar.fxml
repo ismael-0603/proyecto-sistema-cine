@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 24 · Recuperar entradas -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.RecuperarVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <VBox alignment="TOP_CENTER">
+                <padding><Insets top="80" left="24" right="24" bottom="40"/></padding>
+                <VBox spacing="10" maxWidth="1290" alignment="TOP_CENTER">
+                    <HBox>
+                        <Button text="← Volver a la cartelera" styleClass="btn-secundario, btn-chico" onAction="#onVolver"/>
+                    </HBox>
+                    <Label text="Recupera tus entradas" styleClass="titulo-claro"/>
+                    <Label text="Usa el código de tu comprobante o el correo con el que compraste." styleClass="subtitulo-claro"/>
+                    <HBox spacing="40" alignment="TOP_CENTER">
+                        <VBox.margin><Insets top="30"/></VBox.margin>
+                        <!-- Con el código -->
+                        <VBox styleClass="tarjeta" spacing="10" prefWidth="610" maxWidth="610" minHeight="520">
+                            <padding><Insets top="34" left="40" right="40" bottom="34"/></padding>
+                            <Label text="Con el código de compra" styleClass="tarjeta-titulo"/>
+                            <Label text="Está en tu comprobante (por ejemplo B001-000123). Pide también tu correo." styleClass="nota" wrapText="true"/>
+                            <Label text="Código de compra" styleClass="etiqueta-campo">
+                                <VBox.margin><Insets top="18"/></VBox.margin>
+                            </Label>
+                            <TextField fx:id="txtCodigo" promptText="B001-000123"/>
+                            <Label text="Correo con el que compraste" styleClass="etiqueta-campo">
+                                <VBox.margin><Insets top="10"/></VBox.margin>
+                            </Label>
+                            <TextField fx:id="txtCorreoCodigo" promptText="nombre@correo.com" onAction="#onVerEntradas"/>
+                            <Label fx:id="lblMensajeCodigo" styleClass="mensaje" visible="false" managed="false"/>
+                            <Region VBox.vgrow="ALWAYS"/>
+                            <Button text="Ver mis entradas" styleClass="btn-primario" maxWidth="Infinity" onAction="#onVerEntradas"/>
+                            <Label text="Se abre el detalle con el código QR." styleClass="nota" maxWidth="Infinity" alignment="CENTER"/>
+                        </VBox>
+                        <!-- Con el correo -->
+                        <VBox styleClass="tarjeta" spacing="10" prefWidth="610" maxWidth="610" minHeight="520">
+                            <padding><Insets top="34" left="40" right="40" bottom="34"/></padding>
+                            <Label text="Con tu correo" styleClass="tarjeta-titulo"/>
+                            <Label text="Te reenviamos tus compras vigentes a ese correo." styleClass="nota" wrapText="true"/>
+                            <Label text="Correo electrónico" styleClass="etiqueta-campo">
+                                <VBox.margin><Insets top="18"/></VBox.margin>
+                            </Label>
+                            <TextField fx:id="txtCorreo" promptText="nombre@correo.com" onAction="#onEnviarCorreo"/>
+                            <Region VBox.vgrow="ALWAYS"/>
+                            <Button text="Enviar a mi correo" styleClass="btn-secundario" maxWidth="Infinity" onAction="#onEnviarCorreo"/>
+                            <VBox fx:id="cajaEnviado" styleClass="aviso" alignment="CENTER" visible="false" managed="false">
+                                <Label fx:id="lblEnviado" styleClass="etiqueta" wrapText="true"/>
+                                <Label text="Revisa tu bandeja de entrada o spam." styleClass="nota"/>
+                            </VBox>
+                            <Label fx:id="lblMensajeCorreo" styleClass="mensaje" visible="false" managed="false"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

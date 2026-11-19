@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- Aviso encima de la pantalla: 8.3, 8.4, 8.5 y 27 -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ucsur.pe.vista.DialogoVista"
+      styleClass="dialogo" maxWidth="560" maxHeight="-Infinity" minWidth="520">
+
+    <Label fx:id="lblTitulo" styleClass="dialogo-titulo" wrapText="true"/>
+    <Label fx:id="lblTexto" styleClass="etiqueta" wrapText="true"/>
+    <VBox fx:id="contenido" spacing="10" alignment="CENTER" visible="false" managed="false"/>
+
+    <Region minHeight="18"/>
+
+    <HBox fx:id="botones" spacing="12">
+        <Button fx:id="btnSecundario" styleClass="btn-secundario" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnPrincipal" styleClass="btn-primario" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+    </HBox>
+    <Button fx:id="btnEnlace" styleClass="btn-link, btn-link-rojo"/>
+</VBox>

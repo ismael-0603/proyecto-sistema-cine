@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 25 · Administración · Sedes -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.AdminSedesVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <left>
+        <VBox>
+            <padding><Insets top="16" left="24" bottom="24"/></padding>
+            <fx:include fx:id="menu" source="admin-menu.fxml" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED">
+            <VBox spacing="16">
+                <padding><Insets top="30" left="32" right="32" bottom="30"/></padding>
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Sedes" styleClass="titulo-claro"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="+ Nueva sede" styleClass="btn-primario" onAction="#onNueva"/>
+                </HBox>
+                <HBox styleClass="barra-oscura">
+                    <Label text="Buscar"/>
+                    <TextField fx:id="txtBuscar" promptText="Nombre o distrito" HBox.hgrow="ALWAYS"/>
+                    <ComboBox fx:id="cmbEstado" prefWidth="220"/>
+                </HBox>
+                <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false" wrapText="true"/>
+                <VBox fx:id="contenedorTabla"/>
+                <!-- Nueva sede / Editar sede (ventana en la misma pantalla) -->
+                <VBox fx:id="panelForm" styleClass="panel-crema" spacing="8" visible="false" managed="false">
+                    <Label fx:id="lblFormTitulo" text="Nueva sede" styleClass="tarjeta-titulo"/>
+                    <GridPane hgap="20" vgap="6">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="50"/><ColumnConstraints percentWidth="25"/><ColumnConstraints percentWidth="25"/>
+                        </columnConstraints>
+                        <Label text="Nombre" styleClass="etiqueta-campo"/>
+                        <TextField fx:id="txtNombre" promptText="Cineplanet …" GridPane.rowIndex="1"/>
+                        <Label text="Distrito" styleClass="etiqueta-campo" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+                        <TextField fx:id="txtDistrito" promptText="Distrito" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+                        <Label text="Dirección" styleClass="etiqueta-campo" GridPane.rowIndex="2"/>
+                        <TextField fx:id="txtDireccion" promptText="Av. …" GridPane.rowIndex="3"/>
+                        <Label text="Teléfono" styleClass="etiqueta-campo" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                        <TextField fx:id="txtTelefono" promptText="01-000-0000" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                        <Label text="Horario de atención" styleClass="etiqueta-campo" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                        <TextField fx:id="txtHorario" promptText="10:00 - 23:00" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+                    </GridPane>
+                    <HBox spacing="12" alignment="CENTER_RIGHT">
+                        <Label fx:id="lblMensajeForm" styleClass="mensaje" visible="false" managed="false" wrapText="true" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <Button text="Cancelar" styleClass="btn-secundario" onAction="#onCancelar"/>
+                        <Button text="Guardar sede" styleClass="btn-primario" onAction="#onGuardar"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

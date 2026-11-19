@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 15 · Panel de dulcería -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.PanelDulceriaVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <center>
+        <VBox alignment="TOP_CENTER">
+            <padding><Insets top="36" left="24" right="24" bottom="30"/></padding>
+            <VBox spacing="18" maxWidth="1680" VBox.vgrow="ALWAYS">
+                <HBox spacing="18" alignment="CENTER_LEFT">
+                    <Label text="Buscar pedido" styleClass="etiqueta-fuerte" style="-fx-text-fill: white;" minWidth="-Infinity"/>
+                    <TextField fx:id="txtBuscar" promptText="Número de pedido o código del comprobante" HBox.hgrow="ALWAYS" onAction="#onBuscar"/>
+                    <Button text="Buscar" styleClass="btn-secundario" prefWidth="120" onAction="#onBuscar"/>
+                </HBox>
+                <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
+                <Label fx:id="lblStock" styleClass="aviso, nota" wrapText="true" maxWidth="Infinity" visible="false" managed="false"/>
+                <HBox fx:id="columnas" spacing="18" VBox.vgrow="ALWAYS"/>
+            </VBox>
+        </VBox>
+    </center>
+</BorderPane>

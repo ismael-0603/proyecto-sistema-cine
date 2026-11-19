@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 21 · Administración · Reclamos -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.AdminReclamosVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <left>
+        <VBox>
+            <padding><Insets top="16" left="24" bottom="24"/></padding>
+            <fx:include fx:id="menu" source="admin-menu.fxml" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+    <center>
+        <VBox spacing="16">
+            <padding><Insets top="30" left="32" right="32" bottom="24"/></padding>
+            <HBox alignment="CENTER_LEFT">
+                <Label text="Reclamos" styleClass="titulo-claro"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox fx:id="filtros" styleClass="barra-filtros" spacing="4"/>
+            </HBox>
+            <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false" wrapText="true"/>
+            <HBox spacing="20" VBox.vgrow="ALWAYS">
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minWidth="360" prefWidth="430" maxWidth="460">
+                    <VBox fx:id="lista" spacing="12"/>
+                </ScrollPane>
+                <VBox fx:id="detalle" styleClass="tarjeta" spacing="10" HBox.hgrow="ALWAYS">
+                    <HBox alignment="CENTER_LEFT">
+                        <Label fx:id="lblTitulo" text="Elige un reclamo" styleClass="tarjeta-titulo"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblEstado" styleClass="estado-chip" visible="false"/>
+                    </HBox>
+                    <GridPane fx:id="datos" hgap="40" vgap="8">
+                        <Label text="Cliente" styleClass="nota" GridPane.rowIndex="0"/>
+                        <Label fx:id="lblCliente" styleClass="nota" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                        <Label text="Compra" styleClass="nota" GridPane.rowIndex="1"/>
+                        <Label fx:id="lblCompra" styleClass="nota" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                        <Label text="Fecha" styleClass="nota" GridPane.rowIndex="2"/>
+                        <Label fx:id="lblFecha" styleClass="nota" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                    </GridPane>
+                    <Label text="Descripción del cliente" styleClass="etiqueta-campo"><VBox.margin><Insets top="8"/></VBox.margin></Label>
+                    <Label fx:id="lblDescripcion" styleClass="texto-respuesta, nota" wrapText="true" maxWidth="Infinity" minHeight="70"/>
+                    <Label text="Respuesta al cliente" styleClass="etiqueta-campo"><VBox.margin><Insets top="8"/></VBox.margin></Label>
+                    <TextArea fx:id="txtRespuesta" promptText="Escribe la respuesta o el motivo del rechazo…" wrapText="true" prefRowCount="4"/>
+                    <Label fx:id="lblMensajeDetalle" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Button fx:id="btnRevision" text="Iniciar revisión" styleClass="btn-secundario" onAction="#onIniciarRevision"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="btnRechazar" text="Rechazar" styleClass="btn-secundario" onAction="#onRechazar"/>
+                        <Button fx:id="btnResponder" text="Responder y cerrar" styleClass="btn-primario" onAction="#onResponder"/>
+                    </HBox>
+                </VBox>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>

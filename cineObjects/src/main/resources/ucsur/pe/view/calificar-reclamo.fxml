@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 14 · Calificar y reclamo -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.CalificarReclamoVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <HBox alignment="TOP_CENTER" spacing="40">
+                <padding><Insets top="100" left="24" right="24" bottom="40"/></padding>
+                <!-- Calificación -->
+                <VBox styleClass="tarjeta" spacing="10" prefWidth="600" maxWidth="600" minHeight="720">
+                    <padding><Insets top="34" left="40" right="40" bottom="34"/></padding>
+                    <Label text="Califica tu experiencia" styleClass="tarjeta-titulo"/>
+                    <Label fx:id="lblCompraCalif" styleClass="nota"/>
+                    <HBox fx:id="estrellas" spacing="4">
+                        <VBox.margin><Insets top="22"/></VBox.margin>
+                    </HBox>
+                    <Label fx:id="lblPuntaje" styleClass="nota"/>
+                    <Label text="Comentario (opcional)" styleClass="etiqueta-campo">
+                        <VBox.margin><Insets top="22"/></VBox.margin>
+                    </Label>
+                    <TextArea fx:id="txtComentario" promptText="Cuéntanos qué te pareció la función…" wrapText="true" prefRowCount="5"/>
+                    <Label fx:id="lblContador" text="Máximo 300 caracteres" styleClass="nota"/>
+                    <Label fx:id="lblMensajeCalif" styleClass="mensaje" visible="false" managed="false"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <HBox spacing="12" alignment="CENTER">
+                        <Button text="Cancelar" styleClass="btn-secundario" prefWidth="160" onAction="#onVolver"/>
+                        <Button fx:id="btnCalificar" text="Enviar calificación" styleClass="btn-primario" prefWidth="250" onAction="#onCalificar"/>
+                    </HBox>
+                </VBox>
+                <!-- Reclamo -->
+                <VBox styleClass="tarjeta" spacing="10" prefWidth="600" maxWidth="600" minHeight="720">
+                    <padding><Insets top="34" left="40" right="40" bottom="34"/></padding>
+                    <Label text="Presentar reclamo" styleClass="tarjeta-titulo"/>
+                    <Label fx:id="lblCompraReclamo" styleClass="nota"/>
+                    <Label text="Tipo de reclamo" styleClass="etiqueta-campo">
+                        <VBox.margin><Insets top="22"/></VBox.margin>
+                    </Label>
+                    <FlowPane fx:id="tipos" hgap="12" vgap="12"/>
+                    <Label text="Descripción" styleClass="etiqueta-campo">
+                        <VBox.margin><Insets top="22"/></VBox.margin>
+                    </Label>
+                    <TextArea fx:id="txtDescripcion" promptText="Describe lo que pasó…" wrapText="true" prefRowCount="5"/>
+                    <Label text="Recibirás la respuesta en tu correo y en Mis compras." styleClass="nota"/>
+                    <Label fx:id="lblMensajeReclamo" styleClass="mensaje" visible="false" managed="false"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <HBox spacing="12" alignment="CENTER">
+                        <Button text="Cancelar" styleClass="btn-secundario" prefWidth="160" onAction="#onVolver"/>
+                        <Button fx:id="btnReclamo" text="Enviar reclamo" styleClass="btn-primario" prefWidth="250" onAction="#onReclamo"/>
+                    </HBox>
+                </VBox>
+            </HBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

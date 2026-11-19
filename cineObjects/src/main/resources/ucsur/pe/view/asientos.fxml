@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<!-- 6 · Selección de asientos -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.AsientosVista" styleClass="fondo">
+    <top>
+        <fx:include fx:id="encabezado" source="encabezado-compra.fxml"/>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <HBox alignment="TOP_CENTER">
+                <padding><Insets top="30" left="24" right="24" bottom="24"/></padding>
+                <HBox spacing="22" maxWidth="1400">
+                    <!-- Mapa de la sala -->
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <VBox styleClass="tarjeta" spacing="14" alignment="TOP_CENTER">
+                            <VBox alignment="CENTER" spacing="4">
+                                <Arc radiusX="380" radiusY="14" startAngle="20" length="140" type="OPEN"
+                                     fill="TRANSPARENT" stroke="#03132c" strokeWidth="2"/>
+                                <Label text="PANTALLA" styleClass="pantalla-texto"/>
+                            </VBox>
+                            <GridPane fx:id="mapa" hgap="6" vgap="8" alignment="CENTER"/>
+                            <HBox fx:id="cajaSugerencia" styleClass="sugerencia" spacing="14" maxWidth="Infinity">
+                                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="lblSugerencia" styleClass="etiqueta"/>
+                                    <Label text="Toca otras butacas libres para cambiarlas." styleClass="nota"/>
+                                </VBox>
+                                <Button fx:id="btnSugerencia" text="Usar sugerencia" styleClass="btn-primario" onAction="#onUsarSugerencia"/>
+                            </HBox>
+                            <HBox spacing="18" alignment="CENTER">
+                                <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro"/><Label text="Libre" styleClass="nota"/></HBox>
+                                <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro, ocupada"/><Label text="Ocupada" styleClass="nota"/></HBox>
+                                <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro, elegida"/><Label text="Elegida" styleClass="nota"/></HBox>
+                                <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro, sugerida"/><Label text="Sugerida" styleClass="nota"/></HBox>
+                                <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro, preferencial"/><Label text="Preferencial" styleClass="nota"/></HBox>
+                                <HBox spacing="6" alignment="CENTER"><Label text="D" styleClass="leyenda-cuadro"/><Label text="Discapacidad" styleClass="nota"/></HBox>
+                            </HBox>
+                            <Separator/>
+                            <VBox spacing="8" maxWidth="Infinity">
+                                <Label text="Los pasillos separan los bloques de la sala. Las butacas con D solo se sugieren si eliges una entrada Conadis o marcas «Necesito butaca accesible»."
+                                       styleClass="nota" wrapText="true"/>
+                                <CheckBox fx:id="chkAccesible" text="Necesito butaca accesible"/>
+                            </VBox>
+                        </VBox>
+                        <Label fx:id="lblMensajeMapa" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
+                    </VBox>
+
+                    <!-- Entradas y resumen -->
+                    <VBox spacing="8" minWidth="380" prefWidth="420" maxWidth="420">
+                        <VBox styleClass="tarjeta" spacing="12">
+                            <Label text="1. ¿Cuántas entradas?" styleClass="etiqueta-fuerte"/>
+                            <VBox fx:id="tipos" spacing="14"/>
+                            <Label fx:id="lblSocio" styleClass="nota" wrapText="true"/>
+                            <Separator/>
+                            <Label text="2. Tus butacas" styleClass="etiqueta-fuerte"/>
+                            <HBox><Label text="Butacas" styleClass="etiqueta"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="lblButacas" styleClass="etiqueta"/></HBox>
+                            <HBox><Label text="Entradas" styleClass="etiqueta"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="lblEntradas" styleClass="etiqueta"/></HBox>
+                            <Separator/>
+                            <HBox><Label text="Subtotal" styleClass="etiqueta-fuerte"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="lblSubtotal" styleClass="etiqueta-fuerte"/></HBox>
+                        </VBox>
+                        <Label text="El precio de cada entrada ya incluye el recargo del formato de sala."
+                               styleClass="nota-clara" wrapText="true"/>
+                    </VBox>
+                </HBox>
+            </HBox>
+        </ScrollPane>
+    </center>
+    <bottom>
+        <HBox styleClass="pie">
+            <Button text="← Volver" styleClass="btn-secundario" onAction="#onVolver"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Subtotal" styleClass="pie-etiqueta"/>
+            <Label fx:id="lblPieSubtotal" styleClass="pie-total"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <VBox alignment="CENTER_RIGHT" spacing="4">
+                <Button fx:id="btnContinuar" text="Continuar" styleClass="btn-primario" onAction="#onContinuar"/>
+                <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false" maxWidth="420"/>
+            </VBox>
+        </HBox>
+    </bottom>
+</BorderPane>

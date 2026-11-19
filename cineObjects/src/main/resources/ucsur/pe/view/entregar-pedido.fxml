@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<!-- 16 · Entregar pedido (ventana sobre el panel de dulcería) -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ucsur.pe.vista.EntregarPedidoVista"
+      styleClass="dialogo" prefWidth="800" maxWidth="800" maxHeight="-Infinity">
+    <HBox alignment="TOP_LEFT">
+        <VBox spacing="2" HBox.hgrow="ALWAYS">
+            <Label fx:id="lblTitulo" styleClass="titulo"/>
+            <Label fx:id="lblSubtitulo" styleClass="nota"/>
+        </VBox>
+        <Button text="✕" styleClass="btn-cerrar" onAction="#onCerrar"/>
+    </HBox>
+    <HBox spacing="32">
+        <VBox.margin><Insets top="10"/></VBox.margin>
+        <!-- Lector / código -->
+        <VBox spacing="10" prefWidth="350" minWidth="330">
+            <StackPane styleClass="lector">
+                <VBox alignment="CENTER" spacing="10">
+                    <Rectangle width="60" height="60" fill="TRANSPARENT" stroke="#e5a93c" strokeWidth="2"
+                               strokeDashArray="18, 24" arcWidth="6" arcHeight="6"/>
+                    <Label text="Acerca el QR del comprobante" style="-fx-text-fill: white; -fx-font-family: 'Manrope'; -fx-font-weight: bold; -fx-font-size: 15px;"/>
+                    <Label text="al lector de la cámara" style="-fx-text-fill: rgba(255,255,255,0.8); -fx-font-size: 13px;"/>
+                </VBox>
+            </StackPane>
+            <Label text="O ingresa el código" styleClass="etiqueta-campo">
+                <VBox.margin><Insets top="6"/></VBox.margin>
+            </Label>
+            <TextField fx:id="txtCodigo" promptText="B001-000123 o código QR del pedido" onAction="#onConfirmar"/>
+            <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
+        </VBox>
+        <!-- Detalle -->
+        <VBox spacing="8" HBox.hgrow="ALWAYS">
+            <Label text="Detalle del pedido" styleClass="tarjeta-titulo"/>
+            <VBox fx:id="lineas"/>
+            <HBox fx:id="filaTotal"/>
+            <Label text="Estado" styleClass="nota">
+                <VBox.margin><Insets top="12"/></VBox.margin>
+            </Label>
+            <HBox fx:id="estados" spacing="8"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <HBox spacing="12" alignment="CENTER_RIGHT">
+                <Button text="Cancelar" styleClass="btn-secundario" prefWidth="140" onAction="#onCerrar"/>
+                <Button fx:id="btnConfirmar" text="Confirmar entrega" styleClass="btn-primario" prefWidth="200" onAction="#onConfirmar"/>
+            </HBox>
+        </VBox>
+    </HBox>
+</VBox>

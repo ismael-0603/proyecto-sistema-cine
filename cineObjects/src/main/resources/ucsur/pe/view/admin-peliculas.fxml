@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 17 · Administración · Películas (17.2 y 17.3 son avisos encima) -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.AdminPeliculasVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <left>
+        <VBox>
+            <padding><Insets top="16" left="24" bottom="24"/></padding>
+            <fx:include fx:id="menu" source="admin-menu.fxml" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED">
+            <VBox spacing="16">
+                <padding><Insets top="30" left="32" right="32" bottom="30"/></padding>
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Películas" styleClass="titulo-claro"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="+ Nueva película" styleClass="btn-primario" onAction="#onNueva"/>
+                </HBox>
+                <HBox styleClass="barra-oscura">
+                    <Label text="Buscar"/>
+                    <TextField fx:id="txtBuscar" promptText="Título de la película" HBox.hgrow="ALWAYS"/>
+                    <ComboBox fx:id="cmbGenero" prefWidth="180"/>
+                    <ComboBox fx:id="cmbEstado" prefWidth="200"/>
+                </HBox>
+                <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
+                <VBox fx:id="contenedorTabla"/>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

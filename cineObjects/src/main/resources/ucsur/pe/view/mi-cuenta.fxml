@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 12 · Mi cuenta (cliente): datos personales y puntos -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.MiCuentaVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <VBox alignment="TOP_CENTER">
+                <padding><Insets top="40" left="24" right="24" bottom="40"/></padding>
+                <VBox spacing="16" maxWidth="1380">
+                    <Label text="Mi cuenta" styleClass="titulo-claro"/>
+                    <HBox spacing="12">
+                        <Button text="Mis datos y puntos" styleClass="pestana, activo, btn-chico"/>
+                        <Button text="Mis compras" styleClass="pestana, btn-chico" onAction="#onMisCompras"/>
+                    </HBox>
+                    <HBox spacing="28">
+                        <VBox.margin><Insets top="10"/></VBox.margin>
+                        <!-- Datos personales -->
+                        <VBox styleClass="tarjeta" spacing="10" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                            <padding><Insets top="30" left="38" right="38" bottom="30"/></padding>
+                            <Label text="Datos personales" styleClass="tarjeta-titulo">
+                                <VBox.margin><Insets bottom="10"/></VBox.margin>
+                            </Label>
+                            <GridPane hgap="40" vgap="8">
+                                <Label text="Nombres" styleClass="nota" GridPane.rowIndex="0"/>
+                                <Label fx:id="lblNombres" styleClass="nota" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                <Label text="Apellidos" styleClass="nota" GridPane.rowIndex="1"/>
+                                <Label fx:id="lblApellidos" styleClass="nota" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                                <Label text="DNI" styleClass="nota" GridPane.rowIndex="2"/>
+                                <Label fx:id="lblDni" styleClass="nota" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                            </GridPane>
+                            <Label text="Correo electrónico" styleClass="etiqueta-campo">
+                                <VBox.margin><Insets top="14"/></VBox.margin>
+                            </Label>
+                            <TextField fx:id="txtCorreo"/>
+                            <Label text="Teléfono" styleClass="etiqueta-campo">
+                                <VBox.margin><Insets top="8"/></VBox.margin>
+                            </Label>
+                            <TextField fx:id="txtTelefono"/>
+                            <Label text="DNI y nombres no se pueden cambiar desde el kiosco." styleClass="nota"/>
+                            <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false"/>
+                            <Button text="Guardar cambios" styleClass="btn-primario" maxWidth="Infinity" onAction="#onGuardar">
+                                <VBox.margin><Insets top="10"/></VBox.margin>
+                            </Button>
+                            <Button text="Cerrar sesión" styleClass="btn-secundario" maxWidth="Infinity" onAction="#onCerrarSesion"/>
+                        </VBox>
+                        <!-- Mis puntos -->
+                        <VBox styleClass="tarjeta" spacing="10" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                            <padding><Insets top="30" left="38" right="38" bottom="30"/></padding>
+                            <Label text="Mis puntos" styleClass="tarjeta-titulo"/>
+                            <Label fx:id="lblPuntos" styleClass="puntos-grande">
+                                <VBox.margin><Insets top="10"/></VBox.margin>
+                            </Label>
+                            <Label text="Puntos disponibles para canjear" styleClass="nota"/>
+                            <Separator>
+                                <VBox.margin><Insets top="8" bottom="8"/></VBox.margin>
+                            </Separator>
+                            <Label text="Nivel de socio" styleClass="etiqueta-fuerte"/>
+                            <HBox fx:id="niveles" spacing="10" alignment="CENTER"/>
+                            <Label fx:id="lblVisitas" styleClass="nota">
+                                <VBox.margin><Insets top="8"/></VBox.margin>
+                            </Label>
+                            <ProgressBar fx:id="barraVisitas" maxWidth="Infinity"/>
+                            <VBox styleClass="tarjeta" spacing="8">
+                                <VBox.margin><Insets top="12"/></VBox.margin>
+                                <padding><Insets top="16" left="20" right="20" bottom="16"/></padding>
+                                <Label text="Beneficios de tu nivel" styleClass="etiqueta-fuerte"/>
+                                <VBox fx:id="beneficios" spacing="8"/>
+                            </VBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

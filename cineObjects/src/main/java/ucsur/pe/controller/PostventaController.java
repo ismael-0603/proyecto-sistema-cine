@@ -47,6 +47,11 @@ public class PostventaController extends ControllerBase {
         return ejecutar("Gracias por calificar", () -> servicio.calificar(cliente, compra, puntuacion, comentario));
     }
 
+    /** El dato es null si la compra aún no tiene calificación. */
+    public Respuesta<Calificacion> consultarCalificacion(Cliente cliente, Compra compra) {
+        return ejecutar("", () -> servicio.consultarCalificacion(cliente, compra));
+    }
+
     public Respuesta<List<Compra>> consultarHistorial(Cliente cliente) {
         return ejecutar("", () -> servicio.consultarHistorial(cliente));
     }

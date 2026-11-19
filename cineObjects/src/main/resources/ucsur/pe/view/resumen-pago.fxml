@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 8 · Resumen y pago -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.ResumenPagoVista" styleClass="fondo">
+    <top>
+        <fx:include fx:id="encabezado" source="encabezado-compra.fxml"/>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <HBox alignment="TOP_CENTER">
+                <padding><Insets top="30" left="24" right="24" bottom="24"/></padding>
+                <HBox spacing="36" maxWidth="1400">
+                    <VBox styleClass="tarjeta" spacing="4" HBox.hgrow="ALWAYS" minWidth="560" maxWidth="800">
+                        <Label text="Resumen de la compra" styleClass="tarjeta-titulo">
+                            <VBox.margin><Insets bottom="10"/></VBox.margin>
+                        </Label>
+                        <VBox fx:id="filas"/>
+                        <HBox fx:id="filaTotal"/>
+
+                        <Label text="Código de cupón" styleClass="etiqueta-fuerte">
+                            <VBox.margin><Insets top="18" bottom="6"/></VBox.margin>
+                        </Label>
+                        <HBox spacing="20">
+                            <TextField fx:id="txtCupon" promptText="Ingresa tu cupón" HBox.hgrow="ALWAYS" onAction="#onAplicarCupon"/>
+                            <Button text="Aplicar" styleClass="btn-secundario" prefWidth="120" onAction="#onAplicarCupon"/>
+                        </HBox>
+                        <Label text="Promoción" styleClass="etiqueta-fuerte">
+                            <VBox.margin><Insets top="14" bottom="6"/></VBox.margin>
+                        </Label>
+                        <HBox spacing="20">
+                            <ComboBox fx:id="cmbPromocion" promptText="Elegir promoción" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            <Button text="Aplicar" styleClass="btn-secundario" prefWidth="120" onAction="#onAplicarPromocion"/>
+                        </HBox>
+                        <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false">
+                            <VBox.margin><Insets top="8"/></VBox.margin>
+                        </Label>
+                        <Label fx:id="lblSocio" styleClass="nota-suave" wrapText="true">
+                            <VBox.margin><Insets top="8"/></VBox.margin>
+                        </Label>
+                    </VBox>
+
+                    <VBox styleClass="tarjeta" spacing="16" minWidth="420" prefWidth="560" maxWidth="560">
+                        <Label text="Método de pago" styleClass="tarjeta-titulo"/>
+                        <Button fx:id="btnTarjeta" text="◯   💳  Tarjeta de crédito o débito" styleClass="opcion" maxWidth="Infinity" onAction="#onTarjeta"/>
+                        <Button fx:id="btnBilletera" text="◯   📱  Billetera digital" styleClass="opcion" maxWidth="Infinity" onAction="#onBilletera"/>
+                        <Label text="Los datos de pago se ingresan en la pasarela de pago, no en esta pantalla."
+                               styleClass="nota" wrapText="true"/>
+                    </VBox>
+                </HBox>
+            </HBox>
+        </ScrollPane>
+    </center>
+    <bottom>
+        <HBox styleClass="pie">
+            <Button text="← Volver" styleClass="btn-secundario" onAction="#onVolver"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Total" styleClass="pie-etiqueta"/>
+            <Label fx:id="lblPieTotal" styleClass="pie-total"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnPagar" styleClass="btn-primario" onAction="#onPagar"/>
+        </HBox>
+    </bottom>
+</BorderPane>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 13.1 · Ver reclamo (ventana sobre «Mis compras») -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ucsur.pe.vista.VerReclamoVista"
+      styleClass="dialogo" prefWidth="600" maxWidth="600" maxHeight="-Infinity">
+    <HBox alignment="CENTER_LEFT">
+        <Label fx:id="lblTitulo" styleClass="dialogo-titulo"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="lblEstado" styleClass="estado-chip"/>
+    </HBox>
+    <Label fx:id="lblCompra" styleClass="nota"/>
+    <GridPane hgap="40" vgap="6">
+        <Label text="Tipo de reclamo" styleClass="nota" GridPane.rowIndex="0"/>
+        <Label fx:id="lblTipo" styleClass="etiqueta-fuerte" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <Label text="Presentado" styleClass="nota" GridPane.rowIndex="1"/>
+        <Label fx:id="lblFecha" styleClass="etiqueta-fuerte" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+    </GridPane>
+    <Label text="Lo que escribiste" styleClass="etiqueta-fuerte"/>
+    <Label fx:id="lblDescripcion" styleClass="texto-leido, nota" wrapText="true" maxWidth="Infinity" minHeight="60"/>
+    <Label fx:id="lblTituloRespuesta" text="Respuesta del cine" styleClass="etiqueta-fuerte"/>
+    <Label fx:id="lblRespuesta" styleClass="texto-respuesta, nota" wrapText="true" maxWidth="Infinity" minHeight="60"/>
+    <Button text="Cerrar" styleClass="btn-secundario" maxWidth="Infinity" onAction="#onCerrar"/>
+</VBox>

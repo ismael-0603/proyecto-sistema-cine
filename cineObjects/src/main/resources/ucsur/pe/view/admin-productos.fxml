@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 20 · Administración · Productos de dulcería -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.AdminProductosVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <left>
+        <VBox>
+            <padding><Insets top="16" left="24" bottom="24"/></padding>
+            <fx:include fx:id="menu" source="admin-menu.fxml" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED">
+            <VBox spacing="16">
+                <padding><Insets top="30" left="32" right="32" bottom="30"/></padding>
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Productos de dulcería" styleClass="titulo-claro"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="+ Nuevo producto" styleClass="btn-primario" onAction="#onNuevo"/>
+                </HBox>
+                <HBox styleClass="barra-oscura">
+                    <Label text="Buscar"/>
+                    <TextField fx:id="txtBuscar" promptText="Nombre del producto" HBox.hgrow="ALWAYS"/>
+                    <ComboBox fx:id="cmbCategoria" prefWidth="180"/>
+                    <ComboBox fx:id="cmbEstado" prefWidth="160"/>
+                </HBox>
+                <Label fx:id="lblAlerta" styleClass="aviso, nota" wrapText="true" maxWidth="Infinity" visible="false" managed="false"/>
+                <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false" wrapText="true"/>
+                <VBox fx:id="contenedorTabla"/>
+                <!-- Reponer stock (ventana en la misma pantalla) -->
+                <VBox fx:id="panelReponer" styleClass="panel-crema" spacing="10" visible="false" managed="false">
+                    <Label text="Reponer stock" styleClass="tarjeta-titulo"/>
+                    <Label fx:id="lblReponer" styleClass="nota"/>
+                    <Label text="Cantidad a agregar" styleClass="etiqueta-campo"/>
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Button text="−" styleClass="contador-menos" onAction="#onMenos"/>
+                        <TextField fx:id="txtCantidad" text="20" prefWidth="90" alignment="CENTER"/>
+                        <Button text="+" styleClass="contador-mas" onAction="#onMas"/>
+                        <Label fx:id="lblNuevoStock" styleClass="etiqueta-fuerte"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Cancelar" styleClass="btn-secundario" onAction="#onCancelarReponer"/>
+                        <Button text="Confirmar" styleClass="btn-primario" onAction="#onConfirmarReponer"/>
+                    </HBox>
+                    <Label fx:id="lblMensajeReponer" styleClass="mensaje" visible="false" managed="false"/>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

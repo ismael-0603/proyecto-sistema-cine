@@ -4,6 +4,7 @@ import ucsur.pe.db.PostventaDao;
 import ucsur.pe.exception.RepositoryException;
 import ucsur.pe.model.Calificacion;
 import ucsur.pe.model.Compra;
+import java.util.Optional;
 
 /**
  * Implementa CalificacionRepository con MySQL. Carga las calificaciones al crearse, cada una con el mismo
@@ -27,6 +28,11 @@ public class CalificacionJdbcRepository extends RepositorioJdbc<Calificacion> im
 
     @Override
     public boolean existePorCompra(Compra compra) {
-        return !filtrar(c -> c.getCompra() == compra).isEmpty();
+        return buscarPorCompra(compra).isPresent();
+    }
+
+    @Override
+    public Optional<Calificacion> buscarPorCompra(Compra compra) {
+        return filtrar(c -> c.getCompra() == compra).stream().findFirst();
     }
 }

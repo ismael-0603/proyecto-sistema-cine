@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 23 · Detalle de compra (desde «Mis compras» o «Recuperar entradas») -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.DetalleCompraVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <VBox alignment="TOP_CENTER">
+                <padding><Insets top="40" left="24" right="24" bottom="40"/></padding>
+                <VBox spacing="16" maxWidth="1380">
+                    <Label fx:id="lblTitulo" text="Mi cuenta" styleClass="titulo-claro"/>
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <HBox fx:id="pestanas" spacing="12">
+                            <Button text="Mis datos y puntos" styleClass="pestana, btn-chico" onAction="#onMisDatos"/>
+                            <Button text="Mis compras" styleClass="pestana, activo, btn-chico" onAction="#onVolver"/>
+                        </HBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="btnVolver" text="← Mis compras" styleClass="btn-secundario, btn-chico" onAction="#onVolver"/>
+                    </HBox>
+                    <HBox spacing="28">
+                        <VBox styleClass="tarjeta" spacing="4" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                            <padding><Insets top="30" left="36" right="36" bottom="30"/></padding>
+                            <HBox alignment="CENTER_LEFT">
+                                <Label fx:id="lblSerie" styleClass="tarjeta-titulo"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="lblEstado" styleClass="estado-chip"/>
+                            </HBox>
+                            <Label fx:id="lblFecha" styleClass="nota">
+                                <VBox.margin><Insets bottom="14"/></VBox.margin>
+                            </Label>
+                            <VBox fx:id="filas"/>
+                            <HBox fx:id="filaTotal"/>
+                            <Label fx:id="lblMedio" styleClass="nota"/>
+                            <Label fx:id="lblReembolso" styleClass="aviso, nota" wrapText="true" maxWidth="Infinity" visible="false" managed="false"/>
+                        </VBox>
+                        <VBox styleClass="tarjeta" spacing="14" minWidth="420" prefWidth="500" maxWidth="500" alignment="TOP_CENTER">
+                            <padding><Insets top="30" left="36" right="36" bottom="30"/></padding>
+                            <Label text="Tu código QR" styleClass="tarjeta-titulo" maxWidth="Infinity"/>
+                            <StackPane fx:id="marcoQr" styleClass="marco-qr" maxWidth="-Infinity"/>
+                            <Label text="Muéstralo en la entrada de la sala y para recoger tu pedido en dulcería."
+                                   styleClass="nota" wrapText="true" textAlignment="CENTER"/>
+                            <Button text="Enviar al correo" styleClass="btn-secundario" prefWidth="300" onAction="#onEnviar">
+                                <VBox.margin><Insets top="10"/></VBox.margin>
+                            </Button>
+                            <Label fx:id="lblCorreo" styleClass="nota"/>
+                            <Button text="Imprimir" styleClass="btn-secundario" prefWidth="300" onAction="#onImprimir"/>
+                            <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

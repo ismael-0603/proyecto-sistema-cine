@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 17.1 · Administración · Película (formulario) -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.AdminPeliculaFormVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <left>
+        <VBox>
+            <padding><Insets top="16" left="24" bottom="24"/></padding>
+            <fx:include fx:id="menu" source="admin-menu.fxml" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED">
+            <VBox spacing="16">
+                <padding><Insets top="30" left="32" right="32" bottom="30"/></padding>
+                <HBox alignment="CENTER_LEFT">
+                    <Label fx:id="lblTitulo" text="Nueva película" styleClass="titulo-claro"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="← Volver a la lista de películas" styleClass="btn-link, btn-link-claro" onAction="#onVolver"/>
+                </HBox>
+                <HBox styleClass="tarjeta" spacing="40">
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label text="Título" styleClass="etiqueta-campo"/>
+                        <TextField fx:id="txtTitulo" promptText="Ej. AKIRA [1988]"/>
+                        <Label text="Sinopsis" styleClass="etiqueta-campo"><VBox.margin><Insets top="8"/></VBox.margin></Label>
+                        <TextArea fx:id="txtSinopsis" promptText="Resumen de la película…" wrapText="true" prefRowCount="4"/>
+                        <Label fx:id="lblContador" text="Máximo 1000 caracteres" styleClass="nota"/>
+                        <GridPane hgap="24" vgap="6">
+                            <VBox.margin><Insets top="8"/></VBox.margin>
+                            <Label fx:id="lblDuracion" text="Duración (min)" styleClass="etiqueta-campo" GridPane.columnIndex="0"/>
+                            <TextField fx:id="txtDuracion" promptText="Ej. 124" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                            <Label text="Clasificación" styleClass="etiqueta-campo" GridPane.columnIndex="1"/>
+                            <ComboBox fx:id="cmbClasificacion" editable="true" promptText="Elegir" maxWidth="Infinity" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                            <Label text="Fecha de estreno" styleClass="etiqueta-campo" GridPane.columnIndex="2"/>
+                            <TextField fx:id="txtEstreno" promptText="dd/mm/aaaa" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                        </GridPane>
+                        <Label text="Géneros (puedes marcar varios)" styleClass="etiqueta-campo"><VBox.margin><Insets top="8"/></VBox.margin></Label>
+                        <FlowPane fx:id="generos" hgap="22" vgap="10"/>
+                        <Label text="Enlace del tráiler" styleClass="etiqueta-campo"><VBox.margin><Insets top="8"/></VBox.margin></Label>
+                        <TextField fx:id="txtTrailer" promptText="https://…"/>
+                        <Label text="El póster y el tráiler se guardan como enlace (máx. 255 caracteres)." styleClass="nota"/>
+                        <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false"/>
+                    </VBox>
+                    <VBox spacing="10" minWidth="300" prefWidth="320" maxWidth="340">
+                        <Label text="Póster" styleClass="etiqueta-campo"/>
+                        <StackPane fx:id="vistaPoster" styleClass="poster-subida"/>
+                        <TextField fx:id="txtPoster" promptText="posters/nombre.jpg o enlace"/>
+                        <Button text="Elegir imagen" styleClass="btn-secundario" maxWidth="Infinity" onAction="#onElegirImagen"/>
+                        <Label text="Estado" styleClass="etiqueta-campo"><VBox.margin><Insets top="10"/></VBox.margin></Label>
+                        <VBox fx:id="estados" spacing="8"/>
+                        <Region VBox.vgrow="ALWAYS"/>
+                        <Button text="Guardar película" styleClass="btn-primario" maxWidth="Infinity" onAction="#onGuardar"/>
+                        <Button text="Cancelar" styleClass="btn-secundario" maxWidth="Infinity" onAction="#onVolver"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

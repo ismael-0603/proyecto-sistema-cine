@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 13 · Mis compras -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.MisComprasVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <VBox alignment="TOP_CENTER">
+                <padding><Insets top="40" left="24" right="24" bottom="40"/></padding>
+                <VBox spacing="16" maxWidth="1380">
+                    <Label text="Mi cuenta" styleClass="titulo-claro"/>
+                    <HBox spacing="12">
+                        <Button text="Mis datos y puntos" styleClass="pestana, btn-chico" onAction="#onMisDatos"/>
+                        <Button text="Mis compras" styleClass="pestana, activo, btn-chico"/>
+                    </HBox>
+                    <VBox fx:id="tabla" styleClass="tabla">
+                        <VBox.margin><Insets top="10"/></VBox.margin>
+                        <HBox fx:id="cabecera" styleClass="tabla-cabecera"/>
+                        <VBox fx:id="filas"/>
+                    </VBox>
+                    <Label fx:id="lblNota" styleClass="nota-clara" wrapText="true"/>
+                    <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
+                    <HBox fx:id="paginacion" spacing="10" alignment="CENTER_LEFT">
+                        <Label fx:id="lblMostrando" styleClass="nota-clara"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="btnAnterior" text="Anterior" styleClass="btn-secundario, btn-chico" onAction="#onAnterior"/>
+                        <HBox fx:id="paginas" spacing="8"/>
+                        <Button fx:id="btnSiguiente" text="Siguiente" styleClass="btn-secundario, btn-chico" onAction="#onSiguiente"/>
+                    </HBox>
+                    <VBox fx:id="cajaVacia" styleClass="aviso" spacing="10" visible="false" managed="false">
+                        <Label text="Todavía no tienes compras" styleClass="etiqueta-fuerte"/>
+                        <Label text="Cuando compres entradas o dulcería con tu cuenta, aparecerán aquí." styleClass="nota"/>
+                        <Button text="Ver cartelera" styleClass="btn-primario, btn-chico" onAction="#onCartelera"/>
+                    </VBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

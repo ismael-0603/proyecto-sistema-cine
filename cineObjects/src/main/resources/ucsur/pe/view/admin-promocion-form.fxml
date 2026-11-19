@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 19.1 · Administración · Promoción (formulario) -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.AdminPromocionFormVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <left>
+        <VBox>
+            <padding><Insets top="16" left="24" bottom="24"/></padding>
+            <fx:include fx:id="menu" source="admin-menu.fxml" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED">
+            <VBox spacing="16">
+                <padding><Insets top="30" left="32" right="32" bottom="30"/></padding>
+                <HBox alignment="CENTER_LEFT">
+                    <Label fx:id="lblTitulo" text="Nueva promoción" styleClass="titulo-claro"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="← Volver a promociones y cupones" styleClass="btn-link, btn-link-claro" onAction="#onVolver"/>
+                </HBox>
+                <HBox styleClass="tarjeta" spacing="40">
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label text="Nombre" styleClass="etiqueta-campo"/>
+                        <TextField fx:id="txtNombre" promptText="Ej. Lunes de Socios"/>
+                        <Label text="Máximo 40 caracteres" styleClass="nota"/>
+                        <Label text="Descripción" styleClass="etiqueta-campo"><VBox.margin><Insets top="6"/></VBox.margin></Label>
+                        <TextArea fx:id="txtDescripcion" promptText="Ej. Descuento exclusivo para socios los lunes" wrapText="true" prefRowCount="3"/>
+                        <Label text="Máximo 200 caracteres" styleClass="nota"/>
+                        <GridPane hgap="20" vgap="6">
+                            <VBox.margin><Insets top="6"/></VBox.margin>
+                            <Label text="Tipo de descuento" styleClass="etiqueta-campo"/>
+                            <ComboBox fx:id="cmbTipo" maxWidth="Infinity" GridPane.rowIndex="1"/>
+                            <Label text="Valor" styleClass="etiqueta-campo" GridPane.columnIndex="1"/>
+                            <TextField fx:id="txtValor" promptText="Ej. 25" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                            <Label text="Vigencia (desde – hasta)" styleClass="etiqueta-campo" GridPane.columnIndex="2" GridPane.columnSpan="2"/>
+                            <TextField fx:id="txtDesde" promptText="dd/mm/aaaa" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                            <TextField fx:id="txtHasta" promptText="dd/mm/aaaa" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+                        </GridPane>
+                        <Label text="Porcentaje: 25 = 25 %. Monto fijo: valor en soles." styleClass="nota"/>
+                        <Label text="Días en que aplica" styleClass="etiqueta-campo"><VBox.margin><Insets top="6"/></VBox.margin></Label>
+                        <FlowPane fx:id="dias" hgap="22" vgap="8"/>
+                        <Label text="Si no marcas ningún día, aplica todos los días." styleClass="nota"/>
+                        <Label text="Nivel de socio mínimo" styleClass="etiqueta-campo"><VBox.margin><Insets top="6"/></VBox.margin></Label>
+                        <ComboBox fx:id="cmbNivel" prefWidth="260"/>
+                        <Label text="Todos los clientes: nivel 0 · Cualquier socio: nivel 1 · Niveles 2 a 4: ese nivel o más." styleClass="nota"/>
+                        <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
+                    </VBox>
+                    <VBox spacing="10" minWidth="260" prefWidth="280">
+                        <Label text="Estado" styleClass="etiqueta-campo"/>
+                        <RadioButton fx:id="rbActiva" text="Activa" selected="true"/>
+                        <RadioButton fx:id="rbInactiva" text="Inactiva"/>
+                        <Region VBox.vgrow="ALWAYS"/>
+                        <Button text="Guardar promoción" styleClass="btn-primario" maxWidth="Infinity" onAction="#onGuardar"/>
+                        <Button text="Cancelar" styleClass="btn-secundario" maxWidth="Infinity" onAction="#onVolver"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

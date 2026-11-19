@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 9 · Comprobante -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.ComprobanteVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <HBox alignment="TOP_CENTER">
+                <padding><Insets top="50" left="24" right="24" bottom="24"/></padding>
+                <HBox spacing="28" maxWidth="1400">
+                    <VBox styleClass="tarjeta" spacing="4" HBox.hgrow="ALWAYS" minWidth="560" maxWidth="830">
+                        <padding><Insets top="34" left="44" right="44" bottom="34"/></padding>
+                        <HBox spacing="16" alignment="CENTER_LEFT">
+                            <VBox.margin><Insets bottom="20"/></VBox.margin>
+                            <Label text="✓" styleClass="check-exito"/>
+                            <VBox>
+                                <Label text="¡Compra exitosa!" styleClass="titulo"/>
+                                <Label fx:id="lblSerie" styleClass="etiqueta"/>
+                            </VBox>
+                        </HBox>
+                        <VBox fx:id="filas"/>
+                        <HBox fx:id="filaTotal"/>
+                        <Label fx:id="lblMedio" styleClass="nota"/>
+                    </VBox>
+
+                    <VBox styleClass="tarjeta" spacing="14" minWidth="420" prefWidth="530" maxWidth="530">
+                        <padding><Insets top="34" left="36" right="36" bottom="34"/></padding>
+                        <Label text="Tu código QR" styleClass="tarjeta-titulo"/>
+                        <HBox alignment="CENTER">
+                            <StackPane fx:id="marcoQr" styleClass="marco-qr"/>
+                        </HBox>
+                        <Label fx:id="lblCodigo" styleClass="nota" maxWidth="Infinity" alignment="CENTER"/>
+                        <Label text="Muéstralo en la entrada de la sala y para recoger tu pedido en dulcería."
+                               styleClass="nota" wrapText="true" maxWidth="Infinity" alignment="CENTER"/>
+                        <VBox fx:id="cajaPuntos" styleClass="caja-dato">
+                            <Label fx:id="lblPuntos" styleClass="etiqueta-fuerte"/>
+                            <Label fx:id="lblSaldo" styleClass="nota"/>
+                        </VBox>
+                        <HBox spacing="12" alignment="CENTER">
+                            <Button text="Enviar al correo" styleClass="btn-secundario" onAction="#onEnviar"/>
+                            <Button text="Imprimir" styleClass="btn-secundario" prefWidth="160" onAction="#onImprimir"/>
+                        </HBox>
+                        <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false"/>
+                        <Button text="Volver al inicio" styleClass="btn-primario" maxWidth="Infinity" onAction="#onInicio"/>
+                    </VBox>
+                </HBox>
+            </HBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

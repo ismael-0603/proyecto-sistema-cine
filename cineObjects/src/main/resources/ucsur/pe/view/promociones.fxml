@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 10 · Promociones -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.PromocionesVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <VBox alignment="TOP_CENTER">
+                <padding><Insets top="70" left="24" right="24" bottom="40"/></padding>
+                <VBox spacing="16" maxWidth="1385">
+                    <Label text="Promociones vigentes" styleClass="titulo-claro"/>
+                    <HBox fx:id="filtros" spacing="12">
+                        <VBox.margin><Insets bottom="10"/></VBox.margin>
+                    </HBox>
+                    <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
+                    <FlowPane fx:id="promociones" hgap="25" vgap="21"/>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

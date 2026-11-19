@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 20.1 · Administración · Producto (formulario) -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.AdminProductoFormVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <left>
+        <VBox>
+            <padding><Insets top="16" left="24" bottom="24"/></padding>
+            <fx:include fx:id="menu" source="admin-menu.fxml" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED">
+            <VBox spacing="16">
+                <padding><Insets top="30" left="32" right="32" bottom="30"/></padding>
+                <HBox alignment="CENTER_LEFT">
+                    <Label fx:id="lblTitulo" text="Nuevo producto" styleClass="titulo-claro"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="← Volver a la lista de productos" styleClass="btn-link, btn-link-claro" onAction="#onVolver"/>
+                </HBox>
+                <HBox styleClass="tarjeta" spacing="40">
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label text="Nombre" styleClass="etiqueta-campo"/>
+                        <TextField fx:id="txtNombre" promptText="Ej. COMBO DOS + 2M&amp;M"/>
+                        <Label text="Máximo 100 caracteres" styleClass="nota"/>
+                        <Label text="Descripción" styleClass="etiqueta-campo"><VBox.margin><Insets top="6"/></VBox.margin></Label>
+                        <TextArea fx:id="txtDescripcion" promptText="Ej. 1 canchita gigante + 2 bebidas (32 oz)" wrapText="true" prefRowCount="3"/>
+                        <Label text="Máximo 255 caracteres" styleClass="nota"/>
+                        <GridPane hgap="20" vgap="6">
+                            <VBox.margin><Insets top="6"/></VBox.margin>
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="34"/><ColumnConstraints percentWidth="26"/><ColumnConstraints percentWidth="40"/>
+                            </columnConstraints>
+                            <Label text="Categoría" styleClass="etiqueta-campo"/>
+                            <ComboBox fx:id="cmbCategoria" editable="true" maxWidth="Infinity" GridPane.rowIndex="1"/>
+                            <Label text="Precio (S/)" styleClass="etiqueta-campo" GridPane.columnIndex="1"/>
+                            <TextField fx:id="txtPrecio" promptText="Ej. 32.50" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                            <Label text="Disponible para" styleClass="etiqueta-campo" GridPane.columnIndex="2"/>
+                            <ComboBox fx:id="cmbNivel" maxWidth="Infinity" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                        </GridPane>
+                        <CheckBox fx:id="chkCombo" text="Es un combo (agrupa varios productos)"><VBox.margin><Insets top="8"/></VBox.margin></CheckBox>
+                        <VBox fx:id="cajaStock" spacing="6">
+                            <Label text="Stock inicial en tu sede" styleClass="etiqueta-campo"><VBox.margin><Insets top="8"/></VBox.margin></Label>
+                            <HBox spacing="14" alignment="CENTER_LEFT">
+                                <Label fx:id="lblSede" styleClass="nota"/>
+                                <TextField fx:id="txtStock" text="0" prefWidth="120"/>
+                            </HBox>
+                            <Label text="Solo cargas stock de tu sede. En las demás sedes lo carga y repone su propio administrador." styleClass="nota"/>
+                        </VBox>
+                        <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
+                    </VBox>
+                    <VBox spacing="10" minWidth="260" prefWidth="280">
+                        <Label text="Estado" styleClass="etiqueta-campo"/>
+                        <RadioButton fx:id="rbActivo" text="Activo" selected="true"/>
+                        <RadioButton fx:id="rbInactivo" text="Inactivo"/>
+                        <Label text="Disponible para" styleClass="etiqueta-campo"><VBox.margin><Insets top="16"/></VBox.margin></Label>
+                        <Label text="Todos los clientes: nivel 0.&#10;Cualquier socio: nivel 1.&#10;Ofertas de socio: nivel 2 a 4 o superior." styleClass="nota" wrapText="true"/>
+                        <Region VBox.vgrow="ALWAYS"/>
+                        <Button text="Guardar producto" styleClass="btn-primario" maxWidth="Infinity" onAction="#onGuardar"/>
+                        <Button text="Cancelar" styleClass="btn-secundario" maxWidth="Infinity" onAction="#onVolver"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

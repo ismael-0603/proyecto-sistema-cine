@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 18.1 · Administración · Función (formulario) -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.AdminFuncionFormVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <left>
+        <VBox>
+            <padding><Insets top="16" left="24" bottom="24"/></padding>
+            <fx:include fx:id="menu" source="admin-menu.fxml" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED">
+            <VBox spacing="16">
+                <padding><Insets top="30" left="32" right="32" bottom="30"/></padding>
+                <HBox alignment="CENTER_LEFT">
+                    <Label fx:id="lblTitulo" text="Programar función" styleClass="titulo-claro"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="← Volver a la lista de funciones" styleClass="btn-link, btn-link-claro" onAction="#onVolver"/>
+                </HBox>
+                <HBox styleClass="tarjeta" spacing="40">
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label fx:id="lblSede" styleClass="nota"/>
+                        <Label text="Película" styleClass="etiqueta-campo"><VBox.margin><Insets top="8"/></VBox.margin></Label>
+                        <ComboBox fx:id="cmbPelicula" promptText="Elegir película" maxWidth="Infinity"/>
+                        <Label text="Solo películas en cartelera, preestreno o reestreno." styleClass="nota"/>
+                        <Label text="Sala" styleClass="etiqueta-campo"><VBox.margin><Insets top="8"/></VBox.margin></Label>
+                        <ComboBox fx:id="cmbSala" promptText="Elegir sala de tu sede" maxWidth="Infinity"/>
+                        <GridPane hgap="24" vgap="6">
+                            <VBox.margin><Insets top="8"/></VBox.margin>
+                            <columnConstraints><ColumnConstraints percentWidth="50"/><ColumnConstraints percentWidth="50"/></columnConstraints>
+                            <Label text="Fecha" styleClass="etiqueta-campo"/>
+                            <TextField fx:id="txtFecha" promptText="dd/mm/aaaa" GridPane.rowIndex="1"/>
+                            <Label text="Hora de inicio" styleClass="etiqueta-campo" GridPane.columnIndex="1"/>
+                            <TextField fx:id="txtHora" promptText="hh:mm" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                        </GridPane>
+                        <Label text="Idioma" styleClass="etiqueta-campo"><VBox.margin><Insets top="8"/></VBox.margin></Label>
+                        <HBox spacing="40">
+                            <RadioButton fx:id="rbDoblada" text="Doblada" selected="true"/>
+                            <RadioButton fx:id="rbSubtitulada" text="Subtitulada"/>
+                        </HBox>
+                        <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
+                        <Label text="Al editar, película y sala quedan bloqueadas: solo cambian fecha, hora e idioma, y solo si la función aún no tiene entradas vendidas o reservadas."
+                               styleClass="nota" wrapText="true"><VBox.margin><Insets top="12"/></VBox.margin></Label>
+                    </VBox>
+                    <VBox spacing="12" minWidth="300" prefWidth="320" maxWidth="340">
+                        <VBox styleClass="panel-crema" spacing="6">
+                            <Label text="Datos de la sala" styleClass="tarjeta-titulo"/>
+                            <Label text="Formato" styleClass="nota"><VBox.margin><Insets top="8"/></VBox.margin></Label>
+                            <Label fx:id="lblFormato" text="—" styleClass="etiqueta-fuerte"/>
+                            <Label text="Capacidad" styleClass="nota"/>
+                            <Label fx:id="lblCapacidad" text="—" styleClass="etiqueta-fuerte"/>
+                            <Label text="Duración película" styleClass="nota"/>
+                            <Label fx:id="lblDuracion" text="—" styleClass="etiqueta-fuerte"/>
+                            <Label text="Termina aprox." styleClass="nota"/>
+                            <Label fx:id="lblTermina" text="—" styleClass="etiqueta-fuerte"/>
+                        </VBox>
+                        <Label text="Se llenan solos al elegir película y sala." styleClass="nota"/>
+                        <Region VBox.vgrow="ALWAYS"/>
+                        <Button fx:id="btnGuardar" text="Programar función" styleClass="btn-primario" maxWidth="Infinity" onAction="#onGuardar"/>
+                        <Button text="Cancelar" styleClass="btn-secundario" maxWidth="Infinity" onAction="#onVolver"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

@@ -62,6 +62,17 @@ public class CarteleraService {
                 .toList();
     }
 
+    /**
+     * Promociones vigentes (activas y dentro de sus fechas), aunque hoy no sea su día: es lo que muestra
+     * la pantalla «Promociones» (wireframe 10), donde cada una dice qué días aplica.
+     */
+    public List<Promocion> listarPromocionesVigentes() {
+        DateTime hoy = reloj.ahora();
+        return promociones.listarTodas().stream()
+                .filter(p -> p.validarVigencia(hoy))
+                .toList();
+    }
+
     private Sede exigirSede(Sede sede) {
         if (sede == null) throw new IllegalArgumentException("La sede es obligatoria");
         return sede;

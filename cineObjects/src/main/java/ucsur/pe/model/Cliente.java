@@ -8,7 +8,7 @@ import java.util.List;
  * que gana puntos y sube de nivel (1 a 4) según sus visitas del año.
  */
 public class Cliente extends Persona {
-    private static final int VISITAS_POR_NIVEL = 10; // visitas confirmadas del año que hacen subir un nivel
+    public static final int VISITAS_POR_NIVEL = 10; // visitas confirmadas del año que hacen subir un nivel
     public static final int NIVEL_MAXIMO = 4; // nivel de socio más alto; Producto también lo usa
     /** Multiplicador de puntos por nivel (posición = nivel): 0 = invitado, 1 = x1, 2 = x1.25, 3 = x1.5, 4 = x2. */
     private static final double[] MULTIPLICADOR_POR_NIVEL = {0.0, 1.0, 1.25, 1.5, 2.0};

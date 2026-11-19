@@ -8,9 +8,22 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>26</maven.compiler.release>
+        <!-- mvn exec:java corre la demo por consola; mvn javafx:run abre las pantallas -->
         <exec.mainClass>ucsur.pe.demo.CineObjects</exec.mainClass>
+        <javafx.version>21.0.9</javafx.version>
     </properties>
     <dependencies>
+        <!-- JavaFX: interfaz gráfica (las mismas versiones que el ejemplo MVCone) -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
         <!-- Conector JDBC de MySQL (el mismo que usa el ejemplo MVCone) -->
         <dependency>
             <groupId>com.mysql</groupId>
@@ -18,4 +31,17 @@
             <version>8.4.0</version>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <!-- Uso: mvn clean javafx:run -->
+                    <mainClass>ucsur.pe/ucsur.pe.Principal</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

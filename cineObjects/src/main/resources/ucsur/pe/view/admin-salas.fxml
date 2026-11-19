@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<!-- 26 · Administración · Salas -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.AdminSalasVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <left>
+        <VBox>
+            <padding><Insets top="16" left="24" bottom="24"/></padding>
+            <fx:include fx:id="menu" source="admin-menu.fxml" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED">
+            <VBox spacing="16">
+                <padding><Insets top="30" left="32" right="32" bottom="30"/></padding>
+                <HBox alignment="CENTER_LEFT" spacing="30">
+                    <Label text="Salas" styleClass="titulo-claro"/>
+                    <HBox styleClass="barra-oscura" HBox.hgrow="ALWAYS" maxWidth="520">
+                        <Label text="Sede"/>
+                        <ComboBox fx:id="cmbSede" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    </HBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="+ Nueva sala" styleClass="btn-primario" onAction="#onNueva"/>
+                </HBox>
+                <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false" wrapText="true"/>
+                <VBox fx:id="contenedorTabla"/>
+                <HBox spacing="20">
+                    <!-- Nueva sala / Editar sala -->
+                    <VBox fx:id="panelForm" styleClass="panel-crema" spacing="8" minWidth="380" prefWidth="420" visible="false" managed="false">
+                        <Label fx:id="lblFormTitulo" text="Nueva sala" styleClass="tarjeta-titulo"/>
+                        <GridPane hgap="14" vgap="6">
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="33"/><ColumnConstraints percentWidth="33"/><ColumnConstraints percentWidth="34"/>
+                            </columnConstraints>
+                            <Label text="Número" styleClass="etiqueta-campo"/>
+                            <TextField fx:id="txtNumero" GridPane.rowIndex="1"/>
+                            <Label text="Formato" styleClass="etiqueta-campo" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+                            <ComboBox fx:id="cmbFormato" maxWidth="Infinity" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+                            <Label text="Filas" styleClass="etiqueta-campo" GridPane.rowIndex="2"/>
+                            <TextField fx:id="txtFilas" GridPane.rowIndex="3"/>
+                            <Label text="Laterales" styleClass="etiqueta-campo" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                            <TextField fx:id="txtLaterales" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                            <Label text="Centrales" styleClass="etiqueta-campo" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                            <TextField fx:id="txtCentrales" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+                        </GridPane>
+                        <Label text="Capacidad (se calcula sola)" styleClass="etiqueta-campo"/>
+                        <Label fx:id="lblCapacidad" styleClass="caja-dato, etiqueta-fuerte" maxWidth="Infinity" alignment="CENTER"/>
+                        <Label text="Laterales: butacas a cada lado. Centrales: entre los dos pasillos; siempre más que los laterales."
+                               styleClass="nota" wrapText="true"/>
+                        <Label fx:id="lblMensajeForm" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
+                        <HBox spacing="12" alignment="CENTER">
+                            <Button text="Cancelar" styleClass="btn-secundario" onAction="#onCancelar"/>
+                            <Button text="Guardar sala" styleClass="btn-primario" onAction="#onGuardar"/>
+                        </HBox>
+                    </VBox>
+                    <!-- Vista previa del mapa -->
+                    <VBox fx:id="panelMapa" styleClass="tarjeta" spacing="10" HBox.hgrow="ALWAYS" visible="false" managed="false">
+                        <Label fx:id="lblMapaTitulo" text="Vista previa del mapa" styleClass="tarjeta-titulo"/>
+                        <VBox alignment="CENTER" spacing="4">
+                            <Arc radiusX="230" radiusY="10" startAngle="20" length="140" type="OPEN"
+                                 fill="TRANSPARENT" stroke="#03132c" strokeWidth="2"/>
+                            <Label text="PANTALLA" styleClass="pantalla-texto"/>
+                        </VBox>
+                        <GridPane fx:id="mapa" styleClass="mapa-mini" hgap="3" vgap="3" alignment="CENTER"/>
+                        <HBox spacing="18" alignment="CENTER">
+                            <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro"/><Label text="Estándar" styleClass="nota"/></HBox>
+                            <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro, preferencial"/><Label text="Preferencial" styleClass="nota"/></HBox>
+                            <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro" style="-fx-background-color: #03132c;"/><Label text="Discapacidad" styleClass="nota"/></HBox>
+                        </HBox>
+                        <Label fx:id="lblMapaNota" styleClass="nota" wrapText="true"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

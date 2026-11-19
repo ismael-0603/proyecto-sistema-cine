@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 5 · Crear cuenta -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.CrearCuentaVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <StackPane>
+                <padding><Insets top="40" left="24" right="24" bottom="40"/></padding>
+                <VBox styleClass="tarjeta" spacing="10" maxWidth="860" maxHeight="-Infinity">
+                    <padding><Insets top="34" left="44" right="44" bottom="34"/></padding>
+                    <Label text="Crear cuenta" styleClass="titulo"/>
+                    <Label text="Regístrate para acumular puntos y subir de nivel de socio." styleClass="etiqueta"/>
+
+                    <GridPane hgap="24" vgap="8">
+                        <VBox.margin><Insets top="18"/></VBox.margin>
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="50"/>
+                            <ColumnConstraints percentWidth="50"/>
+                        </columnConstraints>
+                        <Label text="DNI" styleClass="etiqueta-campo" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtDni" promptText="8 dígitos" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <Label text="Fecha de nacimiento" styleClass="etiqueta-campo" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                        <TextField fx:id="txtFechaNac" promptText="dd / mm / aaaa" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                        <Label text="Nombres" styleClass="etiqueta-campo" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtNombres" promptText="Tus nombres" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                        <Label text="Apellidos" styleClass="etiqueta-campo" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                        <TextField fx:id="txtApellidos" promptText="Tus apellidos" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                        <Label text="Correo electrónico" styleClass="etiqueta-campo" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                        <TextField fx:id="txtCorreo" promptText="Ej. nombre@correo.com" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                        <Label text="Teléfono" styleClass="etiqueta-campo" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                        <TextField fx:id="txtTelefono" promptText="9 dígitos" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+                        <Label text="Contraseña" styleClass="etiqueta-campo" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+                        <PasswordField fx:id="txtContra" promptText="Mínimo 8 caracteres" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+                        <Label text="Confirmar contraseña" styleClass="etiqueta-campo" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+                        <PasswordField fx:id="txtConfirmar" promptText="Repite tu contraseña" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+                    </GridPane>
+
+                    <HBox alignment="CENTER">
+                        <VBox.margin><Insets top="14" bottom="4"/></VBox.margin>
+                        <CheckBox fx:id="chkTerminos" text="Acepto los términos y el tratamiento de mis datos personales."/>
+                    </HBox>
+                    <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false"/>
+                    <Button text="Crear cuenta" styleClass="btn-primario" maxWidth="Infinity" onAction="#onCrear"/>
+                    <HBox alignment="CENTER" spacing="2">
+                        <Label text="¿Ya tienes cuenta?" styleClass="etiqueta"/>
+                        <Button text="Iniciar sesión" styleClass="btn-link" onAction="#onIniciarSesion"/>
+                    </HBox>
+                </VBox>
+            </StackPane>
+        </ScrollPane>
+    </center>
+</BorderPane>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 4 · Iniciar sesión -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.IniciarSesionVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <center>
+        <StackPane>
+            <padding><Insets top="24" left="24" right="24" bottom="60"/></padding>
+            <VBox styleClass="tarjeta" spacing="10" maxWidth="720" maxHeight="-Infinity">
+                <padding><Insets top="34" left="48" right="48" bottom="34"/></padding>
+                <Label text="Iniciar sesión" styleClass="titulo"/>
+                <Label text="Ingresa con tu cuenta para usar tus puntos y beneficios de socio." styleClass="etiqueta" wrapText="true"/>
+
+                <Label text="Correo electrónico" styleClass="etiqueta-campo">
+                    <VBox.margin><Insets top="18"/></VBox.margin>
+                </Label>
+                <TextField fx:id="txtCorreo" promptText="nombre@correo.com"/>
+
+                <Label text="Contraseña" styleClass="etiqueta-campo">
+                    <VBox.margin><Insets top="14"/></VBox.margin>
+                </Label>
+                <StackPane alignment="CENTER_RIGHT">
+                    <PasswordField fx:id="txtContra" promptText="Ingresa tu contraseña" onAction="#onIniciar"/>
+                    <TextField fx:id="txtContraVisible" promptText="Ingresa tu contraseña" visible="false" onAction="#onIniciar"/>
+                    <ToggleButton fx:id="btnVer" text="👁" styleClass="btn-cerrar" style="-fx-min-width: 36; -fx-min-height: 36; -fx-max-width: 36; -fx-max-height: 36; -fx-font-size: 14px;">
+                        <StackPane.margin><Insets right="6"/></StackPane.margin>
+                    </ToggleButton>
+                </StackPane>
+                <HBox alignment="CENTER_RIGHT">
+                    <Button text="¿Olvidaste tu contraseña?" styleClass="btn-link" onAction="#onOlvide"/>
+                </HBox>
+
+                <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false"/>
+                <Button text="Iniciar sesión" styleClass="btn-primario" maxWidth="Infinity" onAction="#onIniciar">
+                    <VBox.margin><Insets top="8"/></VBox.margin>
+                </Button>
+                <HBox alignment="CENTER" spacing="2">
+                    <VBox.margin><Insets top="10"/></VBox.margin>
+                    <Label text="¿No tienes cuenta?" styleClass="etiqueta"/>
+                    <Button text="Crear cuenta" styleClass="btn-link" onAction="#onCrearCuenta"/>
+                </HBox>
+            </VBox>
+        </StackPane>
+    </center>
+</BorderPane>

@@ -93,6 +93,12 @@ public class PostventaService {
         return calificacion;
     }
 
+    /** La calificación que el cliente le dio a su compra, o null si todavía no la calificó. */
+    public Calificacion consultarCalificacion(Cliente cliente, Compra compra) {
+        exigirTitular(cliente, compra);
+        return calificaciones.buscarPorCompra(compra).orElse(null);
+    }
+
     public List<Compra> consultarHistorial(Cliente cliente) {
         if (cliente == null) throw new IllegalArgumentException("El cliente es obligatorio");
         return cliente.consultarHistorial();

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 8.2 · Pago con billetera -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.PagoBilleteraVista" styleClass="fondo">
+    <top>
+        <fx:include fx:id="encabezado" source="encabezado-compra.fxml"/>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <HBox alignment="TOP_CENTER">
+                <padding><Insets top="30" left="24" right="24" bottom="24"/></padding>
+                <HBox spacing="36" maxWidth="1400">
+                    <VBox styleClass="tarjeta" spacing="12" HBox.hgrow="ALWAYS" minWidth="600" maxWidth="760">
+                        <Label text="Paga con tu billetera digital" styleClass="tarjeta-titulo"/>
+                        <Label text="Elige tu app y escanea el código con tu celular." styleClass="nota"/>
+                        <HBox spacing="10" alignment="CENTER">
+                            <VBox.margin><Insets top="8" bottom="8"/></VBox.margin>
+                            <Button fx:id="btnYape" text="Yape" styleClass="opcion, opcion-centro" prefWidth="110" onAction="#onYape"/>
+                            <Button fx:id="btnPlin" text="Plin" styleClass="opcion, opcion-centro" prefWidth="110" onAction="#onPlin"/>
+                            <Button fx:id="btnQr" text="Otra app (QR)" styleClass="opcion, opcion-centro" prefWidth="180" onAction="#onQr"/>
+                        </HBox>
+                        <HBox alignment="CENTER">
+                            <StackPane fx:id="marcoQr" styleClass="marco-qr"/>
+                        </HBox>
+                        <Label fx:id="lblMonto" styleClass="etiqueta-fuerte" maxWidth="Infinity" alignment="CENTER"/>
+                        <Label text="●  Esperando la confirmación de tu app…" styleClass="nota" maxWidth="Infinity" alignment="CENTER"/>
+                        <Label text="1. Abre tu app  2. Escanea el QR  3. Confirma el pago" styleClass="nota">
+                            <VBox.margin><Insets top="10"/></VBox.margin>
+                        </Label>
+                        <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false"/>
+                    </VBox>
+                    <VBox fx:id="resumen" minWidth="420" prefWidth="520" maxWidth="520"/>
+                </HBox>
+            </HBox>
+        </ScrollPane>
+    </center>
+    <bottom>
+        <HBox styleClass="pie">
+            <Button text="← Volver" styleClass="btn-secundario" onAction="#onVolver"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Total" styleClass="pie-etiqueta"/>
+            <Label fx:id="lblPieTotal" styleClass="pie-total"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Ya pagué, verificar" styleClass="btn-primario" onAction="#onVerificar"/>
+        </HBox>
+    </bottom>
+</BorderPane>

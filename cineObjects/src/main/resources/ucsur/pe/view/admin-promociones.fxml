@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 19 · Administración · Promociones y cupones -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.AdminPromocionesVista" styleClass="fondo">
+    <top>
+        <VBox>
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+        </VBox>
+    </top>
+    <left>
+        <VBox>
+            <padding><Insets top="16" left="24" bottom="24"/></padding>
+            <fx:include fx:id="menu" source="admin-menu.fxml" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED">
+            <VBox spacing="16">
+                <padding><Insets top="30" left="32" right="32" bottom="30"/></padding>
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Promociones y cupones" styleClass="titulo-claro"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="btnNuevaPromo" text="+ Nueva promoción" styleClass="btn-primario" onAction="#onNuevaPromocion"/>
+                </HBox>
+                <HBox spacing="24">
+                    <VBox spacing="16" HBox.hgrow="ALWAYS">
+                        <HBox styleClass="barra-oscura">
+                            <Button fx:id="btnCupones" text="Cupones" styleClass="pestana, btn-chico" onAction="#onCupones"/>
+                            <Button fx:id="btnPromos" text="Promociones" styleClass="pestana, btn-chico" onAction="#onPromociones"/>
+                            <TextField fx:id="txtBuscar" promptText="Buscar código o nombre" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+                        <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false" wrapText="true"/>
+                        <VBox fx:id="contenedorTabla"/>
+                        <Label fx:id="lblAyuda" styleClass="nota-clara" wrapText="true"/>
+                    </VBox>
+                    <!-- Formulario de cupón (nuevo o el de la fila elegida) -->
+                    <VBox fx:id="formCupon" styleClass="tarjeta" spacing="8" minWidth="340" prefWidth="360" maxWidth="380">
+                        <Label fx:id="lblFormTitulo" text="Nuevo cupón" styleClass="tarjeta-titulo"/>
+                        <Label text="Código" styleClass="etiqueta-campo"><VBox.margin><Insets top="8"/></VBox.margin></Label>
+                        <TextField fx:id="txtCodigo" promptText="Ej. CINE20"/>
+                        <Label text="Tipo de descuento" styleClass="etiqueta-campo"/>
+                        <HBox spacing="30">
+                            <RadioButton fx:id="rbPorcentaje" text="Porcentaje" selected="true"/>
+                            <RadioButton fx:id="rbMonto" text="Monto fijo"/>
+                        </HBox>
+                        <Label text="Valor" styleClass="etiqueta-campo"/>
+                        <TextField fx:id="txtValor" promptText="Ej. 20 (%) o 5.50 (S/)"/>
+                        <Label text="Vigencia" styleClass="etiqueta-campo"/>
+                        <HBox spacing="10">
+                            <TextField fx:id="txtDesde" promptText="Desde dd/mm/aaaa" HBox.hgrow="ALWAYS"/>
+                            <TextField fx:id="txtHasta" promptText="Hasta dd/mm/aaaa" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+                        <HBox spacing="10">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="Usos máx." styleClass="etiqueta-campo"/>
+                                <TextField fx:id="txtUsos" text="100"/>
+                            </VBox>
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="Nivel mín." styleClass="etiqueta-campo"/>
+                                <ComboBox fx:id="cmbNivel" maxWidth="Infinity"/>
+                            </VBox>
+                        </HBox>
+                        <Label fx:id="lblMensajeForm" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
+                        <Button text="Guardar cupón" styleClass="btn-primario" maxWidth="Infinity" onAction="#onGuardarCupon">
+                            <VBox.margin><Insets top="10"/></VBox.margin>
+                        </Button>
+                        <Button text="Limpiar" styleClass="btn-secundario" maxWidth="Infinity" onAction="#onLimpiar"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

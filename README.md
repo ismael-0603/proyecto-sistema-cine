@@ -31,8 +31,14 @@ Desde la raíz del repositorio:
 ```bash
 cd cineObjects
 mvn clean package
-mvn exec:java
+mvn exec:java          # demo por consola (en memoria)
+mvn javafx:run         # interfaz gráfica del kiosco (necesita MySQL con DB_Cine)
 ```
+
+La interfaz gráfica (`ucsur.pe.Principal`) sigue el ejemplo MVCone: cada pantalla es un FXML en
+`src/main/resources/ucsur/pe/view/` con su controller de pantalla en `ucsur.pe.vista`, que solo llama a los
+controllers de `App`. Los estilos están en `css/estilos.css` (colores y fuente Manrope del Figma) y los pósters
+se buscan en `src/main/resources/ucsur/pe/posters/` con el nombre que guarda la BD.
 
 La clase de entrada configurada en `pom.xml` es `ucsur.pe.demo.CineObjects`, que recorre el flujo completo
 (cartelera, compra, dulcería, pago, reembolso, socios y postventa). Los demás `Main*` del paquete `demo`
@@ -59,9 +65,12 @@ son pruebas de partes concretas del modelo.
 
 ## Estado actual
 
-El proyecto está organizado por capas (controller, service, repository, model). Los repositorios guardan en
-memoria y se prueba por consola con las clases del paquete `demo`. Aún no incluye las pantallas (FXML) ni los
-repositorios Jdbc contra la base de datos (el script SQL se mantiene aparte).
+El proyecto está organizado por capas (controller, service, repository, model) con repositorios en memoria y
+en MySQL (el script SQL se mantiene aparte). La interfaz gráfica tiene las cuatro fases de los wireframes: el flujo de
+compra del cliente (sede, cartelera, horario, identificación, asientos, dulcería, pago y comprobante) y la cuenta
+y postventa (promociones, recuperar entradas, mi cuenta, mis compras, calificar y reclamos), el panel de
+dulcería para el personal (cola de pedidos y entrega con código) y la administración (películas, funciones,
+salas, promociones y cupones, productos, sedes y reclamos).
 
 ## Contexto académico
 

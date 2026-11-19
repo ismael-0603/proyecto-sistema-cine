@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- Encabezado del flujo de compra: película, función, tiempo restante, cerrar y los 3 pasos -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ucsur.pe.vista.EncabezadoCompraVista" spacing="10">
+    <HBox styleClass="encabezado" spacing="20">
+        <VBox.margin><Insets top="10" left="24" right="24"/></VBox.margin>
+        <fx:include source="logo.fxml"/>
+        <VBox alignment="CENTER_LEFT" spacing="2">
+            <HBox.margin><Insets left="10"/></HBox.margin>
+            <Label fx:id="lblTitulo" styleClass="encabezado-titulo"/>
+            <Label fx:id="lblDetalle" styleClass="encabezado-detalle"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <VBox fx:id="cajaTiempo" styleClass="tiempo">
+            <Label text="Tiempo restante" styleClass="tiempo-etiqueta"/>
+            <Label fx:id="lblTiempo" styleClass="tiempo-valor"/>
+        </VBox>
+        <Button text="✕" styleClass="btn-cerrar" onAction="#onCerrar"/>
+    </HBox>
+
+    <HBox fx:id="pasos" styleClass="pasos">
+        <Label fx:id="num1" text="1" styleClass="paso-numero"/>
+        <Label fx:id="txt1" text="Asientos" styleClass="paso-texto"/>
+        <Region styleClass="paso-linea"/>
+        <Label fx:id="num2" text="2" styleClass="paso-numero"/>
+        <Label fx:id="txt2" text="Dulcería" styleClass="paso-texto"/>
+        <Region styleClass="paso-linea"/>
+        <Label fx:id="num3" text="3" styleClass="paso-numero"/>
+        <Label fx:id="txt3" text="Pago" styleClass="paso-texto"/>
+    </HBox>
+</VBox>

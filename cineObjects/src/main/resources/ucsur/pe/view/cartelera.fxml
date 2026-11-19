@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 1 · Cartelera -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.CarteleraVista" styleClass="fondo">
+    <top>
+        <VBox spacing="12" alignment="TOP_CENTER">
+            <padding><Insets top="10" left="24" right="24"/></padding>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+            <HBox styleClass="barra-filtros" maxWidth="1530">
+                <TextField fx:id="txtBuscar" promptText="Buscar película" styleClass="campo-oscuro" prefWidth="240" minWidth="200"/>
+                <ComboBox fx:id="cmbIdioma" styleClass="combo-oscuro" prefWidth="150" minWidth="140"/>
+                <ComboBox fx:id="cmbClasificacion" styleClass="combo-oscuro" prefWidth="170" minWidth="150"/>
+                <Separator orientation="VERTICAL" opacity="0.3"/>
+                <ScrollPane styleClass="franja-generos" fitToHeight="true" vbarPolicy="NEVER" hbarPolicy="AS_NEEDED"
+                            HBox.hgrow="ALWAYS" minWidth="200" pannable="true">
+                    <HBox fx:id="generos" spacing="4" alignment="CENTER_LEFT"/>
+                </ScrollPane>
+                <Button text="Limpiar filtros" styleClass="btn-link, btn-link-claro" minWidth="-Infinity" onAction="#onLimpiar"/>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <VBox alignment="TOP_CENTER">
+                <padding><Insets top="14" left="24" right="24" bottom="40"/></padding>
+                <VBox spacing="14" maxWidth="1450">
+                    <HBox spacing="14" alignment="BASELINE_LEFT">
+                        <Label text="En cartelera" styleClass="titulo-claro"/>
+                        <Label fx:id="lblCantidad" styleClass="contador-texto"/>
+                    </HBox>
+                    <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
+                    <FlowPane fx:id="peliculas" hgap="22" vgap="20"/>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

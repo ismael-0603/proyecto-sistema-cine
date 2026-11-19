@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Group?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<!-- Logo / Cineplanet (componente 2154:4 del Figma): emblema vectorial + «cine» «planet» -->
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      alignment="CENTER_LEFT" spacing="7" minWidth="-Infinity">
+    <Group>
+        <SVGPath content="M23 0H9C4.02944 0 0 4.02944 0 9V23C0 27.9706 4.02944 32 9 32H23C27.9706 32 32 27.9706 32 23V9C32 4.02944 27.9706 0 23 0Z"
+                 fill="#9B180C"/>
+        <SVGPath content="M26.5 16C26.5 21.799 21.799 26.5 16 26.5C10.201 26.5 5.5 21.799 5.5 16C5.5 10.201 10.201 5.5 16 5.5C21.799 5.5 26.5 10.201 26.5 16Z"
+                 fill="TRANSPARENT" stroke="#E5A93CD9" strokeWidth="1.6"/>
+        <SVGPath content="M13.5 11.2L21.5 16L13.5 20.8V11.2Z" fill="#FAF0E0"/>
+        <SVGPath content="M24 10.2C25.215 10.2 26.2 9.21503 26.2 8C26.2 6.78497 25.215 5.8 24 5.8C22.785 5.8 21.8 6.78497 21.8 8C21.8 9.21503 22.785 10.2 24 10.2Z"
+                 fill="#E5A93C"/>
+    </Group>
+    <HBox alignment="CENTER_LEFT">
+        <Label text="cine" styleClass="logo-cine"/>
+        <Label text="planet" styleClass="logo-planet"/>
+    </HBox>
+</HBox>

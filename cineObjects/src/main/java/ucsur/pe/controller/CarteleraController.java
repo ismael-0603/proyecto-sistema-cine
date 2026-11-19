@@ -39,4 +39,9 @@ public class CarteleraController extends ControllerBase {
     public Respuesta<List<Promocion>> consultarPromociones() {
         return ejecutar("", servicio::consultarPromociones);
     }
+
+    /** Todas las promociones vigentes, apliquen o no hoy (pantalla «Promociones»). */
+    public Respuesta<List<Promocion>> listarPromocionesVigentes() {
+        return ejecutar("", servicio::listarPromocionesVigentes);
+    }
 }

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 2.1 · Sinopsis y tráiler (ventana) / 2.2 · sinopsis completa -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ucsur.pe.vista.SinopsisVista"
+      styleClass="dialogo" prefWidth="640" maxWidth="640" maxHeight="-Infinity">
+    <HBox alignment="CENTER_LEFT">
+        <Label fx:id="lblTitulo" styleClass="dialogo-titulo" wrapText="true" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+        <Button text="✕" styleClass="btn-cerrar" onAction="#onCerrar"/>
+    </HBox>
+
+    <StackPane styleClass="trailer-caja">
+        <VBox alignment="CENTER" spacing="10">
+            <Label text="▶" style="-fx-text-fill: white; -fx-font-size: 40px;"/>
+            <Button fx:id="btnTrailer" text="Mirar el tráiler" styleClass="trailer-boton" onAction="#onTrailer"/>
+        </VBox>
+    </StackPane>
+
+    <VBox spacing="4">
+        <Label fx:id="lblSinopsis" styleClass="etiqueta" wrapText="true"/>
+        <Button fx:id="btnVerMas" styleClass="btn-link, btn-link-rojo" onAction="#onVerMas"/>
+    </VBox>
+
+    <GridPane hgap="24" vgap="14">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="50"/>
+            <ColumnConstraints percentWidth="50"/>
+        </columnConstraints>
+        <VBox GridPane.columnIndex="0" GridPane.rowIndex="0">
+            <Label text="Idioma" styleClass="etiqueta-fuerte"/>
+            <Label fx:id="lblIdioma" styleClass="nota"/>
+        </VBox>
+        <VBox GridPane.columnIndex="1" GridPane.rowIndex="0">
+            <Label text="Disponible en" styleClass="etiqueta-fuerte"/>
+            <Label fx:id="lblFormatos" styleClass="nota"/>
+        </VBox>
+        <VBox GridPane.columnIndex="0" GridPane.rowIndex="1">
+            <Label text="Duración" styleClass="etiqueta-fuerte"/>
+            <Label fx:id="lblDuracion" styleClass="nota"/>
+        </VBox>
+        <VBox GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <Label text="Estreno" styleClass="etiqueta-fuerte"/>
+            <Label fx:id="lblEstreno" styleClass="nota"/>
+        </VBox>
+    </GridPane>
+
+    <Button text="Volver a los horarios" styleClass="btn-primario" maxWidth="Infinity" onAction="#onCerrar"/>
+</VBox>

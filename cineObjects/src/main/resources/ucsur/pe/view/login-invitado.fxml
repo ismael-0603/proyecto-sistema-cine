@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- 3 · Login o invitado -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ucsur.pe.vista.LoginOInvitadoVista" styleClass="fondo">
+    <top>
+        <fx:include source="encabezado-compra.fxml"/>
+    </top>
+    <center>
+        <StackPane>
+            <padding><Insets top="24" left="24" right="24" bottom="80"/></padding>
+            <VBox styleClass="tarjeta" spacing="14" maxWidth="776" maxHeight="-Infinity">
+                <padding><Insets top="34" left="48" right="48" bottom="34"/></padding>
+                <Label text="Antes de elegir tus asientos" styleClass="titulo"/>
+                <Label text="Inicia sesión para usar tus puntos de socio o continúa como invitado." styleClass="texto" wrapText="true"/>
+                <Button text="Iniciar sesión" styleClass="btn-primario" maxWidth="Infinity" onAction="#onIniciarSesion">
+                    <VBox.margin><Insets top="12"/></VBox.margin>
+                </Button>
+                <Label text="O continúa como invitado: te enviaremos tus entradas a este correo" styleClass="etiqueta">
+                    <VBox.margin><Insets top="10"/></VBox.margin>
+                </Label>
+                <TextField fx:id="txtCorreo" promptText="nombre@correo.com" onAction="#onInvitado"/>
+                <Button text="Continuar como invitado" styleClass="btn-secundario" maxWidth="Infinity" onAction="#onInvitado"/>
+                <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false"/>
+                <HBox alignment="CENTER" spacing="2">
+                    <Label text="¿No tienes cuenta?" styleClass="etiqueta"/>
+                    <Button text="Crear cuenta" styleClass="btn-link" onAction="#onCrearCuenta"/>
+                </HBox>
+                <Label text="Como invitado no acumulas puntos. Con ese correo podrás recuperar tus entradas."
+                       styleClass="aviso, etiqueta" wrapText="true" maxWidth="Infinity"/>
+            </VBox>
+        </StackPane>
+    </center>
+</BorderPane>
