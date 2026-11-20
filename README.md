@@ -8,8 +8,8 @@ Modelo de dominio desarrollado en Java para representar las operaciones principa
 - Butacas y disponibilidad por función.
 - Entradas con estados y bloqueo temporal de asientos.
 - Compras con cálculo de subtotal, descuentos, IGV y total.
-- Cupones y promociones.
-- Pedidos de productos de dulcería e inventario .
+- Cupones, promociones y socios.
+- Pedidos de productos de dulcería e inventario.
 - Clientes, puntos y niveles de socio.
 - Transacciones de pago y reglas de reembolso.
 - Reclamos y calificaciones.
