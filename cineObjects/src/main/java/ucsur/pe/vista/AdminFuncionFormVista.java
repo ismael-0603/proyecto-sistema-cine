@@ -55,7 +55,7 @@ public class AdminFuncionFormVista extends PantallaAdmin {
         cmbPelicula.setConverter(convertidor(Pelicula::getTitulo));
         cmbSala.setConverter(convertidor(s -> "Sala " + s.getNumero() + " · " + s.getTipoSala().getFormato()));
 
-        Respuesta<List<Pelicula>> pelis = app().admin().listarPeliculas(admin);
+        Respuesta<List<Pelicula>> pelis = app().adminPeliculas().listarPeliculas(admin);
         if (pelis.ok()) {
             // Ayuda de la pantalla: solo las que se pueden programar (el servicio igual lo valida)
             cmbPelicula.setItems(FXCollections.observableArrayList(pelis.dato().stream()
@@ -63,7 +63,7 @@ public class AdminFuncionFormVista extends PantallaAdmin {
                             || Pelicula.REESTRENO.equals(p.getEstado()))
                     .toList()));
         }
-        Respuesta<List<Sala>> salas = app().admin().listarSalas(admin, admin.getSede());
+        Respuesta<List<Sala>> salas = app().adminInfraestructura().listarSalas(admin, admin.getSede());
         if (salas.ok()) cmbSala.setItems(FXCollections.observableArrayList(salas.dato().stream().filter(Sala::estaOperativa).toList()));
 
         cmbPelicula.valueProperty().addListener((o, a, b) -> actualizarDatosSala());
@@ -126,8 +126,8 @@ public class AdminFuncionFormVista extends PantallaAdmin {
         }
         String idioma = rbSubtitulada.isSelected() ? SUBTITULADA : DOBLADA;
         Respuesta<?> r = editando == null
-                ? app().admin().programarFuncion(admin, cmbPelicula.getValue(), cmbSala.getValue(), fecha, hora, idioma)
-                : app().admin().editarFuncion(admin, editando, fecha, hora, idioma);
+                ? app().adminFunciones().programarFuncion(admin, cmbPelicula.getValue(), cmbSala.getValue(), fecha, hora, idioma)
+                : app().adminFunciones().editarFuncion(admin, editando, fecha, hora, idioma);
         if (!mostrar(lblMensaje, r)) return;
         nav.ir("admin-funciones");
     }

@@ -41,7 +41,7 @@ public class AdminPeliculasVista extends PantallaAdmin {
         if (!prepararAdmin("peliculas")) return;
         contenedorTabla.getChildren().add(tabla.vista());
         List<String> generos = new ArrayList<>(List.of(TODOS_GENEROS));
-        Respuesta<List<Genero>> g = app().admin().listarGeneros(admin);
+        Respuesta<List<Genero>> g = app().adminPeliculas().listarGeneros(admin);
         if (g.ok()) g.dato().forEach(x -> generos.add(x.getNombre()));
         cmbGenero.setItems(FXCollections.observableArrayList(generos));
         List<String> estados = new ArrayList<>(List.of(TODOS_ESTADOS));
@@ -56,7 +56,7 @@ public class AdminPeliculasVista extends PantallaAdmin {
     }
 
     private void cargar(boolean mantenerPagina) {
-        Respuesta<List<Pelicula>> r = app().admin().listarPeliculas(admin);
+        Respuesta<List<Pelicula>> r = app().adminPeliculas().listarPeliculas(admin);
         if (!r.ok()) {
             mostrarError(lblMensaje, r.mensaje());
             return;
@@ -107,7 +107,7 @@ public class AdminPeliculasVista extends PantallaAdmin {
                 + "cartelera. No se borra: puedes volver a publicarla desde Editar.", false);
         d.botonSecundario("Volver", nav::cerrarModal);
         d.botonPrincipal("Retirar película", () -> {
-            Respuesta<Void> r = app().admin().retirarPelicula(admin, p);
+            Respuesta<Void> r = app().adminPeliculas().retirarPelicula(admin, p);
             if (r.ok()) {
                 nav.cerrarModal();
                 mostrarOk(lblMensaje, "«" + p.getTitulo() + "» " + r.mensaje().toLowerCase());

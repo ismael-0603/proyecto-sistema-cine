@@ -6,7 +6,7 @@ import ucsur.pe.service.PagoService;
 
 /**
  * Acciones del pago: medios disponibles y pagar. El cliente no pide reembolsos: se hacen solos cuando
- * el administrador cancela una función (AdminController.cancelarFuncion).
+ * el administrador cancela una función (AdminFuncionController.cancelarFuncion).
  */
 public class PagoController extends ControllerBase {
     private final PagoService servicio;

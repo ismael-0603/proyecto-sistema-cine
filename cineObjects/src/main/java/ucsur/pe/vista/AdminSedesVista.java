@@ -53,7 +53,7 @@ public class AdminSedesVista extends PantallaAdmin {
     }
 
     private void cargar(boolean mantenerPagina) {
-        Respuesta<List<Sede>> r = app().admin().listarSedes(admin);
+        Respuesta<List<Sede>> r = app().adminInfraestructura().listarSedes(admin);
         if (!r.ok()) {
             mostrarError(lblMensaje, r.mensaje());
             return;
@@ -76,11 +76,11 @@ public class AdminSedesVista extends PantallaAdmin {
         boolean activa = Sede.ACTIVA.equals(s.getEstado());
         boolean inactiva = Sede.INACTIVA.equals(s.getEstado());
         Button principal = inactiva
-                ? Tabla.boton("Activar", true, () -> despues(app().admin().cambiarEstadoSede(admin, s, Sede.ACTIVA)))
+                ? Tabla.boton("Activar", true, () -> despues(app().adminInfraestructura().cambiarEstadoSede(admin, s, Sede.ACTIVA)))
                 : Tabla.boton("Dar de baja", false, () -> confirmarBaja(s));
         Button mantenimiento = activa
-                ? Tabla.boton("Mantenimiento", false, () -> despues(app().admin().cambiarEstadoSede(admin, s, Sede.EN_MANTENIMIENTO)))
-                : Tabla.boton("Reabrir", false, () -> despues(app().admin().cambiarEstadoSede(admin, s, Sede.ACTIVA)));
+                ? Tabla.boton("Mantenimiento", false, () -> despues(app().adminInfraestructura().cambiarEstadoSede(admin, s, Sede.EN_MANTENIMIENTO)))
+                : Tabla.boton("Reabrir", false, () -> despues(app().adminInfraestructura().cambiarEstadoSede(admin, s, Sede.ACTIVA)));
         mantenimiento.setVisible(!inactiva);
         mantenimiento.setManaged(!inactiva);
         return List.of(Tabla.texto(s.getNombre()), Tabla.texto(s.getDistrito()), Tabla.texto(s.getDireccion()),
@@ -97,7 +97,7 @@ public class AdminSedesVista extends PantallaAdmin {
         d.botonSecundario("Volver", nav::cerrarModal);
         d.botonPrincipal("Dar de baja", () -> {
             nav.cerrarModal();
-            despues(app().admin().darDeBajaSede(admin, s));
+            despues(app().adminInfraestructura().darDeBajaSede(admin, s));
         });
     }
 
@@ -135,9 +135,9 @@ public class AdminSedesVista extends PantallaAdmin {
     @FXML
     private void onGuardar() {
         Respuesta<?> r = editando == null
-                ? app().admin().registrarSede(admin, txtNombre.getText(), txtDireccion.getText(), txtDistrito.getText(),
+                ? app().adminInfraestructura().registrarSede(admin, txtNombre.getText(), txtDireccion.getText(), txtDistrito.getText(),
                         txtTelefono.getText(), txtHorario.getText())
-                : app().admin().actualizarSede(admin, editando, txtNombre.getText(), txtDireccion.getText(),
+                : app().adminInfraestructura().actualizarSede(admin, editando, txtNombre.getText(), txtDireccion.getText(),
                         txtDistrito.getText(), txtTelefono.getText(), txtHorario.getText());
         if (!r.ok()) {
             mostrarError(lblMensajeForm, r.mensaje());

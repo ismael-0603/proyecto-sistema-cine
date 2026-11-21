@@ -56,9 +56,9 @@ public class AdminSalasVista extends PantallaAdmin {
         contenedorTabla.getChildren().add(tabla.vista());
         cmbSede.setConverter(convertidor(s -> "Sede: " + s.getNombre()));
         cmbFormato.setConverter(convertidor(TipoSala::getFormato));
-        Respuesta<List<Sede>> sedes = app().admin().listarSedes(admin);
+        Respuesta<List<Sede>> sedes = app().adminInfraestructura().listarSedes(admin);
         if (sedes.ok()) cmbSede.setItems(FXCollections.observableArrayList(sedes.dato()));
-        Respuesta<List<TipoSala>> tipos = app().admin().listarTiposSala(admin);
+        Respuesta<List<TipoSala>> tipos = app().adminInfraestructura().listarTiposSala(admin);
         if (tipos.ok()) cmbFormato.setItems(FXCollections.observableArrayList(tipos.dato()));
         cmbSede.setValue(admin.getSede());
         cmbSede.valueProperty().addListener((o, a, b) -> {
@@ -80,7 +80,7 @@ public class AdminSalasVista extends PantallaAdmin {
 
     private void cargar(boolean mantenerPagina) {
         if (cmbSede.getValue() == null) return;
-        Respuesta<List<Sala>> r = app().admin().listarSalas(admin, cmbSede.getValue());
+        Respuesta<List<Sala>> r = app().adminInfraestructura().listarSalas(admin, cmbSede.getValue());
         if (!r.ok()) {
             mostrarError(lblMensaje, r.mensaje());
             return;
@@ -108,11 +108,11 @@ public class AdminSalasVista extends PantallaAdmin {
         boolean activa = Sala.ACTIVA.equals(s.getEstado());
         boolean inactiva = Sala.INACTIVA.equals(s.getEstado());
         Button estadoBtn = inactiva
-                ? Tabla.boton("Activar", true, () -> despues(app().admin().cambiarEstadoSala(admin, s, Sala.ACTIVA)))
+                ? Tabla.boton("Activar", true, () -> despues(app().adminInfraestructura().cambiarEstadoSala(admin, s, Sala.ACTIVA)))
                 : Tabla.boton("Dar de baja", false, () -> confirmarBaja(s));
         Button mant = activa
-                ? Tabla.boton("Mantenimiento", false, () -> despues(app().admin().cambiarEstadoSala(admin, s, Sala.EN_MANTENIMIENTO)))
-                : Tabla.boton("Reabrir", false, () -> despues(app().admin().cambiarEstadoSala(admin, s, Sala.ACTIVA)));
+                ? Tabla.boton("Mantenimiento", false, () -> despues(app().adminInfraestructura().cambiarEstadoSala(admin, s, Sala.EN_MANTENIMIENTO)))
+                : Tabla.boton("Reabrir", false, () -> despues(app().adminInfraestructura().cambiarEstadoSala(admin, s, Sala.ACTIVA)));
         mant.setVisible(!inactiva);
         mant.setManaged(!inactiva);
         return List.of(Tabla.texto(String.valueOf(s.getNumero())), Tabla.texto(s.getTipoSala().getFormato()),
@@ -131,7 +131,7 @@ public class AdminSalasVista extends PantallaAdmin {
         d.botonSecundario("Volver", nav::cerrarModal);
         d.botonPrincipal("Dar de baja", () -> {
             nav.cerrarModal();
-            despues(app().admin().darDeBajaSala(admin, s));
+            despues(app().adminInfraestructura().darDeBajaSala(admin, s));
         });
     }
 
@@ -188,12 +188,12 @@ public class AdminSalasVista extends PantallaAdmin {
         }
         Respuesta<?> r;
         if (editando == null) {
-            r = app().admin().registrarSala(admin, cmbSede.getValue(), numero, cmbFormato.getValue(), filas, lateral, central);
+            r = app().adminInfraestructura().registrarSala(admin, cmbSede.getValue(), numero, cmbFormato.getValue(), filas, lateral, central);
         } else {
-            r = app().admin().actualizarSala(admin, editando, numero, cmbFormato.getValue());
+            r = app().adminInfraestructura().actualizarSala(admin, editando, numero, cmbFormato.getValue());
             int[] actual = distribucion(editando);
             if (r.ok() && (actual[0] != filas || actual[1] != lateral || actual[2] != central)) {
-                r = app().admin().redistribuirSala(admin, editando, filas, lateral, central);
+                r = app().adminInfraestructura().redistribuirSala(admin, editando, filas, lateral, central);
             }
         }
         if (!r.ok()) {

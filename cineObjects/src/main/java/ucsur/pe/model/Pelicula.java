@@ -71,7 +71,7 @@ public class Pelicula {
      * estado, con las mismas validaciones del constructor; si algo es inválido no cambia nada.
      * La duración no se cambia aquí porque las funciones ya programadas dependen de ella para calcular
      * su hora de fin y los cruces de horario. Que el estado nuevo sea posible con las funciones pendientes
-     * lo revisa AdministracionService, que conoce las sedes.
+     * lo revisa PeliculaAdminService, que conoce las sedes.
      */
     public void actualizarInformacion(String titulo, String sinopsis, String clasificacionEdad,
                                       String trailer, String poster, DateTime fechaEstreno, String estado) {
@@ -158,6 +158,12 @@ public class Pelicula {
             }
         }
         return false;
+    }
+
+    /** Comprueba si su clasificación es la indicada (APT, +14...); null o vacío significa que no se filtra. */
+    public boolean tieneClasificacion(String clasificacion) {
+        return clasificacion == null || clasificacion.isBlank()
+                || clasificacionEdad.equalsIgnoreCase(clasificacion.trim());
     }
 
     /** Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT; una película nueva nace con id 0. */

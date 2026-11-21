@@ -15,7 +15,7 @@ import java.util.Map;
 
 /**
  * Por qué existe: traduce entre las filas de pelicula/genero/pelicula_genero y los objetos del modelo.
- * No aplica reglas de negocio (eso es de AdministracionService), igual que ComprobanteMySqlDao en MVCone.
+ * No aplica reglas de negocio (eso es de PeliculaAdminService), igual que ComprobanteMySqlDao en MVCone.
  */
 public class PeliculaMySqlDao implements PeliculaDao {
 

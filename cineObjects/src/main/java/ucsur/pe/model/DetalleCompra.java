@@ -62,7 +62,9 @@ public final class DetalleCompra {
         Pedido pedido = compra.getPedido();
         if (pedido != null) {
             for (DetallePedido d : pedido.getDetalles()) {
-                dulceria.add(d.getCantidad() + " x " + d.getProducto().getNombre());
+                String eleccion = d.getPersonalizacion() == null || d.getPersonalizacion().isBlank()
+                        ? "" : " (" + d.getPersonalizacion() + ")"; // RF-13: sabor y gaseosa del combo
+                dulceria.add(d.getCantidad() + " x " + d.getProducto().getNombre() + eleccion);
             }
             if (pedido.getCodigoQR() != null && !Pedido.ANULADO.equals(pedido.getEstado())) {
                 codigosQR.add(pedido.getCodigoQR());

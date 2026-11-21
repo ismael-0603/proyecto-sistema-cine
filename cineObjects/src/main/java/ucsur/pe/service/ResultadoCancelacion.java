@@ -9,7 +9,7 @@ import java.util.List;
  * reembolsaron solas, cuánto dinero se devolvió, cuántas compras en curso se cancelaron y cuáles
  * no se pudieron reembolsar (por ejemplo, porque la pasarela no respondió) para reintentarlas.
  * pendientes trae el motivo de cada una para mostrarlo; comprasPendientes, las compras mismas, para el botón
- * «Reintentar» (AdminController.reintentarReembolso). Las dos listas van en el mismo orden.
+ * «Reintentar» (AdminFuncionController.reintentarReembolso). Las dos listas van en el mismo orden.
  */
 public record ResultadoCancelacion(int comprasReembolsadas, long montoDevueltoCentavos,
                                    int comprasEnProcesoCanceladas, List<String> pendientes,

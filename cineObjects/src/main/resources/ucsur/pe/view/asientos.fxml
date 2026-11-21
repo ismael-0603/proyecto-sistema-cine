@@ -42,7 +42,7 @@
                             </HBox>
                             <Separator/>
                             <VBox spacing="8" maxWidth="Infinity">
-                                <Label text="Los pasillos separan los bloques de la sala. Las butacas con D solo se sugieren si eliges una entrada Conadis o marcas «Necesito butaca accesible»."
+                                <Label text="Los pasillos separan los bloques de la sala. Las butacas con D solo se sugieren si marcas «Necesito butaca accesible»."
                                        styleClass="nota" wrapText="true"/>
                                 <CheckBox fx:id="chkAccesible" text="Necesito butaca accesible"/>
                             </VBox>

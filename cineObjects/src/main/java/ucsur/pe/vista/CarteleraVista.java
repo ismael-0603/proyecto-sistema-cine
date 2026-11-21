@@ -26,7 +26,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
- * 1 · Cartelera de la sede elegida. A la izquierda, «Filtrar por:» fecha, género, idioma y formato
+ * 1 · Cartelera de la sede elegida. A la izquierda, «Filtrar por:» fecha, género, idioma, formato y clasificación
  * (los aplica el servicio con filtrarCartelera; la búsqueda por título filtra lo ya mostrado).
  * Arriba de las películas, tres pestañas: «En cartelera» (en cartelera y reestrenos con funciones),
  * «Preventa» (preestrenos que ya venden funciones) y «Próximamente» (anunciadas, aún sin funciones).
@@ -51,6 +51,7 @@ public class CarteleraVista extends Pantalla {
     @FXML private ComboBox<Opcion<Genero>> cmbGenero;
     @FXML private ComboBox<Opcion<String>> cmbIdioma;
     @FXML private ComboBox<Opcion<String>> cmbFormato;
+    @FXML private ComboBox<Opcion<String>> cmbClasificacion;
     @FXML private Button tabCartelera;
     @FXML private Button tabPreventa;
     @FXML private Button tabProximamente;
@@ -85,6 +86,7 @@ public class CarteleraVista extends Pantalla {
         cmbGenero.valueProperty().addListener((o, a, b) -> filtrar());
         cmbIdioma.valueProperty().addListener((o, a, b) -> filtrar());
         cmbFormato.valueProperty().addListener((o, a, b) -> filtrar());
+        cmbClasificacion.valueProperty().addListener((o, a, b) -> filtrar());
         // Siempre 4 columnas: al cambiar el ancho, las tarjetas (y sus pósters) se rehacen a la medida
         scroll.viewportBoundsProperty().addListener((o, a, b) -> ajustarAncho(b.getWidth()));
         elegirPestana(Pestana.CARTELERA);
@@ -92,16 +94,25 @@ public class CarteleraVista extends Pantalla {
 
     // ---------- Filtros ----------
 
-    /** Fechas, idiomas y formatos que realmente hay en la cartelera de esta sede; los géneros, todos. */
+    /**
+     * Fechas, idiomas, formatos y clasificaciones que realmente hay en la cartelera de esta sede (las
+     * clasificaciones también de «Próximamente»); los géneros, todos.
+     */
     private void cargarOpciones(List<Funcion> funciones) {
         TreeMap<Long, DateTime> dias = new TreeMap<>();
         TreeSet<String> idiomas = new TreeSet<>();
         TreeSet<String> formatos = new TreeSet<>();
+        // APT primero y luego de menor a mayor edad (+14, +18)
+        TreeSet<String> clasificaciones = new TreeSet<>(
+                (a, b) -> esApta(a) != esApta(b) ? (esApta(a) ? -1 : 1) : a.compareTo(b));
         for (Funcion f : funciones) {
             dias.putIfAbsent(f.getFecha().toValorSoloFecha(), f.getFecha());
             idiomas.add(Formato.capitalizar(f.getIdioma()));
             formatos.add(f.getSala().getTipoSala().getFormato());
+            clasificaciones.add(f.getPelicula().getClasificacionEdad().toUpperCase());
         }
+        Respuesta<List<Pelicula>> proximas = app().cartelera().listarProximamente();
+        if (proximas.ok()) for (Pelicula p : proximas.dato()) clasificaciones.add(p.getClasificacionEdad().toUpperCase());
         List<Opcion<DateTime>> opcFechas = new ArrayList<>(List.of(new Opcion<>("Todas las fechas", null)));
         // Con el mes: la preventa puede tener funciones semanas después («Mié 16 dic»)
         for (DateTime d : dias.values()) opcFechas.add(new Opcion<>(Formato.diaCorto(d) + " " + Formato.mesCorto(d), d));
@@ -114,12 +125,19 @@ public class CarteleraVista extends Pantalla {
         for (String i : idiomas) opcIdiomas.add(new Opcion<>(i, i));
         List<Opcion<String>> opcFormatos = new ArrayList<>(List.of(new Opcion<>("Todos los formatos", null)));
         for (String f : formatos) opcFormatos.add(new Opcion<>(f, f));
+        List<Opcion<String>> opcClasif = new ArrayList<>(List.of(new Opcion<>("Todas las edades", null)));
+        for (String c : clasificaciones) opcClasif.add(new Opcion<>(c, c));
 
         cmbFecha.setItems(FXCollections.observableArrayList(opcFechas));
         cmbGenero.setItems(FXCollections.observableArrayList(opcGeneros));
         cmbIdioma.setItems(FXCollections.observableArrayList(opcIdiomas));
         cmbFormato.setItems(FXCollections.observableArrayList(opcFormatos));
+        cmbClasificacion.setItems(FXCollections.observableArrayList(opcClasif));
         seleccionarPrimeros();
+    }
+
+    private static boolean esApta(String clasificacion) {
+        return clasificacion.startsWith("APT");
     }
 
     private void seleccionarPrimeros() {
@@ -127,6 +145,7 @@ public class CarteleraVista extends Pantalla {
         cmbGenero.getSelectionModel().selectFirst();
         cmbIdioma.getSelectionModel().selectFirst();
         cmbFormato.getSelectionModel().selectFirst();
+        cmbClasificacion.getSelectionModel().selectFirst();
     }
 
     @FXML
@@ -153,7 +172,7 @@ public class CarteleraVista extends Pantalla {
         tabProximamente.getStyleClass().remove("activo");
         (nueva == Pestana.CARTELERA ? tabCartelera : nueva == Pestana.PREVENTA ? tabPreventa : tabProximamente)
                 .getStyleClass().add("activo");
-        // Las películas de «Próximamente» aún no tienen funciones: solo se filtran por título y género
+        // Las películas de «Próximamente» aún no tienen funciones: solo se filtran por título, género y clasificación
         boolean conFunciones = nueva != Pestana.PROXIMAMENTE;
         cmbFecha.setDisable(!conFunciones);
         cmbIdioma.setDisable(!conFunciones);
@@ -186,13 +205,13 @@ public class CarteleraVista extends Pantalla {
 
     private boolean hayFiltros() {
         return valor(cmbFecha) != null || valor(cmbGenero) != null || valor(cmbIdioma) != null
-                || valor(cmbFormato) != null || !txtBuscar.getText().isBlank();
+                || valor(cmbFormato) != null || valor(cmbClasificacion) != null || !txtBuscar.getText().isBlank();
     }
 
     /** «En cartelera» y «Preventa»: una película por cada una que tenga funciones con los filtros elegidos. */
     private List<Pelicula> conFunciones() {
         Respuesta<List<Funcion>> r = app().cartelera().filtrarCartelera(estado().getSede(),
-                valor(cmbFecha), valor(cmbGenero), valor(cmbIdioma), valor(cmbFormato));
+                valor(cmbFecha), valor(cmbGenero), valor(cmbIdioma), valor(cmbFormato), valor(cmbClasificacion));
         if (!r.ok()) {
             mostrarError(lblMensaje, r.mensaje());
             return null;
@@ -213,7 +232,8 @@ public class CarteleraVista extends Pantalla {
             return null;
         }
         Genero genero = valor(cmbGenero);
-        return r.dato().stream().filter(p -> p.tieneGenero(genero)).toList();
+        String clasificacion = valor(cmbClasificacion);
+        return r.dato().stream().filter(p -> p.tieneGenero(genero) && p.tieneClasificacion(clasificacion)).toList();
     }
 
     /** Con el ancho disponible, cada tarjeta mide un cuarto (menos los huecos); se rehace si cambió. */

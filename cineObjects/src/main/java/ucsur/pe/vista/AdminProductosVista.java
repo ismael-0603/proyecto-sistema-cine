@@ -59,7 +59,7 @@ public class AdminProductosVista extends PantallaAdmin {
     }
 
     private void cargar(boolean mantenerPagina) {
-        Respuesta<List<Producto>> r = app().admin().listarProductos(admin);
+        Respuesta<List<Producto>> r = app().adminProductos().listarProductos(admin);
         if (!r.ok()) {
             mostrarError(lblMensaje, r.mensaje());
             return;
@@ -73,7 +73,7 @@ public class AdminProductosVista extends PantallaAdmin {
         cmbCategoria.setItems(FXCollections.observableArrayList(opciones));
         cmbCategoria.setValue(elegida != null && opciones.contains(elegida) ? elegida : TODAS);
 
-        Respuesta<List<Producto>> bajo = app().admin().listarProductosConStockBajo(admin);
+        Respuesta<List<Producto>> bajo = app().adminProductos().listarProductosConStockBajo(admin);
         boolean hay = bajo.ok() && !bajo.dato().isEmpty();
         lblAlerta.setVisible(hay);
         lblAlerta.setManaged(hay);
@@ -99,7 +99,7 @@ public class AdminProductosVista extends PantallaAdmin {
         else if (p.tieneStockBajo(sede)) celdaStock = Tabla.chip(stock + " · Stock bajo", "inactiva");
         else celdaStock = Tabla.texto(String.valueOf(stock));
         Button estadoBtn = Tabla.boton(p.isEstado() ? "Activo" : "Inactivo", p.isEstado(),
-                () -> despues(app().admin().cambiarEstadoProducto(admin, p, !p.isEstado())));
+                () -> despues(app().adminProductos().cambiarEstadoProducto(admin, p, !p.isEstado())));
         return List.of(Tabla.texto(p.getNombre().toUpperCase()), Tabla.texto(Formato.capitalizar(p.getCategoria())),
                 Tabla.texto(Formato.dinero(p.getPrecioCentavos())),
                 Tabla.texto(p.getNivelSocioMinimo() <= 0 ? "—" : Formato.nivelSocio(p.getNivelSocioMinimo())),
@@ -159,7 +159,7 @@ public class AdminProductosVista extends PantallaAdmin {
 
     @FXML
     private void onConfirmarReponer() {
-        Respuesta<Integer> r = app().admin().reponerStock(admin, reponiendo, cantidad());
+        Respuesta<Integer> r = app().adminProductos().reponerStock(admin, reponiendo, cantidad());
         if (!r.ok()) {
             mostrarError(lblMensajeReponer, r.mensaje());
             return;

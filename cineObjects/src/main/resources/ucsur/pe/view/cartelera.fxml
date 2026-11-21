@@ -31,6 +31,8 @@
                     <ComboBox fx:id="cmbIdioma" styleClass="combo-oscuro" maxWidth="Infinity"/>
                     <Label text="Formato" styleClass="filtro-etiqueta"/>
                     <ComboBox fx:id="cmbFormato" styleClass="combo-oscuro" maxWidth="Infinity"/>
+                    <Label text="Clasificación" styleClass="filtro-etiqueta"/>
+                    <ComboBox fx:id="cmbClasificacion" styleClass="combo-oscuro" maxWidth="Infinity"/>
                     <Button text="Limpiar filtros" styleClass="btn-link, btn-link-claro" onAction="#onLimpiar">
                         <VBox.margin><Insets top="8"/></VBox.margin>
                     </Button>

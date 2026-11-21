@@ -52,7 +52,7 @@ public class AdminFuncionesVista extends PantallaAdmin {
     }
 
     private void cargar(boolean mantenerPagina) {
-        Respuesta<List<Funcion>> r = app().admin().listarFunciones(admin);
+        Respuesta<List<Funcion>> r = app().adminFunciones().listarFunciones(admin);
         if (!r.ok()) {
             mostrarError(lblMensaje, r.mensaje());
             return;
@@ -108,7 +108,7 @@ public class AdminFuncionesVista extends PantallaAdmin {
         var editar = Tabla.boton("Editar", false, () -> abrirFormulario(f));
         editar.setDisable(cancelada || !pendiente);
         var accion = cancelada
-                ? Tabla.boton("Reactivar", true, () -> despues(app().admin().reactivarFuncion(admin, f)))
+                ? Tabla.boton("Reactivar", true, () -> despues(app().adminFunciones().reactivarFuncion(admin, f)))
                 : Tabla.boton("Cancelar", false, () -> confirmarCancelacion(f));
         if (!cancelada) accion.setDisable(!pendiente);
         return List.of(Tabla.texto(f.getPelicula().getTitulo()),
@@ -144,7 +144,7 @@ public class AdminFuncionesVista extends PantallaAdmin {
                 + "y se liberan las butacas. Si el cliente ya recogió su dulcería, solo se le devuelven las entradas.", false);
         d.botonSecundario("Volver", nav::cerrarModal);
         d.botonPrincipal("Cancelar y reembolsar", () -> {
-            Respuesta<ResultadoCancelacion> r = app().admin().cancelarFuncion(admin, f);
+            Respuesta<ResultadoCancelacion> r = app().adminFunciones().cancelarFuncion(admin, f);
             if (!r.ok()) {
                 nav.cerrarModal();
                 mostrarError(lblMensaje, r.mensaje());
@@ -171,7 +171,7 @@ public class AdminFuncionesVista extends PantallaAdmin {
 
     private void reintentar(List<Compra> pendientes) {
         List<String> mensajes = new ArrayList<>();
-        for (Compra c : pendientes) mensajes.add(app().admin().reintentarReembolso(admin, c).mensaje());
+        for (Compra c : pendientes) mensajes.add(app().adminFunciones().reintentarReembolso(admin, c).mensaje());
         nav.cerrarModal();
         mostrarOk(lblMensaje, String.join(" · ", mensajes));
         cargar(true);

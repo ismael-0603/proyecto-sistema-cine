@@ -235,9 +235,14 @@ public final class Formato {
      * póster; si el producto no tiene foto (por ejemplo, uno recién creado por el administrador) se muestra su categoría.
      */
     public static Node imagenProducto(Producto producto, double ancho, double alto) {
-        Image imagen = cargarImagen(producto.getImagen());
+        return imagenProducto(producto.getImagen(), producto.getCategoria(), ancho, alto);
+    }
+
+    /** Igual que el anterior, con la ruta y la categoría sueltas (vista previa del formulario de producto). */
+    public static Node imagenProducto(String ruta, String textoCategoria, double ancho, double alto) {
+        Image imagen = cargarImagen(ruta);
         if (imagen != null && !imagen.isError()) return marcoRecortado(imagen, ancho, alto, 10);
-        Label categoria = new Label(capitalizar(producto.getCategoria()));
+        Label categoria = new Label(capitalizar(textoCategoria));
         categoria.getStyleClass().add("producto-categoria");
         StackPane reemplazo = new StackPane(categoria);
         reemplazo.getStyleClass().add("producto-imagen");
@@ -291,7 +296,7 @@ public final class Formato {
             return new Image(ruta, true); // de internet: se carga en segundo plano
         }
         if (ruta.startsWith("file:")) {
-            return new Image(ruta); // archivo elegido en el formulario de película
+            return new Image(ruta); // archivo elegido en el formulario de película o de producto
         }
         URL recurso = Formato.class.getResource("/ucsur/pe/" + ruta);
         return recurso == null ? null : new Image(recurso.toExternalForm()); // del proyecto: al instante

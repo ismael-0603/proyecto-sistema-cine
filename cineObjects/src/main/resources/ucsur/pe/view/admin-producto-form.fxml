@@ -59,8 +59,12 @@
                         </VBox>
                         <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
                     </VBox>
-                    <VBox spacing="10" minWidth="260" prefWidth="280">
-                        <Label text="Estado" styleClass="etiqueta-campo"/>
+                    <VBox spacing="10" minWidth="280" prefWidth="290">
+                        <Label text="Foto (opcional)" styleClass="etiqueta-campo"/>
+                        <StackPane fx:id="vistaImagen" styleClass="poster-subida"/>
+                        <TextField fx:id="txtImagen" promptText="productos/nombre.jpg o enlace"/>
+                        <Button text="Elegir imagen" styleClass="btn-secundario" maxWidth="Infinity" onAction="#onElegirImagen"/>
+                        <Label text="Estado" styleClass="etiqueta-campo"><VBox.margin><Insets top="10"/></VBox.margin></Label>
                         <RadioButton fx:id="rbActivo" text="Activo" selected="true"/>
                         <RadioButton fx:id="rbInactivo" text="Inactivo"/>
                         <Label text="Disponible para" styleClass="etiqueta-campo"><VBox.margin><Insets top="16"/></VBox.margin></Label>

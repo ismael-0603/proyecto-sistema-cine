@@ -86,12 +86,11 @@ public class AsientosVista extends Pantalla {
             mostrarError(lblMensaje, r.mensaje());
             return;
         }
-        long recargo = funcion.getSala().getTipoSala().obtenerRecargoFormatoCentavos();
         for (TipoEntrada t : r.dato()) {
             cantidades.put(t, estado().getCantidades().getOrDefault(t, 0));
             Label nombre = new Label(t.getNombre());
             nombre.getStyleClass().add("etiqueta");
-            Label precio = new Label(Formato.dinero(t.getTarifaCentavos() + recargo));
+            Label precio = new Label(Formato.dinero(funcion.precioEntrada(t)));
             precio.getStyleClass().add("nota");
             VBox info = new VBox(1, nombre, precio);
             Region espacio = new Region();
@@ -246,11 +245,10 @@ public class AsientosVista extends Pantalla {
         lblButacas.setText(elegidas.isEmpty() ? "—" : codigos(elegidas));
         List<String> partes = new ArrayList<>();
         long subtotal = 0;
-        long recargo = funcion.getSala().getTipoSala().obtenerRecargoFormatoCentavos();
         for (var e : cantidades.entrySet()) {
             if (e.getValue() > 0) {
                 partes.add(e.getValue() + " × " + e.getKey().getNombre());
-                subtotal += e.getValue() * (e.getKey().getTarifaCentavos() + recargo);
+                subtotal += e.getValue() * funcion.precioEntrada(e.getKey());
             }
         }
         lblEntradas.setText(partes.isEmpty() ? "—" : String.join(", ", partes));

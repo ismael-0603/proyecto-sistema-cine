@@ -81,6 +81,7 @@ public class PagoTarjetaVista extends PantallaPago {
     private String revisarFormulario() {
         String numero = soloDigitos(txtNumero.getText());
         if (texto(txtTitular).isEmpty()) return "Ingresa el nombre del titular.";
+        if (!numero.matches("\\d*")) return "El número de tarjeta solo puede tener dígitos.";
         if (numero.length() < 13 || numero.length() > 19) return "El número de tarjeta debe tener entre 13 y 19 dígitos.";
         if (cmbTipo.getValue() == null) return "Elige si la tarjeta es de crédito o débito.";
         if (cmbMes.getValue() == null || cmbAnio.getValue() == null) return "Elige el mes y el año de vencimiento.";

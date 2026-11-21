@@ -25,8 +25,9 @@ public class CarteleraController extends ControllerBase {
         return ejecutar("", () -> servicio.consultarCartelera(sede));
     }
 
-    public Respuesta<List<Funcion>> filtrarCartelera(Sede sede, DateTime dia, Genero genero, String idioma, String formato) {
-        return ejecutar("", () -> servicio.filtrarCartelera(sede, dia, genero, idioma, formato));
+    public Respuesta<List<Funcion>> filtrarCartelera(Sede sede, DateTime dia, Genero genero, String idioma, String formato,
+                                                     String clasificacion) {
+        return ejecutar("", () -> servicio.filtrarCartelera(sede, dia, genero, idioma, formato, clasificacion));
     }
 
     public Respuesta<List<Pelicula>> listarProximamente() {

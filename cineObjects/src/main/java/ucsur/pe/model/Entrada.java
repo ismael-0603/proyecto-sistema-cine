@@ -144,7 +144,7 @@ public class Entrada {
     /** Suma la tarifa de entrada y el recargo por formato de sala, en céntimos; sin tipo, el precio es cero. */
     private long calculaPrecioFinalCentavos() {
         if (tipoEntrada == null) return 0;
-        return tipoEntrada.getTarifaCentavos() + funcion.getSala().getTipoSala().obtenerRecargoFormatoCentavos();
+        return funcion.precioEntrada(tipoEntrada);
     }
 
     /** Cambia el bloqueo vigente a venta y crea el código QR; solo se vende al confirmar la compra pagada. */

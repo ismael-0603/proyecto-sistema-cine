@@ -97,6 +97,14 @@ public class Pedido implements Totalizable {
 
     /** Forma el QR con el id del pedido y la fecha de registro; se llama una vez que el pedido ya tiene su id. */
     private String generarCodigoQR() {
+        return formarCodigoQR(idPedido, fechaHora);
+    }
+
+    /**
+     * La fórmula del QR, en un solo lugar: la usa el pedido y también el DAO, que la necesita para escribir
+     * el QR en la misma transacción del INSERT (el id lo genera la base y se asigna al objeto después del commit).
+     */
+    public static String formarCodigoQR(int idPedido, DateTime fechaHora) {
         return "QR-PED-" + idPedido + "-" + fechaHora.toValorComparable();
     }
 

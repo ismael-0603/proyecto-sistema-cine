@@ -54,7 +54,7 @@ public class AdminPeliculaFormVista extends PantallaAdmin {
         if (!prepararAdmin("peliculas")) return;
         editando = estado().getEnEdicion(Pelicula.class);
         cmbClasificacion.setItems(FXCollections.observableArrayList("APT", "+14", "+18"));
-        Respuesta<List<Genero>> g = app().admin().listarGeneros(admin);
+        Respuesta<List<Genero>> g = app().adminPeliculas().listarGeneros(admin);
         if (g.ok()) {
             for (Genero genero : g.dato()) {
                 CheckBox c = new CheckBox(genero.getNombre());
@@ -126,10 +126,10 @@ public class AdminPeliculaFormVista extends PantallaAdmin {
         String clasificacion = cmbClasificacion.getEditor().getText();
 
         Respuesta<?> r = editando == null
-                ? app().admin().registrarPelicula(admin, txtTitulo.getText(), txtSinopsis.getText(), duracion,
+                ? app().adminPeliculas().registrarPelicula(admin, txtTitulo.getText(), txtSinopsis.getText(), duracion,
                         clasificacion, vacioANulo(txtTrailer.getText()), vacioANulo(txtPoster.getText()), estreno,
                         estadoElegido, elegidos)
-                : app().admin().actualizarPelicula(admin, editando, txtTitulo.getText(), txtSinopsis.getText(),
+                : app().adminPeliculas().actualizarPelicula(admin, editando, txtTitulo.getText(), txtSinopsis.getText(),
                         clasificacion, vacioANulo(txtTrailer.getText()), vacioANulo(txtPoster.getText()), estreno,
                         estadoElegido, elegidos);
         if (!mostrar(lblMensaje, r)) return;

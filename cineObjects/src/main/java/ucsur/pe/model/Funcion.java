@@ -148,6 +148,15 @@ public class Funcion {
     }
 
     /**
+     * Precio de una entrada de este tipo en esta función, en céntimos: la tarifa más el recargo por el formato
+     * de la sala (2D, 3D, Prime...). Es la única fórmula del precio: la usan Entrada y las pantallas.
+     */
+    public long precioEntrada(TipoEntrada tipo) {
+        if (tipo == null) throw new IllegalArgumentException("El tipo de entrada es obligatorio");
+        return tipo.getTarifaCentavos() + sala.getTipoSala().obtenerRecargoFormatoCentavos();
+    }
+
+    /**
      * Cambia fecha, hora e idioma de una función que aún no vendió ni bloqueó entradas
      * (quien ya compró eligió ese horario). La sala vuelve a revisar que no se cruce con otra.
      */

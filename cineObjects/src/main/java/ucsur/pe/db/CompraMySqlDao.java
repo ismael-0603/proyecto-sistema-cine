@@ -251,7 +251,7 @@ public class CompraMySqlDao implements CompraDao {
         }
         idsEntradas.forEach(Entrada::asignarId);
         if (idPedidoNuevo[0] > 0) {
-            asignarIdPedido(compra.getPedido(), idPedidoNuevo[0]);
+            compra.getPedido().asignarId(idPedidoNuevo[0]); // rehace en el objeto el mismo QR que ya se guardó
         }
         releerSerie(compra);
     }
@@ -396,6 +396,14 @@ public class CompraMySqlDao implements CompraDao {
                 idNuevo = Claves.generada(ps);
             }
             insertarDetalles(p, idNuevo);
+            if (p.getCodigoQR() != null) {
+                // El QR lleva el id que la base acaba de generar: se escribe aquí, dentro de la misma transacción
+                try (PreparedStatement ps = conexion.prepareStatement("UPDATE pedido SET codigo_qr = ? WHERE id_pedido = ?")) {
+                    ps.setString(1, Pedido.formarCodigoQR(idNuevo, p.getFechaHora()));
+                    ps.setInt(2, idNuevo);
+                    ps.executeUpdate();
+                }
+            }
         } else {
             // Lo que dice la BD, no el objeto: si al pagar el pedido se registra, el objeto ya figura registrado,
             // pero en la BD sigue como borrador (sin QR) y sus líneas pudieron cambiar desde el último guardado.
@@ -449,22 +457,6 @@ public class CompraMySqlDao implements CompraDao {
                 ps.addBatch();
             }
             ps.executeBatch();
-        }
-    }
-
-    /**
-     * Ya fuera de la transacción: asigna el id al pedido y, si ya estaba registrado, guarda su QR,
-     * que Pedido rehace con el id real (antes era "QR-PED-0-...").
-     */
-    private void asignarIdPedido(Pedido p, int idPedido) {
-        p.asignarId(idPedido);
-        if (p.getCodigoQR() == null) return;
-        try (PreparedStatement ps = conexion.prepareStatement("UPDATE pedido SET codigo_qr = ? WHERE id_pedido = ?")) {
-            ps.setString(1, p.getCodigoQR());
-            ps.setInt(2, idPedido);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RepositoryException("No se pudo guardar el código QR del pedido #" + idPedido + ".", e);
         }
     }
 

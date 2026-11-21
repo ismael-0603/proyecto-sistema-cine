@@ -6,7 +6,11 @@ import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import ucsur.pe.controller.AdminController;
+import ucsur.pe.controller.AdminDescuentoController;
+import ucsur.pe.controller.AdminFuncionController;
+import ucsur.pe.controller.AdminInfraestructuraController;
+import ucsur.pe.controller.AdminPeliculaController;
+import ucsur.pe.controller.AdminProductoController;
 import ucsur.pe.controller.CarteleraController;
 import ucsur.pe.controller.CompraController;
 import ucsur.pe.controller.DulceriaController;
@@ -31,7 +35,11 @@ import ucsur.pe.model.RelojSistema;
 import ucsur.pe.pasarela.PasarelaPago;
 import ucsur.pe.pasarela.PasarelaSimulada;
 import ucsur.pe.repository.*;
-import ucsur.pe.service.AdministracionService;
+import ucsur.pe.service.DescuentoAdminService;
+import ucsur.pe.service.FuncionAdminService;
+import ucsur.pe.service.InfraestructuraAdminService;
+import ucsur.pe.service.PeliculaAdminService;
+import ucsur.pe.service.ProductoAdminService;
 import ucsur.pe.service.AutenticacionService;
 import ucsur.pe.service.CarteleraService;
 import ucsur.pe.service.CompraService;
@@ -42,6 +50,7 @@ import ucsur.pe.service.PostventaService;
 import ucsur.pe.vista.Navegador;
 import java.io.InputStream;
 import java.sql.Connection;
+import static javafx.application.Application.launch;
 
 /**
  * Por qué existe: es la entrada de la aplicación, como App en el ejemplo MVCone.
@@ -63,7 +72,11 @@ public class App extends Application {
     private CompraController compra;
     private PagoController pago;
     private DulceriaController dulceria;
-    private AdminController admin;
+    private AdminPeliculaController adminPeliculas;
+    private AdminFuncionController adminFunciones;
+    private AdminProductoController adminProductos;
+    private AdminDescuentoController adminDescuentos;
+    private AdminInfraestructuraController adminInfraestructura;
     private PostventaController postventa;
     private EmisionController emision;
 
@@ -151,11 +164,15 @@ public class App extends Application {
         cartelera = new CarteleraController(new CarteleraService(sedes, promociones, peliculas, reloj));
         compra = new CompraController(new CompraService(compras, cupones, tiposEntrada,
                 calculadora, gestorPuntos, reloj));
-        PagoService pagoService = new PagoService(pagos, compras, pedidos, pasarela, reloj);
+        PagoService pagoService = new PagoService(pagos, compras, pasarela, reloj);
         pago = new PagoController(pagoService);
         dulceria = new DulceriaController(new PedidoService(pedidos, productos, compras, reloj));
-        admin = new AdminController(new AdministracionService(sedes, salas, peliculas,
-                productos, cupones, promociones, compras, pagoService, reloj));
+        // Administración: un servicio y un controller por tema (películas, funciones, productos, descuentos, sedes y salas)
+        adminPeliculas = new AdminPeliculaController(new PeliculaAdminService(peliculas, sedes));
+        adminFunciones = new AdminFuncionController(new FuncionAdminService(sedes, compras, pagoService, reloj));
+        adminProductos = new AdminProductoController(new ProductoAdminService(productos));
+        adminDescuentos = new AdminDescuentoController(new DescuentoAdminService(cupones, promociones));
+        adminInfraestructura = new AdminInfraestructuraController(new InfraestructuraAdminService(sedes, salas));
         postventa = new PostventaController(new PostventaService(reclamos, calificaciones, correo));
         emision = new EmisionController(new EmisionService(compras, pagos, correo, reloj));
     }
@@ -177,7 +194,11 @@ public class App extends Application {
     public CompraController compra() { return compra; }
     public PagoController pago() { return pago; }
     public DulceriaController dulceria() { return dulceria; }
-    public AdminController admin() { return admin; }
+    public AdminPeliculaController adminPeliculas() { return adminPeliculas; }
+    public AdminFuncionController adminFunciones() { return adminFunciones; }
+    public AdminProductoController adminProductos() { return adminProductos; }
+    public AdminDescuentoController adminDescuentos() { return adminDescuentos; }
+    public AdminInfraestructuraController adminInfraestructura() { return adminInfraestructura; }
     public PostventaController postventa() { return postventa; }
     public EmisionController emision() { return emision; }
 

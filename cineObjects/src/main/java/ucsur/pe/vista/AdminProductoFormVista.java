@@ -9,9 +9,12 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Producto;
+import java.io.File;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -31,8 +34,14 @@ public class AdminProductoFormVista extends PantallaAdmin {
     @FXML private Label lblMensaje;
     @FXML private RadioButton rbActivo;
     @FXML private RadioButton rbInactivo;
+    @FXML private StackPane vistaImagen;
+    @FXML private TextField txtImagen;
 
     private Producto editando;
+
+    /** Tamaño de la vista previa: la misma proporción que la tarjeta del producto en la dulcería. */
+    private static final double ANCHO_PREVIA = 250;
+    private static final double ALTO_PREVIA = 157;
 
     public AdminProductoFormVista(Navegador nav) {
         super(nav);
@@ -47,12 +56,35 @@ public class AdminProductoFormVista extends PantallaAdmin {
         rbInactivo.setToggleGroup(estadoGrupo);
         lblSede.setText(admin.getSede().getNombre() + " (tu sede)");
         TreeSet<String> categorias = new TreeSet<>();
-        Respuesta<List<Producto>> todos = app().admin().listarProductos(admin);
+        Respuesta<List<Producto>> todos = app().adminProductos().listarProductos(admin);
         if (todos.ok()) todos.dato().forEach(p -> categorias.add(Formato.capitalizar(p.getCategoria())));
         cmbCategoria.setItems(FXCollections.observableArrayList(categorias));
         cmbNivel.setItems(FXCollections.observableArrayList(AdminPromocionesVista.NIVELES));
         cmbNivel.getSelectionModel().selectFirst();
+        txtImagen.textProperty().addListener((o, a, t) -> mostrarImagen());
+        cmbCategoria.getEditor().textProperty().addListener((o, a, t) -> mostrarImagen());
         if (editando != null) cargarDatos();
+        mostrarImagen();
+    }
+
+    /** Vista previa con la misma foto (o el recuadro con la categoría) que ve el cliente en la dulcería. */
+    private void mostrarImagen() {
+        String categoria = cmbCategoria.getEditor().getText();
+        vistaImagen.getChildren().setAll(Formato.imagenProducto(vacioANulo(txtImagen.getText()),
+                categoria == null || categoria.isBlank() ? "Foto" : categoria, ANCHO_PREVIA, ALTO_PREVIA));
+    }
+
+    @FXML
+    private void onElegirImagen() {
+        FileChooser selector = new FileChooser();
+        selector.setTitle("Elegir foto del producto");
+        selector.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imágenes", "*.jpg", "*.jpeg", "*.png"));
+        File archivo = selector.showOpenDialog(txtImagen.getScene().getWindow());
+        if (archivo != null) txtImagen.setText(archivo.toURI().toString());
+    }
+
+    private static String vacioANulo(String s) {
+        return s == null || s.isBlank() ? null : s.trim();
     }
 
     private void cargarDatos() {
@@ -63,6 +95,7 @@ public class AdminProductoFormVista extends PantallaAdmin {
         txtPrecio.setText(Formato.dinero(editando.getPrecioCentavos()).replace("S/ ", ""));
         cmbNivel.getSelectionModel().select(Math.max(0, Math.min(editando.getNivelSocioMinimo(), 4)));
         chkCombo.setSelected(editando.isEsCombo());
+        txtImagen.setText(editando.getImagen());
         (editando.isEstado() ? rbActivo : rbInactivo).setSelected(true);
         // El stock se repone desde la lista («Reponer»), no aquí
         cajaStock.setVisible(false);
@@ -82,20 +115,21 @@ public class AdminProductoFormVista extends PantallaAdmin {
         }
         String categoria = cmbCategoria.getEditor().getText();
         int nivel = cmbNivel.getSelectionModel().getSelectedIndex();
+        String imagen = vacioANulo(txtImagen.getText());
         Producto producto;
         if (editando == null) {
-            Respuesta<Producto> r = app().admin().registrarProducto(admin, txtNombre.getText(), txtDescripcion.getText(),
-                    categoria, precio, chkCombo.isSelected(), nivel, stock);
+            Respuesta<Producto> r = app().adminProductos().registrarProducto(admin, txtNombre.getText(), txtDescripcion.getText(),
+                    categoria, precio, chkCombo.isSelected(), nivel, imagen, stock);
             if (!mostrar(lblMensaje, r)) return;
             producto = r.dato();
         } else {
-            Respuesta<Void> r = app().admin().actualizarProducto(admin, editando, txtNombre.getText(),
-                    txtDescripcion.getText(), categoria, precio, chkCombo.isSelected(), nivel);
+            Respuesta<Void> r = app().adminProductos().actualizarProducto(admin, editando, txtNombre.getText(),
+                    txtDescripcion.getText(), categoria, precio, chkCombo.isSelected(), nivel, imagen);
             if (!mostrar(lblMensaje, r)) return;
             producto = editando;
         }
         if (producto.isEstado() != rbActivo.isSelected()) {
-            Respuesta<Void> e = app().admin().cambiarEstadoProducto(admin, producto, rbActivo.isSelected());
+            Respuesta<Void> e = app().adminProductos().cambiarEstadoProducto(admin, producto, rbActivo.isSelected());
             if (!mostrar(lblMensaje, e)) return;
         }
         nav.ir("admin-productos");

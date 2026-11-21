@@ -138,10 +138,11 @@ public class Sede {
     }
 
     /**
-     * Filtra la cartelera por día, género, idioma y formato de sala (2D Tradicional, IMAX 2D...);
-     * cada parámetro nulo o vacío omite ese filtro. Del día solo cuenta la fecha, no la hora.
+     * Filtra la cartelera por día, género, idioma, formato de sala (2D Tradicional, IMAX 2D...) y clasificación
+     * de la película (APT, +14, +18); cada parámetro nulo o vacío omite ese filtro. Del día solo cuenta la fecha.
      */
-    public List<Funcion> filtrarCartelera(DateTime dia, Genero genero, String idioma, String formato) {
+    public List<Funcion> filtrarCartelera(DateTime dia, Genero genero, String idioma, String formato,
+                                          String clasificacion) {
         List<Funcion> filtradas = new ArrayList<>();
         for (Funcion f : consultarCartelera()) {
             boolean okDia = dia == null || f.getFecha().toValorSoloFecha() == dia.toValorSoloFecha();
@@ -149,8 +150,9 @@ public class Sede {
             boolean okIdioma = idioma == null || idioma.isEmpty() || f.getIdioma().equalsIgnoreCase(idioma);
             boolean okFormato = formato == null || formato.isEmpty()
                     || f.getSala().getTipoSala().getFormato().equalsIgnoreCase(formato);
+            boolean okClasificacion = f.getPelicula().tieneClasificacion(clasificacion);
 
-            if (okDia && okGenero && okIdioma && okFormato) {
+            if (okDia && okGenero && okIdioma && okFormato && okClasificacion) {
                 filtradas.add(f);
             }
         }
@@ -168,7 +170,7 @@ public class Sede {
     /**
      * Asigna el id que generó la base (AUTO_INCREMENT) tras el INSERT; una sede nueva nace con id 0.
      * Ojo: equals y hashCode usan el id, así que la sede se guarda (y recibe su id) antes de usarla como clave
-     * del stock de un producto; AdministracionService.registrarSede la guarda apenas la crea.
+     * del stock de un producto; InfraestructuraAdminService.registrarSede la guarda apenas la crea.
      */
     public void asignarId(int idSede) {
         this.idSede = Ids.asignar(this.idSede, idSede, "la sede");

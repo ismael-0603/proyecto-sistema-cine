@@ -48,8 +48,10 @@ public class EntregarPedidoVista extends Pantalla {
                 + (pedido.getEmpleado() == null ? "" : " · Atiende " + pedido.getEmpleado().getNombreCompleto()));
 
         for (DetallePedido d : pedido.getDetalles()) {
-            lineas.getChildren().add(ResumenCompra.fila(d.getCantidad() + " × " + d.getProducto().getNombre().toUpperCase(),
-                    Formato.dinero(d.getSubtotalCentavos()), true));
+            String eleccion = d.getPersonalizacion() == null || d.getPersonalizacion().isBlank()
+                    ? "" : " (" + d.getPersonalizacion() + ")"; // RF-13: lo que el cliente eligió en el combo
+            lineas.getChildren().add(ResumenCompra.fila(d.getCantidad() + " × " + d.getProducto().getNombre().toUpperCase()
+                    + eleccion, Formato.dinero(d.getSubtotalCentavos()), true));
         }
         filaTotal.getChildren().setAll(ResumenCompra.fila("Total", Formato.dinero(pedido.getTotalCentavos()), true).getChildren());
 

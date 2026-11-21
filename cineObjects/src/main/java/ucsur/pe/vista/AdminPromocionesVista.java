@@ -92,13 +92,13 @@ public class AdminPromocionesVista extends PantallaAdmin {
     private void cargar(boolean mantenerPagina) {
         String buscado = txtBuscar.getText() == null ? "" : txtBuscar.getText().trim().toLowerCase();
         if (verCupones) {
-            Respuesta<List<Cupon>> r = app().admin().listarCupones(admin);
+            Respuesta<List<Cupon>> r = app().adminDescuentos().listarCupones(admin);
             if (!r.ok()) { mostrarError(lblMensaje, r.mensaje()); return; }
             tablaCupones.mostrar(r.dato().stream()
                     .filter(c -> buscado.isEmpty() || c.getCodigo().toLowerCase().contains(buscado)).toList(),
                     this::filaCupon, mantenerPagina);
         } else {
-            Respuesta<List<Promocion>> r = app().admin().listarPromociones(admin);
+            Respuesta<List<Promocion>> r = app().adminDescuentos().listarPromociones(admin);
             if (!r.ok()) { mostrarError(lblMensaje, r.mensaje()); return; }
             tablaPromos.mostrar(r.dato().stream()
                     .filter(p -> buscado.isEmpty() || p.getNombre().toLowerCase().contains(buscado)).toList(),
@@ -110,7 +110,7 @@ public class AdminPromocionesVista extends PantallaAdmin {
 
     private List<Node> filaCupon(Cupon c) {
         Button estadoBtn = botonEstado(c.isEstado(),
-                () -> despues(app().admin().cambiarEstadoCupon(admin, c, !c.isEstado())));
+                () -> despues(app().adminDescuentos().cambiarEstadoCupon(admin, c, !c.isEstado())));
         return List.of(Tabla.texto(c.getCodigo()), Tabla.texto(Formato.tipoDescuento(c.getTipoDescuento())),
                 Tabla.texto(Formato.valorDescuento(c.getTipoDescuento(), c.getValor())),
                 Tabla.texto(vigencia(c)), Tabla.texto(c.getUsosRealizados() + "/" + c.getLimiteUso()),
@@ -163,8 +163,8 @@ public class AdminPromocionesVista extends PantallaAdmin {
         }
         int nivel = cmbNivel.getSelectionModel().getSelectedIndex();
         Respuesta<?> r = cuponEditando == null
-                ? app().admin().registrarCupon(admin, txtCodigo.getText(), tipo, valor, desde, hasta, usos, nivel)
-                : app().admin().actualizarCupon(admin, cuponEditando, txtCodigo.getText(), tipo, valor, desde, hasta, usos, nivel);
+                ? app().adminDescuentos().registrarCupon(admin, txtCodigo.getText(), tipo, valor, desde, hasta, usos, nivel)
+                : app().adminDescuentos().actualizarCupon(admin, cuponEditando, txtCodigo.getText(), tipo, valor, desde, hasta, usos, nivel);
         if (!mostrar(lblMensajeForm, r)) return;
         String mensaje = r.mensaje();
         onLimpiar();
@@ -181,7 +181,7 @@ public class AdminPromocionesVista extends PantallaAdmin {
 
     private List<Node> filaPromocion(Promocion p) {
         Button estadoBtn = botonEstado(p.isEstado(),
-                () -> despues(app().admin().cambiarEstadoPromocion(admin, p, !p.isEstado())));
+                () -> despues(app().adminDescuentos().cambiarEstadoPromocion(admin, p, !p.isEstado())));
         return List.of(Tabla.texto(p.getNombre()), Tabla.texto(Formato.valorDescuento(p.getTipoDescuento(), p.getValor())),
                 Tabla.texto(Formato.diasAplicables(p.getDiasAplicables()).replace("Válida ", "")),
                 Tabla.texto(vigencia(p)), Tabla.texto(Formato.nivelSocio(p.getNivelSocioMinimo())),

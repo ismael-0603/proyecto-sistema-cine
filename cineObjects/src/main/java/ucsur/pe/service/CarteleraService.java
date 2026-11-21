@@ -40,9 +40,10 @@ public class CarteleraService {
         return exigirSede(sede).consultarCartelera();
     }
 
-    /** Filtros de la cartelera (RF-03): día, género, idioma y formato de sala; los nulos no filtran. */
-    public List<Funcion> filtrarCartelera(Sede sede, DateTime dia, Genero genero, String idioma, String formato) {
-        return exigirSede(sede).filtrarCartelera(dia, genero, idioma, formato);
+    /** Filtros de la cartelera (RF-03): día, género, idioma, formato de sala y clasificación; los nulos no filtran. */
+    public List<Funcion> filtrarCartelera(Sede sede, DateTime dia, Genero genero, String idioma, String formato,
+                                          String clasificacion) {
+        return exigirSede(sede).filtrarCartelera(dia, genero, idioma, formato, clasificacion);
     }
 
     /**

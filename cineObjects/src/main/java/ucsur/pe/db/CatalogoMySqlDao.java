@@ -143,8 +143,8 @@ public class CatalogoMySqlDao implements CatalogoDao {
     @Override
     public void insertarProducto(Producto producto, Collection<Sede> sedes) {
         String sql = """
-                INSERT INTO producto (nombre, descripcion, categoria, precio, es_combo, nivel_socio_minimo, estado)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO producto (nombre, descripcion, categoria, precio, es_combo, nivel_socio_minimo, estado, imagen_url)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         escribirProducto(sql, producto, sedes, true, "No se pudo registrar el producto " + producto.getNombre() + ".");
     }
@@ -154,7 +154,7 @@ public class CatalogoMySqlDao implements CatalogoDao {
         String sql = """
                 UPDATE producto
                 SET nombre = ?, descripcion = ?, categoria = ?, precio = ?, es_combo = ?,
-                    nivel_socio_minimo = ?, estado = ?
+                    nivel_socio_minimo = ?, estado = ?, imagen_url = ?
                 WHERE id_producto = ?
                 """;
         escribirProducto(sql, producto, sedes, false, "No se pudo actualizar el producto " + producto.getNombre() + ".");
@@ -179,7 +179,8 @@ public class CatalogoMySqlDao implements CatalogoDao {
                 ps.setBoolean(5, producto.isEsCombo());
                 ps.setInt(6, producto.getNivelSocioMinimo());
                 ps.setBoolean(7, producto.isEstado());
-                if (!nuevo) ps.setInt(8, id[0]);
+                ps.setString(8, producto.getImagen()); // null = sin foto
+                if (!nuevo) ps.setInt(9, id[0]);
                 ps.executeUpdate();
                 if (nuevo) id[0] = Claves.generada(ps);
             }

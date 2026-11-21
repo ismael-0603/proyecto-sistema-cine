@@ -39,8 +39,8 @@ import java.io.UncheckedIOException;
 public class Navegador {
 
     /** Sin tocar la pantalla este tiempo durante una compra, se pregunta «¿Sigues ahí?». */
-    private static final int SEGUNDOS_INACTIVIDAD = 90;
-    /** Tiempo para responder al aviso antes de cancelar la compra. */
+    private static final int SEGUNDOS_INACTIVIDAD = 150;
+    /** Tiempo para responder al aviso antes de cancelar la compra (en total, 3 minutos sin tocar: RNF-04). */
     private static final int SEGUNDOS_AVISO = 30;
 
     private final Stage stage;

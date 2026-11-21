@@ -12,4 +12,13 @@ public interface Activable {
     void desactivar();
     /** Indica si el elemento está habilitado. */
     boolean isEstado();
+
+    /** Activa o desactiva según el valor: lo usan los servicios de administración para productos, cupones y promociones. */
+    default void cambiarEstado(boolean activo) {
+        if (activo) {
+            activar();
+        } else {
+            desactivar();
+        }
+    }
 }

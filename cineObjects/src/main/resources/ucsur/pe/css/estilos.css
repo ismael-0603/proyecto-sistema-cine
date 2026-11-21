@@ -85,7 +85,7 @@
     -fx-padding: 4 18 4 18;
     -fx-alignment: center;
 }
-.tiempo-etiqueta { -fx-font-family: "Manrope Medium"; -fx-font-size: 11px; -fx-text-fill: #03132c; }
+.tiempo-etiqueta { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: #03132c; }
 .tiempo-valor { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 22px; -fx-text-fill: #03132c; }
 .tiempo.urgente { -fx-background-color: #fde2df; -fx-border-color: #9b180c; }
 .tiempo.urgente .tiempo-valor { -fx-text-fill: #9b180c; }
@@ -313,7 +313,7 @@
     -fx-background-color: #f5edde;
     -fx-background-radius: 12;
     -fx-padding: 3 10 3 10;
-    -fx-font-family: "Manrope Medium"; -fx-font-size: 12px;
+    -fx-font-family: "Manrope Medium"; -fx-font-size: 13px;
     -fx-text-fill: #03132c;
 }
 .tag-genero-claro { -fx-background-color: white; }
@@ -323,7 +323,7 @@
     -fx-background-color: #f3f6fb;
     -fx-background-radius: 4;
     -fx-padding: 2 6 2 6;
-    -fx-font-family: "Manrope SemiBold"; -fx-font-size: 11px;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-size: 13px;
     -fx-text-fill: #03132c;
 }
 .tag-clasificacion.apta { -fx-background-color: #ecfdf3; -fx-border-color: #86c79b; -fx-text-fill: #166534; }
@@ -348,10 +348,10 @@
 .horario:hover { -fx-background-color: #faf0e0; -fx-border-color: #e5a93c; }
 .horario-hora { -fx-font-family: "Manrope SemiBold"; -fx-font-size: 18px; -fx-text-fill: #03132c; }
 .horario-idioma { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: #03132c; }
-.recargo { -fx-background-color: #f5edde; -fx-background-radius: 12; -fx-padding: 3 10 3 10; -fx-font-family: "Manrope SemiBold"; -fx-font-size: 12px; -fx-text-fill: #03132c; }
+.recargo { -fx-background-color: #f5edde; -fx-background-radius: 12; -fx-padding: 3 10 3 10; -fx-font-family: "Manrope SemiBold"; -fx-font-size: 13px; -fx-text-fill: #03132c; }
 
 /* ===== ASIENTOS ===== */
-.pantalla-texto { -fx-font-family: "Manrope Medium"; -fx-font-size: 12px; -fx-text-fill: #03132c; }
+.pantalla-texto { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: #03132c; }
 .fila-letra { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: #03132c; -fx-min-width: 18; }
 .butaca {
     -fx-min-width: 30; -fx-min-height: 30; -fx-max-width: 30; -fx-max-height: 30;
@@ -360,7 +360,7 @@
     -fx-background-color: white;
     -fx-border-color: rgba(3, 19, 44, 0.35);
     -fx-background-radius: 6; -fx-border-radius: 6;
-    -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 12px;
+    -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px;
 }
 .butaca:hover { -fx-border-color: #e5a93c; }
 .butaca.preferencial { -fx-background-color: #faf0e0; }
@@ -372,7 +372,7 @@
     -fx-background-radius: 3; -fx-border-radius: 3;
     -fx-background-color: white; -fx-border-color: #03132c;
     -fx-alignment: center;
-    -fx-font-size: 10px; -fx-font-family: "Manrope SemiBold";
+    -fx-font-size: 13px; -fx-font-family: "Manrope SemiBold";
 }
 .leyenda-cuadro.ocupada { -fx-background-color: #9b180c; -fx-border-color: #9b180c; }
 .leyenda-cuadro.elegida { -fx-background-color: #e5a93c; -fx-border-color: #c98a1d; }
@@ -483,7 +483,7 @@
     -fx-border-color: rgba(3, 19, 44, 0.3);
     -fx-background-radius: 12; -fx-border-radius: 12;
     -fx-padding: 3 12 3 12;
-    -fx-font-family: "Manrope Medium"; -fx-font-size: 12px; -fx-text-fill: #03132c;
+    -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: #03132c;
 }
 .estado-chip.pagada { -fx-background-color: #ecfdf3; -fx-border-color: #86c79b; -fx-text-fill: #166534; }
 .estado-chip.reembolsada { -fx-background-color: #faf0e0; -fx-border-color: rgba(229, 169, 60, 0.55); }

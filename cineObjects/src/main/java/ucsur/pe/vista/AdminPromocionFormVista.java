@@ -49,7 +49,7 @@ public class AdminPromocionFormVista extends PantallaAdmin {
         ToggleGroup estadoGrupo = new ToggleGroup();
         rbActiva.setToggleGroup(estadoGrupo);
         rbInactiva.setToggleGroup(estadoGrupo);
-        Respuesta<List<String>> t = app().admin().tiposDescuento();
+        Respuesta<List<String>> t = app().adminDescuentos().tiposDescuento();
         if (t.ok()) tipos = t.dato();
         cmbTipo.setItems(FXCollections.observableArrayList(tipos.stream().map(Formato::tipoDescuento).toList()));
         cmbTipo.getSelectionModel().selectFirst();
@@ -97,19 +97,19 @@ public class AdminPromocionFormVista extends PantallaAdmin {
 
         Promocion promo;
         if (editando == null) {
-            Respuesta<Promocion> r = app().admin().registrarPromocion(admin, txtNombre.getText(), txtDescripcion.getText(),
+            Respuesta<Promocion> r = app().adminDescuentos().registrarPromocion(admin, txtNombre.getText(), txtDescripcion.getText(),
                     tipo, valor, desde, hasta, nivel, diasElegidos);
             if (!mostrar(lblMensaje, r)) return;
             promo = r.dato();
         } else {
-            Respuesta<Void> r = app().admin().actualizarPromocion(admin, editando, txtNombre.getText(),
+            Respuesta<Void> r = app().adminDescuentos().actualizarPromocion(admin, editando, txtNombre.getText(),
                     txtDescripcion.getText(), tipo, valor, desde, hasta, nivel, diasElegidos);
             if (!mostrar(lblMensaje, r)) return;
             promo = editando;
         }
         // El estado se cambia aparte (activar o desactivar), solo si es distinto del actual
         if (promo.isEstado() != rbActiva.isSelected()) {
-            Respuesta<Void> e = app().admin().cambiarEstadoPromocion(admin, promo, rbActiva.isSelected());
+            Respuesta<Void> e = app().adminDescuentos().cambiarEstadoPromocion(admin, promo, rbActiva.isSelected());
             if (!mostrar(lblMensaje, e)) return;
         }
         nav.ir("admin-promociones");

@@ -10,7 +10,6 @@ import ucsur.pe.pasarela.PasarelaPago;
 import ucsur.pe.pasarela.ResultadoPago;
 import ucsur.pe.repository.CompraRepository;
 import ucsur.pe.repository.PagoRepository;
-import ucsur.pe.repository.PedidoRepository;
 
 /**
  * Por qué existe: caso de uso "Realizar pago" (RF-16 a RF-18, RF-45) y el reembolso automático (RF-24).
@@ -20,15 +19,12 @@ import ucsur.pe.repository.PedidoRepository;
 public class PagoService {
     private final PagoRepository pagos;
     private final CompraRepository compras;
-    private final PedidoRepository pedidos;
     private final PasarelaPago pasarela;
     private final Reloj reloj;
 
-    public PagoService(PagoRepository pagos, CompraRepository compras, PedidoRepository pedidos,
-                       PasarelaPago pasarela, Reloj reloj) {
+    public PagoService(PagoRepository pagos, CompraRepository compras, PasarelaPago pasarela, Reloj reloj) {
         this.pagos = pagos;
         this.compras = compras;
-        this.pedidos = pedidos;
         this.pasarela = pasarela;
         this.reloj = reloj;
     }
@@ -145,10 +141,7 @@ public class PagoService {
             throw new ReglaNegocioException("La pasarela no aceptó la devolución de la compra #" + compra.getIdCompra());
         }
         compra.reembolsar();
-        compras.guardar(compra);
-        if (compra.getPedido() != null) {
-            pedidos.guardar(compra.getPedido());
-        }
+        compras.guardar(compra); // una sola transacción: la compra, su pedido anulado y el stock devuelto
         return monto;
     }
 }
