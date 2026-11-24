@@ -122,8 +122,7 @@ public class Funcion {
 
     /**
      * Cancela la función (por ejemplo, por una falla técnica); permite reembolsar sus entradas.
-     * Reemplaza al antiguo setEstado: los demás estados los calcula getEstado() según la hora
-     * y las butacas libres, así que no se ponen a mano.
+     * Es el único estado que se pone a mano: los demás los calcula getEstado() según la hora y las butacas libres.
      */
     public void cancelar() {
         if (FINALIZADA.equals(calcularEstado())) {

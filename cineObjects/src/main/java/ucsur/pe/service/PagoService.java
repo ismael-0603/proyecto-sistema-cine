@@ -90,7 +90,7 @@ public class PagoService {
             pago.rechazar("Monto inválido", ahora);
             return;
         }
-        // En céntimos la comparación es exacta: ya no hace falta un margen de tolerancia como con double.
+        // En céntimos la comparación es exacta, sin margen de tolerancia.
         if (pago.getMontoCentavos() != compra.calcularTotalCentavos()) {
             pago.rechazar("El monto no coincide con el total de la compra", ahora);
             return;

@@ -4,7 +4,7 @@ package ucsur.pe.model;
  * Por qué existe: para tratar igual a cupones y promociones: todos dicen si están vigentes,
  * cuánto descuentan y si aplican a una compra.
  * Compra trabaja solo con esta interfaz; no sabe si tiene un cupón, una promoción u otro descuento.
- * Ya no depende de Compra: recibe solo los datos que necesita (ContextoDescuento).
+ * Recibe solo los datos que necesita (ContextoDescuento), sin depender de Compra.
  * Activar y desactivar están en la interfaz Activable, porque los usa el administrador, no la compra.
  */
 public interface Descuento {
@@ -24,6 +24,4 @@ public interface Descuento {
      * (en la BD, columnas id_cupon e id_promocion); así la compra pregunta al descuento en vez de mirar su clase.
      */
     String getCategoria();
-    // registrarUso y revertirUso ya no están aquí: solo los necesitan los descuentos con límite de usos,
-    // y esos implementan DescuentoConUsos (ISP: nadie depende de métodos que no usa).
 }

@@ -1,3 +1,5 @@
+-- Borra la base si ya existe para poder volver a ejecutar el script desde cero.
+-- ATENCION: elimina todos los datos de DB_Cine.
 DROP DATABASE IF EXISTS DB_Cine;
 create database DB_Cine;
 use DB_Cine;
@@ -19,7 +21,7 @@ create table sede (
     direccion		 VARCHAR(150) NOT NULL,
     distrito		 VARCHAR(60)  NOT NULL,
     telefono		 VARCHAR(20),
-    horario_atencion     VARCHAR(100),
+    horario_atencion VARCHAR(100),
     estado			 VARCHAR(20)  NOT NULL DEFAULT 'ACTIVA',
     
     CONSTRAINT pk_sede PRIMARY KEY (id_sede),
@@ -289,9 +291,7 @@ create table compra (
     CONSTRAINT fk_compra_promocion 	FOREIGN KEY (id_promocion) REFERENCES promocion (id_promocion)
 );
 
--- Las entradas se insertan recien al confirmar la seleccion de asientos (Compra.confirmarSeleccionAsientos),
--- ya con su tipo: una preseleccion sin tipo fallaria por id_tipo_entrada NOT NULL y ademas ocuparia la
--- butaca (butaca_ocupada = 1) antes de tiempo.
+-- las entradas se insertan al confirmar los asientos (Compra.confirmarSeleccionAsientos), ya con su tipo
 create table entrada (
 	id_entrada	 	  INT           NOT NULL auto_increment,
     codigo_qr		  VARCHAR(100),
@@ -398,7 +398,7 @@ create table correlativo (
 
 INSERT INTO correlativo (serie) VALUES ('B001');
 
--- TABLAS INTERMADIAS
+-- TABLAS INTERMEDIAS
 
 CREATE TABLE pelicula_genero (
 	id_pelicula INT NOT NULL,
@@ -593,3 +593,37 @@ DO
        SET estado = 'EN_CARTELERA'
      WHERE estado = 'PREESTRENO'
        AND fecha_estreno <= CURDATE();
+
+-- Catálogos y configuración
+SELECT * FROM rol;
+SELECT * FROM sede;
+SELECT * FROM genero;
+SELECT * FROM tipo_sala;
+SELECT * FROM tipo_entrada;
+SELECT * FROM promocion;
+SELECT * FROM cupon;
+SELECT * FROM producto;
+SELECT * FROM pelicula;
+
+-- Usuarios y estructura física
+SELECT * FROM cliente;
+SELECT * FROM empleado;
+SELECT * FROM sala;
+SELECT * FROM butaca;
+
+-- Operaciones principales
+SELECT * FROM funcion;
+SELECT * FROM compra;
+SELECT * FROM entrada;
+SELECT * FROM transaccion_pago;
+SELECT * FROM pedido;
+
+-- Servicio postventa
+SELECT * FROM reclamo;
+SELECT * FROM calificacion;
+
+-- Tablas intermedias
+SELECT * FROM pelicula_genero;
+SELECT * FROM promocion_dia;
+SELECT * FROM inventario_sede;
+SELECT * FROM detalle_pedido;

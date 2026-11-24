@@ -2,8 +2,7 @@ package ucsur.pe.model;
 
 /**
  * Por qué existe: separa de Descuento lo que solo necesitan los descuentos con límite de usos (hoy, Cupon).
- * Antes registrarUso y revertirUso estaban en Descuento y Promocion los heredaba vacíos; ahora solo los
- * implementa quien los usa (principio de segregación de interfaces, ISP).
+ * Así solo implementa registrarUso y revertirUso quien los usa (principio de segregación de interfaces, ISP).
  * Al confirmar, Compra les suma un uso a los descuentos de este tipo, y se lo devuelve al reembolsar o anular.
  */
 public interface DescuentoConUsos extends Descuento {

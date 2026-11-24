@@ -1943,7 +1943,7 @@ INSERT INTO inventario_sede (id_sede, id_producto, stock) VALUES
 (14, 122, 63),
 (14, 123, 98);
 
--- pelicula: trailer_url = busqueda del trailer en YouTube; poster_url = imagen que se agregara al proyecto (46 filas)
+-- pelicula: trailer_url = busqueda del trailer en YouTube; poster_url = imagen en resources/ucsur/pe/posters (46 filas)
 INSERT INTO pelicula (id_pelicula, titulo, sinopsis, duracion_min, clasificacion_edad, trailer_url, poster_url, fecha_estreno, estado) VALUES
 (1, 'Spider-Man: Un Nuevo Día', 'Peter Parker intenta empezar de cero mientras una nueva amenaza pone a prueba su doble vida en Nueva York.', 145, '+14', 'https://www.youtube.com/results?search_query=Spider-Man%3A+Un+Nuevo+D%C3%ADa+trailer+oficial', 'posters/spider-man-un-nuevo-dia.jpg', '2026-07-31', 'EN_CARTELERA'),
 (2, 'Hechizo de Amor 2', 'Las hermanas Owens regresan para proteger a una nueva generación de brujas de una antigua maldición familiar.', 115, '+14', 'https://www.youtube.com/results?search_query=Hechizo+de+Amor+2+trailer+oficial', 'posters/hechizo-de-amor-2.jpg', '2026-09-11', 'EN_CARTELERA'),
@@ -2103,7 +2103,7 @@ INSERT INTO pelicula_genero (id_pelicula, id_genero) VALUES
 (46, 10),
 (46, 1);
 
--- cliente (copiado sin cambios)
+-- cliente (150 filas)
 INSERT INTO cliente (id_cliente, dni, nombres, apellidos, fecha_nac, correo, telefono, contra, estado, fecha_registro, puntos, nivel_socio, es_invitado) VALUES
 (1, '35630283', 'María', 'Medina Cárdenas', '2002-04-25', 'maria.medina93@yahoo.com', '977408011', 'Cine@6552', 1, '2024-10-12 06:48:00', 7, 1, 0),
 (2, '75648388', 'Fiorella', 'Ccopa García', '1975-11-17', 'fiorella.ccopa58@outlook.com', '964649522', 'Cine@5562', 0, '2024-05-25 12:36:00', 9, 1, 0),
@@ -2256,7 +2256,7 @@ INSERT INTO cliente (id_cliente, dni, nombres, apellidos, fecha_nac, correo, tel
 (149, NULL, NULL, NULL, NULL, 'invitado526@outlook.com', NULL, NULL, 1, '2026-09-20 13:42:00', 0, 0, 1),
 (150, NULL, NULL, NULL, NULL, 'invitado865@hotmail.com', NULL, NULL, 1, '2026-09-06 04:56:00', 0, 0, 1);
 
--- empleado (copiado del respaldo; los 10 de Huancayo, sede INACTIVA, quedan con estado = 0)
+-- empleado: los 10 de Huancayo (sede INACTIVA) tienen estado = 0 (150 filas)
 INSERT INTO empleado (id_empleado, dni, nombres, apellidos, fecha_nac, correo, telefono, contra, estado, turno, id_rol, id_sede) VALUES
 (1, '68300540', 'Alonso', 'Condori Carrasco', '1983-06-24', 'alonso.condori1@cine.pe', '984363918', 'Emp@9914', 1, 'MAÑANA', 1, 1),
 (2, '56588916', 'Fernando', 'Delgado Vargas', '1993-10-19', 'fernando.delgado2@cine.pe', '949515084', 'Emp@9103', 1, 'MAÑANA', 1, 2),
@@ -2409,7 +2409,7 @@ INSERT INTO empleado (id_empleado, dni, nombres, apellidos, fecha_nac, correo, t
 (149, '56302576', 'Lucía', 'Huamán Salazar', '1977-10-11', 'lucia.huaman149@cine.pe', '966840328', 'Emp@7083', 1, 'NOCHE', 2, 11),
 (150, '49657290', 'Ximena', 'Navarro Soto', '1991-01-05', 'ximena.navarro150@cine.pe', '942838637', 'Emp@6302', 1, 'NOCHE', 2, 8);
 
--- sala (las de Macro XD, PLF, Junior y Cine Café pasaron a un tipo que se conserva) (45 filas)
+-- sala: salas 1 a 3 de cada sede (45 filas)
 INSERT INTO sala (id_sala, numero, capacidad, estado, id_sede, id_tipo_sala) VALUES
 (1, 1, 50, 'ACTIVA', 1, 7),
 (2, 2, 165, 'ACTIVA', 1, 1),
@@ -9124,8 +9124,8 @@ INSERT INTO butaca (id_butaca, fila, numero, tipo, bloque, id_sala) VALUES
 (6661, 'K', 17, 'ESTANDAR', 'DERECHA', 45),
 (6662, 'K', 18, 'ESTANDAR', 'DERECHA', 45);
 
--- sala (segunda tanda): las salas 4, 5 y 6 de cada sede activa, con los formatos que le faltaban (39 filas). Capacidad = filas x (2 x laterales + centrales),
---    con la distribución de cada formato que usa el paso 2.
+-- sala: salas 4, 5 y 6 de cada sede activa (39 filas).
+--    Capacidad = filas x (2 x laterales + centrales), con la distribución de cada formato indicada abajo.
 INSERT INTO sala (id_sala, numero, capacidad, estado, id_sede, id_tipo_sala) VALUES
 (46, 4, 140, 'ACTIVA', 1, 2),  (47, 5, 80, 'ACTIVA', 1, 5),  (48, 6, 70, 'ACTIVA', 1, 3),
 (49, 4, 140, 'ACTIVA', 2, 1),  (50, 5, 70, 'ACTIVA', 2, 4),  (51, 6, 32, 'ACTIVA', 2, 8),

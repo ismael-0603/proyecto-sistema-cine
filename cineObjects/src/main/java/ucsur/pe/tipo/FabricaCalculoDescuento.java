@@ -7,8 +7,7 @@ import java.util.function.LongFunction;
 
 /**
  * Por qué existe: convierte lo guardado en la BD (columnas tipo_descuento y valor) en su forma de cálculo.
- * Antes estaba dentro de DescuentoBase, pero traducir columnas de la BD no es trabajo del modelo (SRP);
- * la usan el DAO de cupones y promociones (al leer) y el servicio de administración (al registrar o editar).
+ * Está fuera del modelo porque traducir columnas de la BD no es trabajo suyo (SRP); la usan el DAO de cupones y promociones (al leer) y el servicio de administración (al registrar o editar).
  * Usa un mapa en lugar de un switch: un tipo nuevo se registra con una línea (OCP).
  */
 public final class FabricaCalculoDescuento {

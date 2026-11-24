@@ -3,14 +3,10 @@ package ucsur.pe.model;
 import java.util.List;
 
 /**
- * Por qué existe: RF-13 pide personalizar los productos de dulcería. Los sabores y tamaños sueltos ya son
- * productos distintos (Canchita Dulce, Inca Kola Grande...), así que lo único que queda por elegir es el
- * contenido de los combos: el sabor de la canchita y la marca de la gaseosa.
- *
- * Qué se elige lo dice la descripción del combo: si incluye «canchita» se pide el sabor (salvo que ya diga
- * «canchita dulce», «salada» o «mixta») y si incluye «gaseosa» se pide la marca. Así un combo nuevo del
- * administrador se personaliza solo, sin tablas extra. La elección se guarda como texto en
- * detalle_pedido.personalizacion y el personal de dulcería la ve en su panel.
+ * Por qué existe: personaliza los combos de dulcería (RF-13): el sabor de la canchita y la marca de la gaseosa.
+ * Lo decide la descripción del combo: si incluye «canchita» se pide el sabor (salvo que ya lo diga) y si
+ * incluye «gaseosa», la marca; así un combo nuevo se personaliza solo. La elección se guarda como texto
+ * en detalle_pedido.personalizacion.
  */
 public final class OpcionesCombo {
 

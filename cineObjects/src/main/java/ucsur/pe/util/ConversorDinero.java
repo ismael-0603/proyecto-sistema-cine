@@ -1,17 +1,10 @@
 package ucsur.pe.util;
 
 /**
- * Por qué existe: el dinero del sistema se guarda en CÉNTIMOS como long (S/ 4.70 -> 470), no como double.
- * Con double, 0.1 + 0.2 da 0.30000000000000004 y una suma de precios puede no coincidir con el total esperado;
- * entre enteros las sumas y multiplicaciones son exactas.
- *
- * Esta clase solo convierte montos (no tiene reglas de negocio), por eso sus métodos son static, igual que Math:
- *   aCentavos("4.70")          -> 470        al recibir un monto como texto (teclado, BD)
- *   formatear(470)             -> "S/ 4.70"  al mostrar un monto
- *   aplicarPorcentaje(1055, 18) -> 190       cuando un porcentaje deja fracciones de céntimo
- *
- * IMPORTANTE: nunca se pasa por double. (long) (Double.parseDouble("0.29") * 100) da 28 y no 29,
- * porque 0.29 * 100 = 28.999999999999996.
+ * Por qué existe: el dinero se guarda en CÉNTIMOS como long (S/ 4.70 -> 470), no como double, para que
+ * las sumas sean exactas (con double, 0.29 * 100 da 28.999999999999996). Nunca se pasa por double.
+ * Solo convierte montos (sin reglas de negocio), por eso sus métodos son static, igual que Math:
+ *   aCentavos("4.70") -> 470 · formatear(470) -> "S/ 4.70" · aplicarPorcentaje(1055, 18) -> 190
  */
 public final class ConversorDinero {
 
