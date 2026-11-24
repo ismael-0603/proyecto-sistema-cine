@@ -2,7 +2,9 @@ package ucsur.pe.vista;
 
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -12,6 +14,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.DateTime;
@@ -36,7 +39,7 @@ public class CarteleraVista extends Pantalla {
 
     private static final int COLUMNAS = 4;
     private static final double HUECO = 22;     // hgap del GridPane
-    private static final double RELLENO = 20;   // padding izquierdo + derecho de .tarjeta-pelicula
+    private static final double BORDE = 4;      // borde izquierdo + derecho (2 × 2) de .tarjeta-pelicula
 
     /** Una opción de los desplegables: lo que se ve y el valor que se filtra (null = sin filtro). */
     private record Opcion<T>(String texto, T valor) {
@@ -62,7 +65,7 @@ public class CarteleraVista extends Pantalla {
 
     private Pestana pestana = Pestana.CARTELERA;
     private final List<Pelicula> mostradas = new ArrayList<>();
-    private double anchoTarjeta = 268;
+    private double anchoTarjeta = -1; // se calcula al conocer el ancho real del viewport (evita dibujar dos veces)
 
     public CarteleraVista(Navegador nav) {
         super(nav);
@@ -240,13 +243,14 @@ public class CarteleraVista extends Pantalla {
     private void ajustarAncho(double anchoVisible) {
         if (anchoVisible <= 0) return;
         double nuevo = Math.floor((anchoVisible - HUECO * (COLUMNAS - 1)) / COLUMNAS);
-        if (Math.abs(nuevo - anchoTarjeta) >= 2) {
+        if (anchoTarjeta < 0 || Math.abs(nuevo - anchoTarjeta) >= 2) {
             anchoTarjeta = nuevo;
             dibujar();
         }
     }
 
     private void dibujar() {
+        if (anchoTarjeta <= 0) return;
         peliculas.getChildren().clear();
         for (int i = 0; i < mostradas.size(); i++) {
             peliculas.add(tarjeta(mostradas.get(i)), i % COLUMNAS, i / COLUMNAS);
@@ -254,9 +258,33 @@ public class CarteleraVista extends Pantalla {
     }
 
     private VBox tarjeta(Pelicula p) {
-        double anchoPoster = Math.max(120, anchoTarjeta - RELLENO);
-        VBox poster = new VBox(Formato.poster(p, anchoPoster, anchoPoster * 1.5)); // proporción 2:3
-        poster.setAlignment(Pos.CENTER);
+        double anchoPoster = Math.max(120, anchoTarjeta - BORDE);
+        double altoPoster = Math.round(anchoPoster * 1.45);
+        Node imagen = Formato.posterSuperior(p, anchoPoster, altoPoster, 14);
+
+        Region sombra = new Region();
+        sombra.getStyleClass().add("poster-sombra");
+        sombra.setMouseTransparent(true);
+
+        Label clasif = new Label(p.getClasificacionEdad());
+        clasif.getStyleClass().add("badge-poster-clasif");
+        if (p.getClasificacionEdad().toUpperCase().startsWith("APT")) clasif.getStyleClass().add("apta");
+        StackPane.setAlignment(clasif, Pos.TOP_RIGHT);
+        StackPane.setMargin(clasif, new Insets(10));
+
+        StackPane portada = new StackPane(imagen, sombra, clasif);
+        portada.setPrefSize(anchoPoster, altoPoster);
+        portada.setMinSize(anchoPoster, altoPoster);
+        portada.setMaxSize(anchoPoster, altoPoster);
+        portada.setClip(Formato.clipSuperior(anchoPoster, altoPoster, 14));
+
+        if (pestana == Pestana.PREVENTA) {
+            Label etiqueta = new Label("Preventa · " + estreno(p));
+            etiqueta.getStyleClass().add("badge-poster-preventa");
+            StackPane.setAlignment(etiqueta, Pos.TOP_LEFT);
+            StackPane.setMargin(etiqueta, new Insets(10));
+            portada.getChildren().add(etiqueta);
+        }
 
         Label titulo = new Label(p.getTitulo());
         titulo.getStyleClass().add("pelicula-titulo");
@@ -264,7 +292,7 @@ public class CarteleraVista extends Pantalla {
         titulo.setMinHeight(44);
         titulo.setAlignment(Pos.TOP_LEFT);
 
-        HBox datos = new HBox(10);
+        HBox datos = new HBox(8);
         datos.setAlignment(Pos.CENTER_LEFT);
         if (!p.getGeneros().isEmpty()) {
             Label genero = new Label(p.getGeneros().get(0).getNombre());
@@ -272,23 +300,16 @@ public class CarteleraVista extends Pantalla {
             genero.setMinWidth(Region.USE_PREF_SIZE); // si falta espacio, se acorta la duración, no el género
             datos.getChildren().add(genero);
         }
-        Label detalle = new Label(pestana == Pestana.PROXIMAMENTE ? estreno(p) : Formato.duracion(p.getDuracion()));
-        detalle.getStyleClass().add("nota");
         Region espacio = new Region();
         HBox.setHgrow(espacio, Priority.ALWAYS);
-        Label clasif = new Label(p.getClasificacionEdad());
-        clasif.getStyleClass().add("tag-clasificacion");
-        clasif.setMinWidth(Region.USE_PREF_SIZE);
-        if (p.getClasificacionEdad().toUpperCase().startsWith("APT")) clasif.getStyleClass().add("apta");
-        datos.getChildren().addAll(detalle, espacio, clasif);
+        Label detalle = new Label(pestana == Pestana.PROXIMAMENTE ? estreno(p) : Formato.duracion(p.getDuracion()));
+        detalle.getStyleClass().add("nota-suave");
+        datos.getChildren().addAll(espacio, detalle);
 
-        VBox tarjeta = new VBox(8, poster);
-        if (pestana == Pestana.PREVENTA) {
-            Label etiqueta = new Label("Preventa · " + estreno(p));
-            etiqueta.getStyleClass().add("tag-dorada");
-            tarjeta.getChildren().add(etiqueta);
-        }
-        tarjeta.getChildren().addAll(titulo, datos, boton(p));
+        VBox cuerpo = new VBox(8, titulo, datos, boton(p));
+        cuerpo.getStyleClass().add("tarjeta-pelicula-cuerpo");
+
+        VBox tarjeta = new VBox(portada, cuerpo);
         tarjeta.getStyleClass().add("tarjeta-pelicula");
         tarjeta.setMaxWidth(anchoTarjeta);
         return tarjeta;

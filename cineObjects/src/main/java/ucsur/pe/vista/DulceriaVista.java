@@ -1,14 +1,19 @@
 package ucsur.pe.vista;
 
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Compra;
@@ -19,6 +24,7 @@ import ucsur.pe.model.Producto;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -31,9 +37,22 @@ import java.util.function.Consumer;
 public class DulceriaVista extends Pantalla {
 
     private static final String TODOS = "Todos";
-    // Tarjeta de 280 px menos el relleno lateral (14 + 14); las fotos se guardan en 480×300 (misma proporción)
-    private static final double ANCHO_IMAGEN = 252;
-    private static final double ALTO_IMAGEN = 158;
+    // Tarjeta de 280 px menos el borde (2 × 2); imagen al ras superior en coordenadas enteras
+    private static final double ANCHO_IMAGEN = 276;
+    private static final double ALTO_IMAGEN = 166;
+    private static final double ANCHO_OPCION_FOTO = 128;
+    private static final double ALTO_OPCION_FOTO = 64;
+    private static final Map<String, String> FOTOS_OPCIONES = Map.of(
+            "Salada", "productos/canchita-salada.jpg",
+            "Dulce", "productos/canchita-dulce.jpg",
+            "Mixta", "productos/canchita-mixta.jpg",
+            "Inca Kola", "productos/inca-kola.jpg",
+            "Coca-Cola", "productos/coca-cola.jpg",
+            "Sprite", "productos/sprite.jpg",
+            "Fanta", "productos/fanta.jpg",
+            "Inca Kola Zero", "productos/inca-kola-zero.jpg",
+            "Coca-Cola Zero", "productos/coca-cola-zero.jpg"
+    );
 
     @FXML private EncabezadoCompraVista encabezadoController;
     @FXML private HBox categorias;
@@ -46,10 +65,13 @@ public class DulceriaVista extends Pantalla {
     @FXML private Label lblTotal;
     @FXML private Label lblPieTotal;
 
+    private record TarjetaProducto(Producto producto, VBox tarjeta, Label valor, Label badge) { }
+
     private Compra compra;
     private List<Producto> menu = new ArrayList<>();
     private String categoria = TODOS;
     private final List<Button> chips = new ArrayList<>();
+    private final List<TarjetaProducto> tarjetasVisibles = new ArrayList<>();
 
     public DulceriaVista(Navegador nav) {
         super(nav);
@@ -95,6 +117,7 @@ public class DulceriaVista extends Pantalla {
 
     private void mostrarProductos() {
         productos.getChildren().clear();
+        tarjetasVisibles.clear();
         for (Producto p : menu) {
             if (TODOS.equals(categoria) || Formato.capitalizar(p.getCategoria()).equals(categoria)) {
                 productos.getChildren().add(tarjeta(p));
@@ -103,14 +126,57 @@ public class DulceriaVista extends Pantalla {
         if (menu.isEmpty()) mostrarError(lblMensaje, "No hay productos disponibles en esta sede.");
     }
 
-    private VBox tarjeta(Producto p) {
-        // Foto del producto; sin foto, el recuadro muestra su categoría
-        Node imagen = Formato.imagenProducto(p, ANCHO_IMAGEN, ALTO_IMAGEN);
+    /** Actualiza contadores, badges y borde dorado en sitio, sin reconstruir las tarjetas ni imágenes. */
+    private void actualizarTarjetas() {
+        for (TarjetaProducto t : tarjetasVisibles) {
+            int cant = cantidadEnPedido(t.producto());
+            if (t.valor() != null) t.valor().setText(String.valueOf(cant));
+            if (t.badge() != null) {
+                t.badge().setText("×" + cant);
+                t.badge().setVisible(cant > 0);
+                t.badge().setManaged(cant > 0);
+            }
+            if (cant > 0) {
+                if (!t.tarjeta().getStyleClass().contains("en-pedido")) t.tarjeta().getStyleClass().add("en-pedido");
+            } else {
+                t.tarjeta().getStyleClass().remove("en-pedido");
+            }
+        }
+    }
 
-        Label nombre = new Label(p.getNombre().toUpperCase());
+    private VBox tarjeta(Producto p) {
+        int cantidad = cantidadEnPedido(p);
+        boolean agotado = p.estaAgotado(estado().getSede());
+
+        // Foto del producto al ras superior; sin foto, el recuadro muestra su categoría
+        Node imagen = Formato.imagenProductoSuperior(p, ANCHO_IMAGEN, ALTO_IMAGEN, 14);
+        StackPane portada = new StackPane(imagen);
+        portada.setPrefSize(ANCHO_IMAGEN, ALTO_IMAGEN);
+        portada.setMinSize(ANCHO_IMAGEN, ALTO_IMAGEN);
+        portada.setMaxSize(ANCHO_IMAGEN, ALTO_IMAGEN);
+        portada.setClip(Formato.clipSuperior(ANCHO_IMAGEN, ALTO_IMAGEN, 14));
+
+        Label badge = null;
+        if (agotado) {
+            Label sinStock = new Label("Sin stock");
+            sinStock.getStyleClass().addAll("estado-chip", "agotado");
+            StackPane.setAlignment(sinStock, Pos.TOP_RIGHT);
+            StackPane.setMargin(sinStock, new Insets(10));
+            portada.getChildren().add(sinStock);
+        } else {
+            badge = new Label("×" + cantidad);
+            badge.getStyleClass().add("badge-cantidad");
+            badge.setVisible(cantidad > 0);
+            badge.setManaged(cantidad > 0);
+            StackPane.setAlignment(badge, Pos.TOP_RIGHT);
+            StackPane.setMargin(badge, new Insets(10));
+            portada.getChildren().add(badge);
+        }
+
+        Label nombre = new Label(p.getNombre());
         nombre.getStyleClass().add("producto-nombre");
         nombre.setWrapText(true);
-        Label descripcion = new Label(p.getDescripcion());
+        Label descripcion = new Label(p.getDescripcion() == null ? "" : p.getDescripcion());
         descripcion.getStyleClass().add("nota-suave");
         descripcion.setWrapText(true);
         descripcion.setMinHeight(36);
@@ -121,16 +187,16 @@ public class DulceriaVista extends Pantalla {
         Region espacio = new Region();
         HBox.setHgrow(espacio, Priority.ALWAYS);
 
-        boolean agotado = p.estaAgotado(estado().getSede());
+        Label valor = null;
         HBox pie;
         if (agotado) {
-            Label sinStock = new Label("Agotado");
-            sinStock.getStyleClass().add("tag-genero");
+            Label sinStock = new Label("Sin stock");
+            sinStock.getStyleClass().add("nota-suave");
             pie = new HBox(precio, espacio, sinStock);
         } else {
             Button menos = new Button("−");
             menos.getStyleClass().add("contador-menos");
-            Label valor = new Label(String.valueOf(cantidadEnPedido(p)));
+            valor = new Label(String.valueOf(cantidad));
             valor.getStyleClass().add("contador-valor");
             Button mas = new Button("+");
             mas.getStyleClass().add("contador-mas");
@@ -142,10 +208,16 @@ public class DulceriaVista extends Pantalla {
         }
         pie.setAlignment(Pos.CENTER_LEFT);
 
-        VBox tarjeta = new VBox(6, imagen, nombre, descripcion, pie);
+        VBox cuerpo = new VBox(6, nombre, descripcion, pie);
+        cuerpo.getStyleClass().add("producto-cuerpo");
+
+        VBox tarjeta = new VBox(portada, cuerpo);
         tarjeta.getStyleClass().add("producto");
+        if (agotado) tarjeta.getStyleClass().add("sin-stock");
+        if (cantidad > 0) tarjeta.getStyleClass().add("en-pedido");
         tarjeta.setPrefWidth(280);
         tarjeta.setMaxWidth(280);
+        tarjetasVisibles.add(new TarjetaProducto(p, tarjeta, valor, badge));
         return tarjeta;
     }
 
@@ -215,23 +287,24 @@ public class DulceriaVista extends Pantalla {
     private void terminar(Respuesta<?> r) {
         if (r.ok()) limpiar(lblMensaje);
         else mostrarError(lblMensaje, r.mensaje());
-        mostrarProductos();
+        actualizarTarjetas();
         actualizarPedido();
     }
 
-    // ---------- Personalización de combos (RF-13) ----------
+    // ---------- Personalización de combos, canchitas y gaseosas (RF-13) ----------
 
-    /** Ventana para elegir el sabor de la canchita y la gaseosa del combo antes de agregarlo. */
+    /** Ventana para elegir el sabor de la canchita y/o la marca de la gaseosa antes de agregar el producto. */
     private void personalizar(Producto p) {
+        String descripcion = p.getDescripcion() == null ? "" : p.getDescripcion();
         DialogoVista d = nav.dialogo();
-        d.configurar("Personaliza tu " + Formato.capitalizar(p.getNombre().toLowerCase()), p.getDescripcion(), false);
+        d.configurar("Personaliza tu " + Formato.capitalizar(p.getNombre()), descripcion, false);
         String[] sabor = {OpcionesCombo.SABORES_CANCHITA.get(0)};
         String[] gaseosa = {OpcionesCombo.GASEOSAS.get(0)};
         if (OpcionesCombo.pideSabor(p)) {
             d.agregarContenido(grupo("Sabor de la canchita", OpcionesCombo.SABORES_CANCHITA, v -> sabor[0] = v));
         }
         if (OpcionesCombo.pideGaseosa(p)) {
-            String titulo = p.getDescripcion().toLowerCase().contains("gaseosas") ? "Gaseosas" : "Gaseosa";
+            String titulo = descripcion.toLowerCase().contains("gaseosas") ? "Gaseosas" : "Gaseosa";
             d.agregarContenido(grupo(titulo, OpcionesCombo.GASEOSAS, v -> gaseosa[0] = v));
         }
         d.botonSecundario("Cancelar", nav::cerrarModal);
@@ -241,29 +314,57 @@ public class DulceriaVista extends Pantalla {
         });
     }
 
-    /** Un título y sus opciones como botones; la primera viene elegida y se marca en dorado. */
+    /** Un título y sus opciones con foto en 3 columnas; la primera viene elegida y se marca en dorado. */
     private static VBox grupo(String titulo, List<String> opciones, Consumer<String> alElegir) {
         Label etiqueta = new Label(titulo);
         etiqueta.getStyleClass().add("etiqueta-fuerte");
-        FlowPane botones = new FlowPane(10, 10);
+        GridPane grilla = new GridPane();
+        grilla.setHgap(10);
+        grilla.setVgap(10);
+        for (int i = 0; i < 3; i++) {
+            ColumnConstraints col = new ColumnConstraints();
+            col.setPercentWidth(100.0 / 3.0);
+            grilla.getColumnConstraints().add(col);
+        }
         List<Button> todos = new ArrayList<>();
-        for (String opcion : opciones) {
-            Button b = new Button(opcion);
-            b.getStyleClass().addAll("opcion", "opcion-centro");
-            b.setMinHeight(48);
-            b.setMinWidth(116); // crece si el texto es más largo (Coca-Cola)
+        for (int i = 0; i < opciones.size(); i++) {
+            String opcion = opciones.get(i);
+            Button b = botonOpcion(opcion);
             b.setOnAction(e -> {
                 todos.forEach(o -> o.getStyleClass().remove("activo"));
                 b.getStyleClass().add("activo");
                 alElegir.accept(opcion);
             });
             todos.add(b);
-            botones.getChildren().add(b);
+            grilla.add(b, i % 3, i / 3);
         }
         todos.get(0).getStyleClass().add("activo");
-        VBox caja = new VBox(8, etiqueta, botones);
+        VBox caja = new VBox(8, etiqueta, grilla);
         caja.setMaxWidth(Double.MAX_VALUE);
         return caja;
+    }
+
+    private static Button botonOpcion(String opcion) {
+        String ruta = FOTOS_OPCIONES.get(opcion);
+        Button b = new Button();
+        b.setMaxWidth(Double.MAX_VALUE);
+        if (ruta != null) {
+            Node foto = Formato.imagenProducto(ruta, opcion, ANCHO_OPCION_FOTO, ALTO_OPCION_FOTO);
+            Label texto = new Label(opcion);
+            texto.getStyleClass().add("opcion-visual-nombre");
+            texto.setWrapText(true);
+            texto.setAlignment(Pos.CENTER);
+            VBox contenido = new VBox(6, foto, texto);
+            contenido.setAlignment(Pos.CENTER);
+            b.setGraphic(contenido);
+            b.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            b.getStyleClass().addAll("opcion", "opcion-visual");
+        } else {
+            b.setText(opcion);
+            b.getStyleClass().addAll("opcion", "opcion-centro");
+            b.setMinHeight(48);
+        }
+        return b;
     }
 
     private void actualizarPedido() {
@@ -312,7 +413,7 @@ public class DulceriaVista extends Pantalla {
         quitar.setOnAction(e -> {
             Respuesta<Void> r = app().compra().quitarProducto(compra, d);
             if (!r.ok()) mostrarError(lblMensaje, r.mensaje());
-            mostrarProductos();
+            actualizarTarjetas();
             actualizarPedido();
         });
         Region espacio2 = new Region();

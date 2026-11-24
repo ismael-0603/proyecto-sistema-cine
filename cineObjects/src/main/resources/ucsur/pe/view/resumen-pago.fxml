@@ -46,8 +46,8 @@
 
                     <VBox styleClass="tarjeta" spacing="16" minWidth="420" prefWidth="560" maxWidth="560">
                         <Label text="Método de pago" styleClass="tarjeta-titulo"/>
-                        <Button fx:id="btnTarjeta" text="◯   💳  Tarjeta de crédito o débito" styleClass="opcion" maxWidth="Infinity" onAction="#onTarjeta"/>
-                        <Button fx:id="btnBilletera" text="◯   📱  Billetera digital" styleClass="opcion" maxWidth="Infinity" onAction="#onBilletera"/>
+                        <Button fx:id="btnTarjeta" styleClass="opcion, opcion-pago" maxWidth="Infinity" onAction="#onTarjeta"/>
+                        <Button fx:id="btnBilletera" styleClass="opcion, opcion-pago" maxWidth="Infinity" onAction="#onBilletera"/>
                         <Label text="Los datos de pago se ingresan en la pasarela de pago, no en esta pantalla."
                                styleClass="nota" wrapText="true"/>
                     </VBox>

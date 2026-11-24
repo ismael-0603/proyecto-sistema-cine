@@ -16,8 +16,8 @@
     <center>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
             <HBox alignment="TOP_CENTER">
-                <padding><Insets top="50" left="24" right="24" bottom="40"/></padding>
-                <HBox spacing="120" maxWidth="1440">
+                <padding><Insets top="28" left="24" right="24" bottom="40"/></padding>
+                <HBox spacing="56" maxWidth="1440">
                     <!-- Columna izquierda: la película -->
                     <VBox spacing="16" minWidth="320" maxWidth="320">
                         <Button text="← Volver a la cartelera" styleClass="btn-secundario" prefWidth="260" onAction="#onVolver"/>
@@ -46,9 +46,9 @@
                     <VBox spacing="12" HBox.hgrow="ALWAYS" minWidth="640" maxWidth="1000">
                         <Label text="Elige tu horario" styleClass="titulo-claro"/>
                         <Label fx:id="lblSedeFecha" styleClass="texto-claro"/>
-                        <HBox fx:id="dias" spacing="12">
-                            <VBox.margin><Insets top="12" bottom="6"/></VBox.margin>
-                        </HBox>
+                        <FlowPane fx:id="dias" hgap="10" vgap="10">
+                            <VBox.margin><Insets top="10" bottom="6"/></VBox.margin>
+                        </FlowPane>
                         <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
                         <VBox fx:id="formatos" spacing="14"/>
                     </VBox>

@@ -35,7 +35,7 @@ public class HorarioVista extends Pantalla {
     @FXML private Label lblClasificacion;
     @FXML private Button btnTrailer;
     @FXML private Label lblSedeFecha;
-    @FXML private HBox dias;
+    @FXML private FlowPane dias;
     @FXML private Label lblMensaje;
     @FXML private VBox formatos;
 
@@ -63,6 +63,8 @@ public class HorarioVista extends Pantalla {
         }
         lblDuracion.setText(p.getDuracion() + " min");
         lblClasificacion.setText(p.getClasificacionEdad());
+        btnTrailer.setGraphic(Iconos.crear(Iconos.PLAY, 15));
+        btnTrailer.setGraphicTextGap(6);
         btnTrailer.setDisable(p.getTrailer() == null || p.getTrailer().isBlank());
 
         Respuesta<List<Funcion>> r = app().cartelera().consultarCartelera(estado().getSede());

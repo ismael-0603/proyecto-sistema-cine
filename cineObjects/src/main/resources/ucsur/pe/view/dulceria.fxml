@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.Group?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.SVGPath?>
 
 <!-- 7 · Dulcería -->
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -37,8 +39,16 @@
                     <HBox><Label text="Subtotal dulcería" styleClass="nota"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="lblSubtotalDulceria" styleClass="nota"/></HBox>
                     <Separator/>
                     <HBox><Label text="Total" styleClass="etiqueta-fuerte"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="lblTotal" styleClass="etiqueta-fuerte"/></HBox>
-                    <Label text="ⓘ  Sabor de bebida y golosina sujetos a stock de la sede. Canchita sin refill."
-                           styleClass="aviso, nota" wrapText="true" maxWidth="Infinity"/>
+                    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="aviso" maxWidth="Infinity">
+                        <StackPane minWidth="18" minHeight="18" prefWidth="18" prefHeight="18">
+                            <Group>
+                                <SVGPath content="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                                         styleClass="icono-svg, icono-dorado" scaleX="0.75" scaleY="0.75"/>
+                            </Group>
+                        </StackPane>
+                        <Label text="Sabor de bebida y golosina sujetos a stock de la sede. Canchita sin refill."
+                               styleClass="nota" wrapText="true" HBox.hgrow="ALWAYS"/>
+                    </HBox>
                 </VBox>
             </HBox>
         </HBox>
@@ -50,8 +60,8 @@
             <Label text="Total" styleClass="pie-etiqueta"/>
             <Label fx:id="lblPieTotal" styleClass="pie-total"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="Continuar sin dulcería" styleClass="btn-secundario" prefWidth="250" minWidth="-Infinity" onAction="#onSinDulceria"/>
-            <Button text="Actualizar pedido y continuar" styleClass="btn-primario" prefWidth="320" minWidth="-Infinity" onAction="#onContinuar"/>
+            <Button text="Omitir dulcería" styleClass="btn-secundario" prefWidth="200" minWidth="-Infinity" onAction="#onSinDulceria"/>
+            <Button text="Continuar al pago" styleClass="btn-primario" prefWidth="260" minWidth="-Infinity" onAction="#onContinuar"/>
         </HBox>
     </bottom>
 </BorderPane>

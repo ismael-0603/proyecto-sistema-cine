@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.Group?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.SVGPath?>
 
 <!-- 9 · Comprobante -->
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -16,13 +18,17 @@
     <center>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
             <HBox alignment="TOP_CENTER">
-                <padding><Insets top="50" left="24" right="24" bottom="24"/></padding>
+                <padding><Insets top="28" left="24" right="24" bottom="24"/></padding>
                 <HBox spacing="28" maxWidth="1400">
                     <VBox styleClass="tarjeta" spacing="4" HBox.hgrow="ALWAYS" minWidth="560" maxWidth="830">
-                        <padding><Insets top="34" left="44" right="44" bottom="34"/></padding>
+                        <padding><Insets top="30" left="40" right="40" bottom="30"/></padding>
                         <HBox spacing="16" alignment="CENTER_LEFT">
-                            <VBox.margin><Insets bottom="20"/></VBox.margin>
-                            <Label text="✓" styleClass="check-exito"/>
+                            <VBox.margin><Insets bottom="18"/></VBox.margin>
+                            <StackPane styleClass="check-exito">
+                                <Group>
+                                    <SVGPath content="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" styleClass="icono-svg" scaleX="1.1" scaleY="1.1"/>
+                                </Group>
+                            </StackPane>
                             <VBox>
                                 <Label text="¡Compra exitosa!" styleClass="titulo"/>
                                 <Label fx:id="lblSerie" styleClass="etiqueta"/>
@@ -30,11 +36,14 @@
                         </HBox>
                         <VBox fx:id="filas"/>
                         <HBox fx:id="filaTotal"/>
-                        <Label fx:id="lblMedio" styleClass="nota"/>
+                        <Region styleClass="separador-ticket">
+                            <VBox.margin><Insets top="14" bottom="10"/></VBox.margin>
+                        </Region>
+                        <Label fx:id="lblMedio" styleClass="nota-suave"/>
                     </VBox>
 
                     <VBox styleClass="tarjeta" spacing="14" minWidth="420" prefWidth="530" maxWidth="530">
-                        <padding><Insets top="34" left="36" right="36" bottom="34"/></padding>
+                        <padding><Insets top="30" left="36" right="36" bottom="30"/></padding>
                         <Label text="Tu código QR" styleClass="tarjeta-titulo"/>
                         <HBox alignment="CENTER">
                             <StackPane fx:id="marcoQr" styleClass="marco-qr"/>
@@ -47,8 +56,8 @@
                             <Label fx:id="lblSaldo" styleClass="nota"/>
                         </VBox>
                         <HBox spacing="12" alignment="CENTER">
-                            <Button text="Enviar al correo" styleClass="btn-secundario" onAction="#onEnviar"/>
-                            <Button text="Imprimir" styleClass="btn-secundario" prefWidth="160" onAction="#onImprimir"/>
+                            <Button fx:id="btnEnviar" text="Enviar al correo" styleClass="btn-secundario" HBox.hgrow="ALWAYS" maxWidth="Infinity" onAction="#onEnviar"/>
+                            <Button fx:id="btnImprimir" text="Imprimir" styleClass="btn-secundario" HBox.hgrow="ALWAYS" maxWidth="Infinity" onAction="#onImprimir"/>
                         </HBox>
                         <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false"/>
                         <Button text="Volver al inicio" styleClass="btn-primario" maxWidth="Infinity" onAction="#onInicio"/>

@@ -1,11 +1,13 @@
 package ucsur.pe.vista;
 
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -26,6 +28,7 @@ public class ElegirSedeVista extends Pantalla {
     @FXML private Label lblMensaje;
 
     private List<Sede> todas = new ArrayList<>();
+    private boolean navegando;
 
     public ElegirSedeVista(Navegador nav) {
         super(nav);
@@ -62,36 +65,61 @@ public class ElegirSedeVista extends Pantalla {
     }
 
     private VBox tarjeta(Sede sede) {
+        boolean operativa = sede.estaOperativa();
+
         Label nombre = new Label(sede.getNombre());
         nombre.getStyleClass().add("tarjeta-titulo");
-        Label distrito = etiqueta(sede.getDistrito());
-        Label direccion = etiqueta(sede.getDireccion());
-        Label salas = etiqueta(resumenSalas(sede));
-        salas.setPadding(new javafx.geometry.Insets(8, 0, 0, 0));
+        nombre.setWrapText(true);
+        Region empuje = new Region();
+        HBox.setHgrow(empuje, Priority.ALWAYS);
+        Label estadoChip = new Label(operativa ? "Abierta" : "Cerrada");
+        estadoChip.getStyleClass().addAll("estado-chip", operativa ? "pagada" : "anulada");
+        estadoChip.setMinWidth(Region.USE_PREF_SIZE);
+        HBox cabecera = new HBox(10, nombre, empuje, estadoChip);
+        cabecera.setAlignment(Pos.CENTER_LEFT);
+
+        Label distrito = new Label(sede.getDistrito());
+        distrito.getStyleClass().add("etiqueta-fuerte");
+        HBox ubicacion = new HBox(6, Iconos.crear(Iconos.UBICACION, 15, "icono-rojo"), distrito);
+        ubicacion.setAlignment(Pos.CENTER_LEFT);
+
+        Label direccion = new Label(sede.getDireccion());
+        direccion.getStyleClass().add("nota-suave");
+        direccion.setWrapText(true);
+
+        FlowPane chips = chipsSalas(sede);
+        chips.setPadding(new Insets(6, 0, 0, 0));
 
         Region espacio = new Region();
         VBox.setVgrow(espacio, Priority.ALWAYS);
 
-        Button elegir = new Button(sede.estaOperativa() ? "Elegir esta sede" : "Sede cerrada");
-        elegir.getStyleClass().add("btn-secundario");
-        elegir.setPrefWidth(280);
-        elegir.setDisable(!sede.estaOperativa());
-        elegir.setOnAction(e -> {
-            estado().setSede(sede);
-            nav.ir("cartelera");
-        });
-        VBox fila = new VBox(elegir);
-        fila.setAlignment(Pos.CENTER);
+        Button elegir = new Button(operativa ? "Elegir esta sede" : "Sede cerrada");
+        elegir.getStyleClass().add(operativa ? "btn-primario" : "btn-secundario");
+        elegir.setMaxWidth(Double.MAX_VALUE);
+        elegir.setDisable(!operativa);
+        elegir.setOnAction(e -> seleccionar(sede));
 
-        VBox tarjeta = new VBox(8, nombre, distrito, direccion, salas, espacio, fila);
-        tarjeta.getStyleClass().add("tarjeta");
-        tarjeta.setPrefSize(445, 273);
-        tarjeta.setMinHeight(273);
+        VBox tarjeta = new VBox(8, cabecera, ubicacion, direccion, chips, espacio, elegir);
+        tarjeta.getStyleClass().addAll("tarjeta", "tarjeta-sede");
+        if (operativa) {
+            tarjeta.setOnMouseClicked(e -> seleccionar(sede));
+        } else {
+            tarjeta.getStyleClass().add("cerrada");
+        }
+        tarjeta.setPrefSize(435, 276);
+        tarjeta.setMinHeight(276);
         return tarjeta;
     }
 
-    /** «5 salas · 2D, 3D» con las salas operativas y sus formatos. */
-    private static String resumenSalas(Sede sede) {
+    private void seleccionar(Sede sede) {
+        if (navegando) return;
+        navegando = true;
+        estado().setSede(sede);
+        nav.ir("cartelera");
+    }
+
+    /** Píldoras con la cantidad de salas operativas y sus formatos («5 salas», «2D», «Prime 2D»...). */
+    private static FlowPane chipsSalas(Sede sede) {
         int cantidad = 0;
         Set<String> formatos = new LinkedHashSet<>();
         for (Sala sala : sede.getSalas()) {
@@ -100,13 +128,21 @@ public class ElegirSedeVista extends Pantalla {
                 formatos.add(sala.getTipoSala().getFormato());
             }
         }
-        if (cantidad == 0) return "Sin salas disponibles";
-        return cantidad + (cantidad == 1 ? " sala · " : " salas · ") + String.join(", ", formatos);
-    }
-
-    private static Label etiqueta(String texto) {
-        Label l = new Label(texto);
-        l.getStyleClass().add("etiqueta");
-        return l;
+        FlowPane fp = new FlowPane(6, 6);
+        if (cantidad == 0) {
+            Label sin = new Label("Sin salas disponibles");
+            sin.getStyleClass().add("nota-suave");
+            fp.getChildren().add(sin);
+            return fp;
+        }
+        Label total = new Label(cantidad + (cantidad == 1 ? " sala" : " salas"));
+        total.getStyleClass().add("recargo");
+        fp.getChildren().add(total);
+        for (String f : formatos) {
+            Label tag = new Label(f);
+            tag.getStyleClass().add("tag-genero");
+            fp.getChildren().add(tag);
+        }
+        return fp;
     }
 }

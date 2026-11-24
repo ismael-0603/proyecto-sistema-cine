@@ -6,13 +6,22 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.ArcTo;
+import javafx.scene.shape.ClosePath;
+import javafx.scene.shape.LineTo;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import ucsur.pe.model.DateTime;
 import ucsur.pe.model.Funcion;
 import ucsur.pe.model.Pelicula;
 import ucsur.pe.model.Producto;
 import ucsur.pe.util.ConversorDinero;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Por qué existe: convertir datos a texto o imagen es trabajo de la pantalla, no del modelo.
@@ -24,6 +33,8 @@ public final class Formato {
     private static final String[] DIAS = {"Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"};
     private static final String[] MESES = {"enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
             "agosto", "septiembre", "octubre", "noviembre", "diciembre"};
+    /** Caché en memoria de pósters y fotos del proyecto para evitar decodificar JPG en cada filtro o clic. */
+    private static final Map<String, Image> CACHE_IMAGENES = new HashMap<>();
 
     private Formato() { }
 
@@ -230,12 +241,43 @@ public final class Formato {
         return reemplazo;
     }
 
+    /** Igual que {@link #poster(Pelicula, double, double)}, sin recorte interno (lo recorta el contenedor padre). */
+    public static Node posterSuperior(Pelicula pelicula, double ancho, double alto, double radio) {
+        Image imagen = cargarImagen(pelicula.getPoster());
+        if (imagen != null && !imagen.isError()) return marcoRecortado(imagen, ancho, alto, (Shape) null);
+        Label titulo = new Label(pelicula.getTitulo());
+        titulo.getStyleClass().add("poster-reemplazo-titulo");
+        titulo.setMaxWidth(ancho - 28);
+        titulo.setAlignment(Pos.CENTER);
+        StackPane reemplazo = new StackPane(titulo);
+        reemplazo.getStyleClass().add("poster-reemplazo");
+        reemplazo.setAlignment(Pos.CENTER);
+        reemplazo.setPrefSize(ancho, alto);
+        reemplazo.setMinSize(ancho, alto);
+        reemplazo.setMaxSize(ancho, alto);
+        return reemplazo;
+    }
+
     /**
      * La foto del producto de dulcería. La BD guarda la ruta («productos/canchita-salada.jpg») igual que el
      * póster; si el producto no tiene foto (por ejemplo, uno recién creado por el administrador) se muestra su categoría.
      */
     public static Node imagenProducto(Producto producto, double ancho, double alto) {
         return imagenProducto(producto.getImagen(), producto.getCategoria(), ancho, alto);
+    }
+
+    /** Igual que {@link #imagenProducto(Producto, double, double)}, sin recorte interno (lo recorta el contenedor). */
+    public static Node imagenProductoSuperior(Producto producto, double ancho, double alto, double radio) {
+        Image imagen = cargarImagen(producto.getImagen());
+        if (imagen != null && !imagen.isError()) return marcoRecortado(imagen, ancho, alto, (Shape) null);
+        Label categoria = new Label(capitalizar(producto.getCategoria()));
+        categoria.getStyleClass().add("producto-categoria");
+        StackPane reemplazo = new StackPane(categoria);
+        reemplazo.getStyleClass().add("producto-imagen");
+        reemplazo.setPrefSize(ancho, alto);
+        reemplazo.setMinSize(ancho, alto);
+        reemplazo.setMaxSize(ancho, alto);
+        return reemplazo;
     }
 
     /** Igual que el anterior, con la ruta y la categoría sueltas (vista previa del formulario de producto). */
@@ -252,8 +294,32 @@ public final class Formato {
         return reemplazo;
     }
 
+    /** Recorte rectangular con esquinas superiores redondeadas y base recta (para tarjetas con imagen al ras). */
+    public static Shape clipSuperior(double ancho, double alto, double radio) {
+        double r = Math.min(radio, Math.min(ancho, alto) / 2.0);
+        Path p = new Path(
+                new MoveTo(0, r),
+                new ArcTo(r, r, 0, r, 0, false, true),
+                new LineTo(ancho - r, 0),
+                new ArcTo(r, r, 0, ancho, r, false, true),
+                new LineTo(ancho, alto),
+                new LineTo(0, alto),
+                new ClosePath()
+        );
+        p.setFill(Color.BLACK);
+        p.setStroke(null);
+        return p;
+    }
+
     /** La imagen llena todo el recuadro (recortando lo que sobra) y con las esquinas redondeadas. */
     private static Node marcoRecortado(Image imagen, double ancho, double alto, double radio) {
+        Rectangle esquinas = new Rectangle(ancho, alto);
+        esquinas.setArcWidth(radio);
+        esquinas.setArcHeight(radio);
+        return marcoRecortado(imagen, ancho, alto, esquinas);
+    }
+
+    private static Node marcoRecortado(Image imagen, double ancho, double alto, Shape clip) {
         ImageView vista = new ImageView(imagen);
         vista.setFitWidth(ancho);
         vista.setFitHeight(alto);
@@ -267,10 +333,7 @@ public final class Formato {
         marco.setPrefSize(ancho, alto);
         marco.setMinSize(ancho, alto);
         marco.setMaxSize(ancho, alto);
-        Rectangle esquinas = new Rectangle(ancho, alto);
-        esquinas.setArcWidth(radio);
-        esquinas.setArcHeight(radio);
-        marco.setClip(esquinas);
+        if (clip != null) marco.setClip(clip);
         return marco;
     }
 
@@ -293,12 +356,16 @@ public final class Formato {
     private static Image cargarImagen(String ruta) {
         if (ruta == null || ruta.isBlank()) return null;
         if (ruta.startsWith("http://") || ruta.startsWith("https://")) {
-            return new Image(ruta, true); // de internet: se carga en segundo plano
+            return CACHE_IMAGENES.computeIfAbsent(ruta, r -> new Image(r, true)); // de internet: en segundo plano
         }
         if (ruta.startsWith("file:")) {
-            return new Image(ruta); // archivo elegido en el formulario de película o de producto
+            return new Image(ruta); // archivo local recién elegido: no se cachea para reflejar cambios
         }
+        if (CACHE_IMAGENES.containsKey(ruta)) return CACHE_IMAGENES.get(ruta);
         URL recurso = Formato.class.getResource("/ucsur/pe/" + ruta);
-        return recurso == null ? null : new Image(recurso.toExternalForm()); // del proyecto: al instante
+        // Carga en segundo plano (backgroundLoading = true) para no trabar el hilo visual al abrir Cartelera/Dulcería
+        Image img = recurso == null ? null : new Image(recurso.toExternalForm(), true);
+        CACHE_IMAGENES.put(ruta, img);
+        return img;
     }
 }

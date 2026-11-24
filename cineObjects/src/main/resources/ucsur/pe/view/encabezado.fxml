@@ -8,7 +8,7 @@
 <HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="ucsur.pe.vista.EncabezadoVista" styleClass="encabezado">
     <fx:include source="logo.fxml"/>
-    <Button fx:id="btnSede" styleClass="btn-secundario, btn-pastilla" onAction="#onCambiarSede">
+    <Button fx:id="btnSede" styleClass="btn-sede, btn-pastilla" onAction="#onCambiarSede">
         <HBox.margin><Insets left="14"/></HBox.margin>
     </Button>
     <!-- Modo panel (dulcería y administración): título y sede del empleado -->
@@ -20,8 +20,8 @@
     <Region HBox.hgrow="ALWAYS"/>
     <Button fx:id="btnComprar" text="Ir a comprar entradas" styleClass="btn-secundario, btn-pastilla"
             visible="false" managed="false" onAction="#onComprar"/>
-    <Button fx:id="btnPerdiste" text="¿Perdiste tus entradas?" styleClass="btn-secundario, btn-pastilla" onAction="#onPerdiste"/>
-    <Button fx:id="btnPromociones" text="Promociones" styleClass="btn-secundario, btn-pastilla" onAction="#onPromociones"/>
+    <Button fx:id="btnPerdiste" text="¿Perdiste tus entradas?" styleClass="btn-nav, btn-pastilla" onAction="#onPerdiste"/>
+    <Button fx:id="btnPromociones" text="Promociones" styleClass="btn-nav, btn-pastilla" onAction="#onPromociones"/>
     <Button fx:id="btnSesion" styleClass="btn-primario, btn-pastilla" onAction="#onSesion"/>
     <Button fx:id="btnVolver" styleClass="btn-secundario, btn-pastilla" onAction="#onVolver"/>
 </HBox>

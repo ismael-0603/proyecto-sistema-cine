@@ -25,8 +25,10 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * 6 · Selección de asientos: cuántas entradas de cada tipo, el mapa de la sala con la sugerencia del sistema
- * y las butacas elegidas. Al continuar se agregan las entradas a la compra y se bloquean las butacas.
+ * 6 · Selección de asientos: el cliente toca las butacas en el mapa y cada butaca es una entrada. Todas
+ * empiezan como el primer tipo de la lista («General», se calcula solo) y los demás tipos se reparten entre
+ * las butacas elegidas. La sugerencia del sistema (RF-29) tiene su propio selector de grupo. Al continuar se
+ * agregan las entradas a la compra y se bloquean las butacas.
  */
 public class AsientosVista extends Pantalla {
 
@@ -35,8 +37,12 @@ public class AsientosVista extends Pantalla {
     @FXML private HBox cajaSugerencia;
     @FXML private Label lblSugerencia;
     @FXML private Button btnSugerencia;
+    @FXML private Label lblGrupo;
+    @FXML private Button btnGrupoMenos;
+    @FXML private Button btnGrupoMas;
     @FXML private CheckBox chkAccesible;
     @FXML private Label lblMensajeMapa;
+    @FXML private Label lblGuia;
     @FXML private VBox tipos;
     @FXML private Label lblSocio;
     @FXML private Label lblButacas;
@@ -48,9 +54,15 @@ public class AsientosVista extends Pantalla {
     private Funcion funcion;
     private Compra compra;
     private MapaButacas mapaActual;
+    private int grupoSugerencia = 2;
+    private TipoEntrada tipoBase; // el primero de la lista: recibe las butacas que no tienen otro tipo
+    /** Cantidad por tipo, el tipo base primero; la del tipo base se calcula a partir de las butacas elegidas. */
     private final Map<TipoEntrada, Integer> cantidades = new LinkedHashMap<>();
     private final Map<TipoEntrada, Label> valores = new LinkedHashMap<>();
+    private final Map<TipoEntrada, Button> botonesMas = new LinkedHashMap<>();
+    private final Map<TipoEntrada, Button> botonesMenos = new LinkedHashMap<>();
     private final List<Butaca> elegidas = new ArrayList<>();
+    private final Map<Butaca, Button> botonesButaca = new LinkedHashMap<>();
 
     public AsientosVista(Navegador nav) {
         super(nav);
@@ -87,92 +99,175 @@ public class AsientosVista extends Pantalla {
             return;
         }
         for (TipoEntrada t : r.dato()) {
-            cantidades.put(t, estado().getCantidades().getOrDefault(t, 0));
+            boolean base = tipoBase == null;
+            if (base) tipoBase = t;
+            cantidades.put(t, base ? 0 : Math.max(0, estado().getCantidades().getOrDefault(t, 0)));
             Label nombre = new Label(t.getNombre());
             nombre.getStyleClass().add("etiqueta");
             Label precio = new Label(Formato.dinero(funcion.precioEntrada(t)));
             precio.getStyleClass().add("nota");
             VBox info = new VBox(1, nombre, precio);
+            if (base) {
+                Label automatico = new Label("Automático (resto de tus butacas)");
+                automatico.getStyleClass().add("nota");
+                info.getChildren().add(automatico);
+            }
             Region espacio = new Region();
             HBox.setHgrow(espacio, Priority.ALWAYS);
 
-            Button menos = new Button("−");
-            menos.getStyleClass().add("contador-menos");
-            Label valor = new Label(String.valueOf(cantidades.get(t)));
+            Label valor = new Label("0");
             valor.getStyleClass().add("contador-valor");
-            Button mas = new Button("+");
-            mas.getStyleClass().add("contador-mas");
-            menos.setOnAction(e -> cambiarCantidad(t, -1));
-            mas.setOnAction(e -> cambiarCantidad(t, +1));
             valores.put(t, valor);
-            HBox contador = new HBox(menos, valor, mas);
-            contador.getStyleClass().add("contador");
-
-            HBox fila = new HBox(info, espacio, contador);
+            HBox fila;
+            if (base) {
+                fila = new HBox(info, espacio, valor);
+            } else {
+                Button menos = new Button("−");
+                menos.getStyleClass().add("contador-menos");
+                Button mas = new Button("+");
+                mas.getStyleClass().add("contador-mas");
+                menos.setOnAction(e -> cambiarCantidad(t, -1));
+                mas.setOnAction(e -> cambiarCantidad(t, +1));
+                botonesMenos.put(t, menos);
+                botonesMas.put(t, mas);
+                HBox contador = new HBox(menos, valor, mas);
+                contador.getStyleClass().add("contador");
+                fila = new HBox(info, espacio, contador);
+            }
             fila.setAlignment(Pos.CENTER_LEFT);
             tipos.getChildren().add(fila);
         }
+        ajustarTipos();
         boolean socio = estado().cliente() != null && estado().cliente().esSocio();
         lblSocio.setText(socio ? "" : "Socio (usa puntos): inicia sesión con tu cuenta de socio para verlo.");
         lblSocio.setManaged(!socio);
     }
 
-    private void cambiarCantidad(TipoEntrada tipo, int cambio) {
-        int nuevo = Math.max(0, cantidades.get(tipo) + cambio);
-        cantidades.put(tipo, nuevo);
-        valores.get(tipo).setText(String.valueOf(nuevo));
-        // Si ahora pide menos entradas que butacas elegidas, se sueltan las últimas
-        while (elegidas.size() > totalEntradas()) elegidas.remove(elegidas.size() - 1);
-        limpiar(lblMensaje);
-        recargarMapa();
-    }
-
-    private int totalEntradas() {
+    /** Suma de las entradas que no son del tipo base. */
+    private int totalOtrosTipos() {
         int total = 0;
-        for (int c : cantidades.values()) total += c;
+        for (var e : cantidades.entrySet()) {
+            if (e.getKey() != tipoBase) total += e.getValue();
+        }
         return total;
     }
 
-    /** Pide al servicio el mapa con las butacas libres y la sugerencia para la cantidad actual. */
+    /**
+     * Cuadra los tipos con las butacas elegidas: el tipo base absorbe lo que sobra; si hay más entradas de otros
+     * tipos que butacas, se quitan primero las del último tipo con cantidad.
+     */
+    private void ajustarTipos() {
+        List<TipoEntrada> orden = new ArrayList<>(cantidades.keySet());
+        while (totalOtrosTipos() > elegidas.size()) {
+            for (int i = orden.size() - 1; i >= 0; i--) {
+                TipoEntrada t = orden.get(i);
+                if (t != tipoBase && cantidades.get(t) > 0) {
+                    cantidades.put(t, cantidades.get(t) - 1);
+                    break;
+                }
+            }
+        }
+        if (tipoBase != null) cantidades.put(tipoBase, elegidas.size() - totalOtrosTipos());
+        boolean libre = totalOtrosTipos() < elegidas.size();
+        for (var e : valores.entrySet()) e.getValue().setText(String.valueOf(cantidades.get(e.getKey())));
+        for (var e : botonesMas.entrySet()) e.getValue().setDisable(!libre);
+        for (var e : botonesMenos.entrySet()) e.getValue().setDisable(cantidades.get(e.getKey()) == 0);
+    }
+
+    /** Pasa una butaca del tipo base a este tipo (+) o la devuelve al tipo base (−). */
+    private void cambiarCantidad(TipoEntrada tipo, int cambio) {
+        if (cambio > 0 && totalOtrosTipos() >= elegidas.size()) return;
+        cantidades.put(tipo, Math.max(0, cantidades.get(tipo) + cambio));
+        limpiar(lblMensaje);
+        ajustarTipos();
+        actualizarResumen();
+    }
+
+    /** Cambia el tamaño del grupo para el que el sistema sugiere butacas (no toca la selección actual). */
+    @FXML
+    private void onGrupoMenos() {
+        cambiarGrupo(-1);
+    }
+
+    @FXML
+    private void onGrupoMas() {
+        cambiarGrupo(+1);
+    }
+
+    private void cambiarGrupo(int cambio) {
+        int maximo = mapaActual == null ? 1 : Math.max(1, mapaActual.libres().size());
+        int nuevo = Math.max(1, Math.min(maximo, grupoSugerencia + cambio));
+        if (nuevo == grupoSugerencia) return;
+        grupoSugerencia = nuevo;
+        recargarMapa();
+    }
+
+    /** Pide al servicio el mapa con las butacas libres y la sugerencia para el grupo elegido. */
     private void recargarMapa() {
-        int cantidad = Math.max(1, totalEntradas());
-        Respuesta<MapaButacas> r = app().compra().consultarMapa(compra, funcion, cantidad, chkAccesible.isSelected());
+        Respuesta<MapaButacas> r = app().compra().consultarMapa(compra, funcion, grupoSugerencia, chkAccesible.isSelected());
         if (!r.ok()) {
             mostrarError(lblMensajeMapa, r.mensaje());
             return;
         }
         mapaActual = r.dato();
-        if (r.mensaje() != null && !r.mensaje().isEmpty() && totalEntradas() > 0) mostrarError(lblMensajeMapa, r.mensaje());
+        int libres = mapaActual.libres().size();
+        if (libres > 0 && grupoSugerencia > libres) { // el grupo no puede pasar de las butacas libres
+            grupoSugerencia = libres;
+            recargarMapa();
+            return;
+        }
+        if (r.mensaje() != null && !r.mensaje().isEmpty()) mostrarError(lblMensajeMapa, r.mensaje());
         else limpiar(lblMensajeMapa);
         dibujarMapa();
         actualizarResumen();
     }
 
     private void dibujarMapa() {
+        if (!botonesButaca.isEmpty() && botonesButaca.size() == mapaActual.todas().size()) {
+            actualizarBotonesMapa();
+            return;
+        }
         mapa.getChildren().clear();
+        botonesButaca.clear();
         // Filas en orden alfabético; dentro de cada fila, la columna depende del número y del bloque
         Map<String, List<Butaca>> porFila = new TreeMap<>();
         int maxIzquierda = 0;
         int maxCentro = 0;
+        int maxColumna = 0;
         for (Butaca b : mapaActual.todas()) {
             porFila.computeIfAbsent(b.getFila(), k -> new ArrayList<>()).add(b);
             if (Butaca.IZQUIERDA.equals(b.getBloque())) maxIzquierda = Math.max(maxIzquierda, b.getNumero());
             if (Butaca.CENTRO.equals(b.getBloque())) maxCentro = Math.max(maxCentro, b.getNumero());
+            maxColumna = Math.max(maxColumna, columna(b));
         }
         int fila = 0;
         for (var entrada : porFila.entrySet()) {
-            Label letra = new Label(entrada.getKey());
-            letra.getStyleClass().add("fila-letra");
-            mapa.add(letra, 0, fila);
+            Label letraIzq = new Label(entrada.getKey());
+            letraIzq.getStyleClass().add("fila-letra");
+            mapa.add(letraIzq, 0, fila);
             entrada.getValue().sort(Comparator.comparingInt(Butaca::getNumero));
             for (Butaca b : entrada.getValue()) {
-                mapa.add(botonButaca(b), columna(b), fila);
+                Button btn = new Button();
+                btn.getStyleClass().add("butaca");
+                aplicarEstadoButaca(b, btn);
+                botonesButaca.put(b, btn);
+                mapa.add(btn, columna(b), fila);
             }
+            Label letraDer = new Label(entrada.getKey());
+            letraDer.getStyleClass().add("fila-letra");
+            mapa.add(letraDer, maxColumna + 1, fila);
             fila++;
         }
         // Pasillos: columnas vacías con ancho fijo entre los bloques
         if (maxIzquierda > 0) mapa.add(pasillo(), maxIzquierda + 1, 0);
         if (maxCentro > 0) mapa.add(pasillo(), maxCentro + 2, 0);
+    }
+
+    /** Actualiza el estado visual de las butacas existentes sin destruir ni reconstruir el GridPane. */
+    private void actualizarBotonesMapa() {
+        for (var e : botonesButaca.entrySet()) {
+            aplicarEstadoButaca(e.getKey(), e.getValue());
+        }
     }
 
     /** Columna 0 = letra; los bloques centro y derecha se corren 1 y 2 columnas para dejar los pasillos. */
@@ -187,62 +282,65 @@ public class AsientosVista extends Pantalla {
         return r;
     }
 
-    private Button botonButaca(Butaca b) {
-        Button boton = new Button(b.esAccesible() ? "D" : String.valueOf(b.getNumero()));
-        boton.getStyleClass().add("butaca");
+    private void aplicarEstadoButaca(Butaca b, Button boton) {
+        boton.getStyleClass().removeAll("elegida", "ocupada", "sugerida", "preferencial");
         boolean elegida = elegidas.contains(b);
         if (elegida) {
+            boton.setText(b.esAccesible() ? "D" : String.valueOf(b.getNumero()));
             boton.getStyleClass().add("elegida");
+            boton.setOnAction(e -> tocarButaca(b));
         } else if (!mapaActual.estaLibre(b)) {
             boton.setText("X");
             boton.getStyleClass().add("ocupada");
-            return boton; // ocupada: no se puede tocar
-        } else if (elegidas.isEmpty() && totalEntradas() > 0 && mapaActual.esSugerida(b)) {
-            boton.getStyleClass().add("sugerida");
-        } else if (Butaca.PREFERENCIAL.equals(b.getTipo())) {
-            boton.getStyleClass().add("preferencial");
+            boton.setOnAction(null); // ocupada: no se puede tocar
+        } else {
+            boton.setText(b.esAccesible() ? "D" : String.valueOf(b.getNumero()));
+            if (elegidas.isEmpty() && mapaActual.esSugerida(b)) {
+                boton.getStyleClass().add("sugerida");
+            } else if (Butaca.PREFERENCIAL.equals(b.getTipo())) {
+                boton.getStyleClass().add("preferencial");
+            }
+            boton.setOnAction(e -> tocarButaca(b));
         }
-        boton.setOnAction(e -> tocarButaca(b));
-        return boton;
     }
 
+    /** Elige o suelta una butaca; cada butaca elegida es una entrada. */
     private void tocarButaca(Butaca b) {
-        if (elegidas.contains(b)) {
-            elegidas.remove(b);
-        } else if (totalEntradas() == 0) {
-            mostrarError(lblMensaje, "Primero elige cuántas entradas quieres.");
-            return;
-        } else if (elegidas.size() >= totalEntradas()) {
-            mostrarError(lblMensaje, "Ya elegiste " + totalEntradas() + " butaca(s). Toca una elegida para soltarla.");
-            return;
-        } else {
-            elegidas.add(b);
-        }
+        if (!elegidas.remove(b)) elegidas.add(b);
         limpiar(lblMensaje);
+        ajustarTipos();
         dibujarMapa();
         actualizarResumen();
     }
 
+    /** Reemplaza la selección por las butacas sugeridas; todas quedan como tipo base, listas para repartir tipos. */
     @FXML
     private void onUsarSugerencia() {
+        if (mapaActual.sugeridas().isEmpty()) return;
         elegidas.clear();
         elegidas.addAll(mapaActual.sugeridas());
+        for (TipoEntrada t : cantidades.keySet()) cantidades.put(t, 0);
         limpiar(lblMensaje);
+        ajustarTipos();
         dibujarMapa();
         actualizarResumen();
     }
 
     private void actualizarResumen() {
-        // Sugerencia
+        // Sugerencia para el grupo
         List<Butaca> sugeridas = mapaActual.sugeridas();
-        boolean haySugerencia = totalEntradas() > 0 && !sugeridas.isEmpty();
-        cajaSugerencia.setVisible(haySugerencia);
-        cajaSugerencia.setManaged(haySugerencia);
-        if (haySugerencia) {
-            lblSugerencia.setText("Te sugerimos " + codigos(sugeridas) + ": juntas y al centro.");
-        }
+        lblGrupo.setText(String.valueOf(grupoSugerencia));
+        btnGrupoMenos.setDisable(grupoSugerencia <= 1);
+        btnGrupoMas.setDisable(grupoSugerencia >= mapaActual.libres().size());
+        btnSugerencia.setDisable(sugeridas.isEmpty());
+        lblSugerencia.setText(sugeridas.isEmpty()
+                ? "No hay butacas juntas para " + grupoSugerencia + "."
+                : "Te sugerimos " + codigos(sugeridas) + ": juntas y al centro.");
         // Butacas y entradas
-        lblButacas.setText(elegidas.isEmpty() ? "—" : codigos(elegidas));
+        boolean vacio = elegidas.isEmpty();
+        lblGuia.setVisible(vacio);
+        lblGuia.setManaged(vacio);
+        lblButacas.setText(vacio ? "—" : codigos(elegidas));
         List<String> partes = new ArrayList<>();
         long subtotal = 0;
         for (var e : cantidades.entrySet()) {
@@ -268,13 +366,8 @@ public class AsientosVista extends Pantalla {
     /** Agrega una entrada por butaca (los tipos en el orden de la lista) y bloquea las butacas. */
     @FXML
     private void onContinuar() {
-        int total = totalEntradas();
-        if (total == 0) {
-            mostrarError(lblMensaje, "Elige al menos una entrada.");
-            return;
-        }
-        if (elegidas.size() != total) {
-            mostrarError(lblMensaje, "Elige " + total + " butaca(s); llevas " + elegidas.size() + ".");
+        if (elegidas.isEmpty()) {
+            mostrarError(lblMensaje, "Elige al menos una butaca.");
             return;
         }
         List<TipoEntrada> tiposPorButaca = new ArrayList<>();

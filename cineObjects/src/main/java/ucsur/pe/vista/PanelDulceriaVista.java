@@ -96,7 +96,9 @@ public class PanelDulceriaVista extends Pantalla {
         if (hay) {
             List<String> nombres = r.dato().stream()
                     .map(p -> p.getNombre() + " (" + p.getStock(empleado.getSede()) + ")").toList();
-            lblStock.setText("⚠  Stock bajo en tu sede: " + String.join(", ", nombres));
+            lblStock.setGraphic(Iconos.crear(Iconos.ALERTA, 16, "icono-rojo"));
+            lblStock.setGraphicTextGap(8);
+            lblStock.setText("Stock bajo en tu sede: " + String.join(", ", nombres));
         }
     }
 

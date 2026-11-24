@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.Group?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.SVGPath?>
 
 <!-- 2.1 · Sinopsis y tráiler (ventana) / 2.2 · sinopsis completa -->
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -13,8 +15,12 @@
     </HBox>
 
     <StackPane styleClass="trailer-caja">
-        <VBox alignment="CENTER" spacing="10">
-            <Label text="▶" style="-fx-text-fill: white; -fx-font-size: 40px;"/>
+        <VBox alignment="CENTER" spacing="14">
+            <StackPane styleClass="trailer-play-circulo">
+                <Group>
+                    <SVGPath content="M8 5v14l11-7z" styleClass="icono-svg, icono-claro" scaleX="1.25" scaleY="1.25"/>
+                </Group>
+            </StackPane>
             <Button fx:id="btnTrailer" text="Mirar el tráiler" styleClass="trailer-boton" onAction="#onTrailer"/>
         </VBox>
     </StackPane>

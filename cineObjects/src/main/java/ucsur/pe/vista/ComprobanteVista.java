@@ -1,6 +1,7 @@
 package ucsur.pe.vista;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -23,6 +24,8 @@ public class ComprobanteVista extends Pantalla {
     @FXML private VBox cajaPuntos;
     @FXML private Label lblPuntos;
     @FXML private Label lblSaldo;
+    @FXML private Button btnEnviar;
+    @FXML private Button btnImprimir;
     @FXML private Label lblMensaje;
 
     private Compra compra;
@@ -34,6 +37,10 @@ public class ComprobanteVista extends Pantalla {
     @FXML
     private void initialize() {
         encabezadoController.soloVolver("Volver al inicio", nav::volverAlInicio);
+        btnEnviar.setGraphic(Iconos.crear(Iconos.CORREO, 16));
+        btnEnviar.setGraphicTextGap(8);
+        btnImprimir.setGraphic(Iconos.crear(Iconos.TICKET, 16));
+        btnImprimir.setGraphicTextGap(8);
         compra = estado().getCompra();
         if (compra == null) {
             javafx.application.Platform.runLater(nav::volverAlInicio);

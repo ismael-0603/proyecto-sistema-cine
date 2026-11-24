@@ -77,7 +77,11 @@ public class AdminProductosVista extends PantallaAdmin {
         boolean hay = bajo.ok() && !bajo.dato().isEmpty();
         lblAlerta.setVisible(hay);
         lblAlerta.setManaged(hay);
-        if (hay) lblAlerta.setText("⚠  " + bajo.mensaje() + " en " + sede.getNombre() + ".");
+        if (hay) {
+            lblAlerta.setGraphic(Iconos.crear(Iconos.ALERTA, 16, "icono-rojo"));
+            lblAlerta.setGraphicTextGap(8);
+            lblAlerta.setText(bajo.mensaje() + " en " + sede.getNombre() + ".");
+        }
         filtrar(mantenerPagina);
     }
 

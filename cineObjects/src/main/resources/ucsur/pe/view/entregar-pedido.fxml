@@ -24,8 +24,8 @@
                 <VBox alignment="CENTER" spacing="10">
                     <Rectangle width="60" height="60" fill="TRANSPARENT" stroke="#e5a93c" strokeWidth="2"
                                strokeDashArray="18, 24" arcWidth="6" arcHeight="6"/>
-                    <Label text="Acerca el QR del comprobante" style="-fx-text-fill: white; -fx-font-family: 'Manrope'; -fx-font-weight: bold; -fx-font-size: 15px;"/>
-                    <Label text="al lector de la cámara" style="-fx-text-fill: rgba(255,255,255,0.8); -fx-font-size: 13px;"/>
+                    <Label text="Acerca el QR del comprobante" styleClass="lector-titulo"/>
+                    <Label text="al lector de la cámara" styleClass="lector-subtitulo"/>
                 </VBox>
             </StackPane>
             <Label text="O ingresa el código" styleClass="etiqueta-campo">

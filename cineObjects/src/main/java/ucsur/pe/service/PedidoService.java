@@ -12,6 +12,7 @@ import ucsur.pe.model.Sede;
 import ucsur.pe.repository.CompraRepository;
 import ucsur.pe.repository.PedidoRepository;
 import ucsur.pe.repository.ProductoRepository;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,11 +36,12 @@ public class PedidoService {
         this.reloj = reloj;
     }
 
-    /** Productos que el cliente puede pedir en la sede: activos, con stock y para su nivel de socio. */
+    /** Productos del menú de la sede para este cliente: activos y para su nivel de socio (los agotados van al final). */
     public List<Producto> consultarMenu(Sede sede, Cliente cliente) {
         if (sede == null) throw new IllegalArgumentException("La sede es obligatoria");
         return productos.listarTodos().stream()
-                .filter(p -> p.getStock(sede) > 0 && p.validarElegibilidad(cliente))
+                .filter(p -> p.validarElegibilidad(cliente))
+                .sorted(Comparator.comparing(p -> p.estaAgotado(sede)))
                 .toList();
     }
 

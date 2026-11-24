@@ -13,9 +13,23 @@ public class AdminMenuVista extends Pantalla {
     @FXML private Button btnProductos;
     @FXML private Button btnSedes;
     @FXML private Button btnReclamos;
+    @FXML private Button btnComprar;
 
     public AdminMenuVista(Navegador nav) {
         super(nav);
+    }
+
+    @FXML
+    private void initialize() {
+        btnPeliculas.setGraphic(Iconos.crear(Iconos.PELICULA, 17));
+        btnFunciones.setGraphic(Iconos.crear(Iconos.RELOJ, 17));
+        btnSalas.setGraphic(Iconos.crear(Iconos.SALA, 17));
+        btnPromociones.setGraphic(Iconos.crear(Iconos.ETIQUETA, 17));
+        btnProductos.setGraphic(Iconos.crear(Iconos.DULCERIA, 17));
+        btnSedes.setGraphic(Iconos.crear(Iconos.UBICACION, 17));
+        btnReclamos.setGraphic(Iconos.crear(Iconos.CORREO, 17));
+        btnComprar.setGraphic(Iconos.crear(Iconos.FLECHA_IZQ, 15));
+        btnComprar.setGraphicTextGap(8);
     }
 
     /** Pinta en rojo la sección actual ("peliculas", "funciones", "salas"...). */

@@ -30,6 +30,10 @@ public class IniciarSesionVista extends Pantalla {
         txtContraVisible.textProperty().bindBidirectional(txtContra.textProperty());
         txtContraVisible.visibleProperty().bind(btnVer.selectedProperty());
         txtContra.visibleProperty().bind(btnVer.selectedProperty().not());
+        btnVer.setText(null);
+        btnVer.setGraphic(Iconos.crear(Iconos.OJO, 18, "icono-suave"));
+        btnVer.selectedProperty().addListener((o, antes, visible) ->
+                btnVer.setGraphic(Iconos.crear(visible ? Iconos.OJO_OCULTO : Iconos.OJO, 18, "icono-suave")));
         // Al volver de «Recuperar contraseña» el correo ya viene escrito
         String correo = estado().getCorreoLogin();
         if (correo != null) {

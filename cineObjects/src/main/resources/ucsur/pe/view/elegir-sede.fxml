@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.Group?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.SVGPath?>
 
 <!-- 22 · Elegir sede -->
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -16,15 +18,23 @@
     <center>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
             <VBox alignment="TOP_CENTER" spacing="10">
-                <padding><Insets top="100" left="24" right="24" bottom="40"/></padding>
+                <padding><Insets top="44" left="24" right="24" bottom="40"/></padding>
                 <Label text="¿En qué sede quieres comprar?" styleClass="titulo-claro"/>
                 <Label text="La cartelera, los horarios y las butacas son los de la sede que elijas."
                        styleClass="subtitulo-claro"/>
-                <TextField fx:id="txtBuscar" promptText="Buscar por nombre o distrito" maxWidth="695">
-                    <VBox.margin><Insets top="22" bottom="26"/></VBox.margin>
-                </TextField>
+                <StackPane alignment="CENTER_LEFT" maxWidth="695">
+                    <VBox.margin><Insets top="18" bottom="24"/></VBox.margin>
+                    <TextField fx:id="txtBuscar" promptText="Buscar por nombre o distrito" styleClass="campo-con-icono-izq"/>
+                    <StackPane minWidth="18" minHeight="18" prefWidth="18" prefHeight="18" maxWidth="18" maxHeight="18" mouseTransparent="true">
+                        <StackPane.margin><Insets left="16"/></StackPane.margin>
+                        <Group>
+                            <SVGPath content="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                                     styleClass="icono-svg, icono-suave" scaleX="0.78" scaleY="0.78"/>
+                        </Group>
+                    </StackPane>
+                </StackPane>
                 <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
-                <FlowPane fx:id="sedes" hgap="25" vgap="21" maxWidth="1385" prefWrapLength="1385"/>
+                <FlowPane fx:id="sedes" hgap="24" vgap="22" alignment="TOP_CENTER" maxWidth="1385" prefWrapLength="1385"/>
             </VBox>
         </ScrollPane>
     </center>

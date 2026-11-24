@@ -1,8 +1,12 @@
 package ucsur.pe.vista;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
+import javafx.animation.ParallelTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
 import javafx.application.HostServices;
 import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
@@ -102,7 +106,7 @@ public class Navegador {
 
     // ---------- Pantallas ----------
 
-    /** Cambia a la pantalla del archivo view/{nombre}.fxml. */
+    /** Cambia a la pantalla del archivo view/{nombre}.fxml al instante (sin opacidad intermedia que difumine texto). */
     public void ir(String nombre) {
         cerrarModal();
         raiz.getChildren().set(0, cargar(nombre).raiz);
@@ -133,7 +137,21 @@ public class Navegador {
 
     private void mostrarModal(Node contenido) {
         capaModal.getChildren().setAll(contenido);
+        capaModal.setOpacity(0);
         capaModal.setVisible(true);
+        contenido.setTranslateY(12);
+
+        FadeTransition fondo = new FadeTransition(Duration.millis(130), capaModal);
+        fondo.setFromValue(0);
+        fondo.setToValue(1);
+        fondo.setInterpolator(Interpolator.EASE_OUT);
+
+        TranslateTransition deslizar = new TranslateTransition(Duration.millis(150), contenido);
+        deslizar.setFromY(12);
+        deslizar.setToY(0);
+        deslizar.setInterpolator(Interpolator.EASE_OUT);
+
+        new ParallelTransition(fondo, deslizar).play();
     }
 
     /** Muestra un momento la capa de transición con el texto indicado y luego ejecuta {@code despues}. */
@@ -169,7 +187,8 @@ public class Navegador {
      * destinatario, el asunto y el texto (por ejemplo, el código para cambiar la contraseña). Se cierra con ✕.
      */
     public void mostrarCorreo(String destinatario, String asunto, String cuerpo) {
-        Label titulo = new Label("✉  Correo simulado");
+        Label titulo = new Label("Correo simulado", Iconos.crear(Iconos.CORREO, 15, "icono-rojo"));
+        titulo.setGraphicTextGap(8);
         titulo.getStyleClass().add("correo-titulo");
         Button cerrar = new Button("✕");
         cerrar.getStyleClass().add("correo-cerrar");
@@ -196,7 +215,19 @@ public class Navegador {
         if (capaCorreos.getChildren().size() >= MAX_CORREOS_VISIBLES) {
             capaCorreos.getChildren().remove(0);
         }
+        tarjeta.setOpacity(0);
+        tarjeta.setTranslateY(18);
         capaCorreos.getChildren().add(tarjeta);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(190), tarjeta);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+        fade.setInterpolator(Interpolator.EASE_OUT);
+        TranslateTransition slide = new TranslateTransition(Duration.millis(190), tarjeta);
+        slide.setFromY(18);
+        slide.setToY(0);
+        slide.setInterpolator(Interpolator.EASE_OUT);
+        new ParallelTransition(fade, slide).play();
     }
 
     /** Abre un enlace (por ejemplo, el tráiler) en el navegador web de la PC. */

@@ -44,9 +44,9 @@
                         <Label text="Nueva contraseña" styleClass="etiqueta-campo"/>
                         <Label text="Confirmar contraseña" styleClass="etiqueta-campo" GridPane.columnIndex="1"/>
                         <StackPane alignment="CENTER_RIGHT" GridPane.rowIndex="1">
-                            <PasswordField fx:id="txtNueva" promptText="Mínimo 8 caracteres"/>
-                            <TextField fx:id="txtNuevaVisible" promptText="Mínimo 8 caracteres" visible="false"/>
-                            <ToggleButton fx:id="btnVer" text="👁" styleClass="btn-cerrar" style="-fx-min-width: 36; -fx-min-height: 36; -fx-max-width: 36; -fx-max-height: 36; -fx-font-size: 14px;">
+                            <PasswordField fx:id="txtNueva" promptText="Mínimo 8 caracteres" styleClass="campo-con-icono"/>
+                            <TextField fx:id="txtNuevaVisible" promptText="Mínimo 8 caracteres" styleClass="campo-con-icono" visible="false"/>
+                            <ToggleButton fx:id="btnVer" styleClass="btn-ojo">
                                 <StackPane.margin><Insets right="6"/></StackPane.margin>
                             </ToggleButton>
                         </StackPane>

@@ -28,10 +28,25 @@
                             <StackPane fx:id="marcoQr" styleClass="marco-qr"/>
                         </HBox>
                         <Label fx:id="lblMonto" styleClass="etiqueta-fuerte" maxWidth="Infinity" alignment="CENTER"/>
-                        <Label text="●  Esperando la confirmación de tu app…" styleClass="nota" maxWidth="Infinity" alignment="CENTER"/>
-                        <Label text="1. Abre tu app  2. Escanea el QR  3. Confirma el pago" styleClass="nota">
-                            <VBox.margin><Insets top="10"/></VBox.margin>
-                        </Label>
+                        <HBox spacing="10" alignment="CENTER">
+                            <ProgressIndicator styleClass="espera-indicador"/>
+                            <Label text="Esperando la confirmación de tu app…" styleClass="nota"/>
+                        </HBox>
+                        <HBox spacing="18" alignment="CENTER">
+                            <VBox.margin><Insets top="8"/></VBox.margin>
+                            <HBox spacing="6" alignment="CENTER">
+                                <Label text="1" styleClass="paso-mini-num"/>
+                                <Label text="Abre tu app" styleClass="nota"/>
+                            </HBox>
+                            <HBox spacing="6" alignment="CENTER">
+                                <Label text="2" styleClass="paso-mini-num"/>
+                                <Label text="Escanea el QR" styleClass="nota"/>
+                            </HBox>
+                            <HBox spacing="6" alignment="CENTER">
+                                <Label text="3" styleClass="paso-mini-num"/>
+                                <Label text="Confirma el pago" styleClass="nota"/>
+                            </HBox>
+                        </HBox>
                         <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false"/>
                     </VBox>
                     <VBox fx:id="resumen" minWidth="420" prefWidth="520" maxWidth="520"/>

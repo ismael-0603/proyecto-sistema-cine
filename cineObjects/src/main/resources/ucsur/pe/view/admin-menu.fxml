@@ -8,13 +8,13 @@
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="ucsur.pe.vista.AdminMenuVista" styleClass="menu-lateral" spacing="6"
       minWidth="250" prefWidth="250" maxWidth="250">
-    <Button fx:id="btnPeliculas" text="▶   Películas" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onPeliculas"/>
-    <Button fx:id="btnFunciones" text="◷   Funciones" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onFunciones"/>
-    <Button fx:id="btnSalas" text="▦   Salas" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onSalas"/>
-    <Button fx:id="btnPromociones" text="\%   Promociones y cupones" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onPromociones"/>
-    <Button fx:id="btnProductos" text="◍   Productos de dulcería" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onProductos"/>
-    <Button fx:id="btnSedes" text="⌂   Sedes" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onSedes"/>
-    <Button fx:id="btnReclamos" text="✉   Reclamos" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onReclamos"/>
+    <Button fx:id="btnPeliculas" text="Películas" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onPeliculas"/>
+    <Button fx:id="btnFunciones" text="Funciones" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onFunciones"/>
+    <Button fx:id="btnSalas" text="Salas" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onSalas"/>
+    <Button fx:id="btnPromociones" text="Promociones y cupones" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onPromociones"/>
+    <Button fx:id="btnProductos" text="Productos de dulcería" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onProductos"/>
+    <Button fx:id="btnSedes" text="Sedes" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onSedes"/>
+    <Button fx:id="btnReclamos" text="Reclamos" styleClass="opcion-menu" maxWidth="Infinity" onAction="#onReclamos"/>
     <Region VBox.vgrow="ALWAYS"/>
-    <Button text="←   Ir a comprar entradas" styleClass="btn-secundario, btn-chico" maxWidth="Infinity" onAction="#onComprar"/>
+    <Button fx:id="btnComprar" text="Ir a comprar entradas" styleClass="btn-secundario, btn-chico" maxWidth="Infinity" onAction="#onComprar"/>
 </VBox>

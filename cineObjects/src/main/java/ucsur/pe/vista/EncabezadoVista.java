@@ -36,6 +36,8 @@ public class EncabezadoVista extends Pantalla {
         ocultar(btnVolver);
         if (estado().getSede() != null) {
             btnSede.setText("Sede: " + estado().getSede().getNombre() + " · Cambiar");
+            btnSede.setGraphic(Iconos.crear(Iconos.UBICACION, 15, "icono-rojo"));
+            btnSede.setGraphicTextGap(8);
         } else {
             ocultar(btnSede);
         }
@@ -92,7 +94,7 @@ public class EncabezadoVista extends Pantalla {
 
     /** Para «Promociones»: el botón queda marcado en rojo como pantalla actual. */
     public void marcarPromociones() {
-        btnPromociones.getStyleClass().removeAll("btn-secundario");
+        btnPromociones.getStyleClass().removeAll("btn-secundario", "btn-nav");
         btnPromociones.getStyleClass().add("btn-activo");
     }
 
@@ -121,34 +123,34 @@ public class EncabezadoVista extends Pantalla {
         menu.getStyleClass().add("menu-usuario");
         if (sesion.esEmpleado() && sesion.enModoCliente()) {
             menu.getItems().addAll(
-                    opcion("👤   Mi cuenta", false, () -> nav.ir("mi-cuenta")),
-                    opcion("☆   Mis puntos", false, () -> nav.ir("mi-cuenta")),
-                    opcion("▦   Panel de dulcería", true, () -> nav.irAPanel("panel-dulceria", "Dulcería")));
+                    opcion("Mi cuenta", Iconos.USUARIO, false, () -> nav.ir("mi-cuenta")),
+                    opcion("Mis puntos", Iconos.ESTRELLA, false, () -> nav.ir("mi-cuenta")),
+                    opcion("Panel de dulcería", Iconos.PANEL, true, () -> nav.irAPanel("panel-dulceria", "Dulcería")));
             if (sesion.empleado().esAdministrador()) {
-                menu.getItems().add(opcion("⚙   Administración", true,
+                menu.getItems().add(opcion("Administración", Iconos.ENGRANAJE, true,
                         () -> nav.irAPanel("admin-peliculas", "Administración")));
             }
         } else switch (sesion.tipo()) {
             case CLIENTE -> menu.getItems().addAll(
-                    opcion("👤   Mi cuenta", false, () -> nav.ir("mi-cuenta")),
-                    opcion("☆   Mis puntos", false, () -> nav.ir("mi-cuenta")));
+                    opcion("Mi cuenta", Iconos.USUARIO, false, () -> nav.ir("mi-cuenta")),
+                    opcion("Mis puntos", Iconos.ESTRELLA, false, () -> nav.ir("mi-cuenta")));
             case DULCERIA -> menu.getItems().addAll(
-                    opcion("▦   Panel de dulcería", true, () -> nav.ir("panel-dulceria")),
-                    opcion("👤   Mi cuenta", false, () -> nav.ir("mi-cuenta-empleado")));
+                    opcion("Panel de dulcería", Iconos.PANEL, true, () -> nav.ir("panel-dulceria")),
+                    opcion("Mi cuenta", Iconos.USUARIO, false, () -> nav.ir("mi-cuenta-empleado")));
             case ADMINISTRADOR -> menu.getItems().addAll(
-                    opcion("⚙   Administración", true, () -> nav.ir("admin-peliculas")),
-                    opcion("▦   Panel de dulcería", false, () -> nav.ir("panel-dulceria")),
-                    opcion("👤   Mi cuenta", false, () -> nav.ir("mi-cuenta-empleado")));
+                    opcion("Administración", Iconos.ENGRANAJE, true, () -> nav.ir("admin-peliculas")),
+                    opcion("Panel de dulcería", Iconos.PANEL, false, () -> nav.ir("panel-dulceria")),
+                    opcion("Mi cuenta", Iconos.USUARIO, false, () -> nav.ir("mi-cuenta-empleado")));
         }
-        menu.getItems().add(opcion("⎋   Cerrar sesión", false, () -> {
+        menu.getItems().add(opcion("Cerrar sesión", Iconos.SALIR, false, () -> {
             estado().cerrarSesion();
             nav.ir(estado().getSede() == null ? "elegir-sede" : "cartelera");
         }));
         menu.show(btnSesion, Side.BOTTOM, -60, 8);
     }
 
-    private static MenuItem opcion(String texto, boolean destacada, Runnable accion) {
-        MenuItem item = new MenuItem(texto);
+    private static MenuItem opcion(String texto, String icono, boolean destacada, Runnable accion) {
+        MenuItem item = new MenuItem(texto, Iconos.crear(icono, 16));
         if (destacada) item.getStyleClass().add("menu-destacado");
         item.setOnAction(e -> accion.run());
         return item;

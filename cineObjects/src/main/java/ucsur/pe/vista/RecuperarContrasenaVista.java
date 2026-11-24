@@ -44,6 +44,10 @@ public class RecuperarContrasenaVista extends Pantalla {
         txtConfirmarVisible.visibleProperty().bind(btnVer.selectedProperty());
         txtNueva.visibleProperty().bind(btnVer.selectedProperty().not());
         txtConfirmar.visibleProperty().bind(btnVer.selectedProperty().not());
+        btnVer.setText(null);
+        btnVer.setGraphic(Iconos.crear(Iconos.OJO, 18, "icono-suave"));
+        btnVer.selectedProperty().addListener((o, antes, visible) ->
+                btnVer.setGraphic(Iconos.crear(visible ? Iconos.OJO_OCULTO : Iconos.OJO, 18, "icono-suave")));
         // Solo cifras y como máximo 6 en el código
         txtCodigo.textProperty().addListener((o, antes, ahora) -> {
             String limpio = ahora.replaceAll("\\D", "");

@@ -68,15 +68,15 @@
                     <VBox fx:id="panelMapa" styleClass="tarjeta" spacing="10" HBox.hgrow="ALWAYS" visible="false" managed="false">
                         <Label fx:id="lblMapaTitulo" text="Vista previa del mapa" styleClass="tarjeta-titulo"/>
                         <VBox alignment="CENTER" spacing="4">
-                            <Arc radiusX="230" radiusY="10" startAngle="20" length="140" type="OPEN"
-                                 fill="TRANSPARENT" stroke="#03132c" strokeWidth="2"/>
-                            <Label text="PANTALLA" styleClass="pantalla-texto"/>
+                            <Arc radiusX="230" radiusY="11" startAngle="20" length="140" type="OPEN"
+                                 fill="TRANSPARENT" stroke="#03132c" strokeWidth="3.5" strokeLineCap="ROUND"/>
+                            <Label text="P A N T A L L A" styleClass="pantalla-texto"/>
                         </VBox>
                         <GridPane fx:id="mapa" styleClass="mapa-mini" hgap="3" vgap="3" alignment="CENTER"/>
                         <HBox spacing="18" alignment="CENTER">
                             <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro"/><Label text="Estándar" styleClass="nota"/></HBox>
                             <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro, preferencial"/><Label text="Preferencial" styleClass="nota"/></HBox>
-                            <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro" style="-fx-background-color: #03132c;"/><Label text="Discapacidad" styleClass="nota"/></HBox>
+                            <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro, accesible"/><Label text="Discapacidad" styleClass="nota"/></HBox>
                         </HBox>
                         <Label fx:id="lblMapaNota" styleClass="nota" wrapText="true"/>
                     </VBox>

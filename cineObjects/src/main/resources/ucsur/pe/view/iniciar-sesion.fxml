@@ -30,9 +30,9 @@
                     <VBox.margin><Insets top="14"/></VBox.margin>
                 </Label>
                 <StackPane alignment="CENTER_RIGHT">
-                    <PasswordField fx:id="txtContra" promptText="Ingresa tu contraseña" onAction="#onIniciar"/>
-                    <TextField fx:id="txtContraVisible" promptText="Ingresa tu contraseña" visible="false" onAction="#onIniciar"/>
-                    <ToggleButton fx:id="btnVer" text="👁" styleClass="btn-cerrar" style="-fx-min-width: 36; -fx-min-height: 36; -fx-max-width: 36; -fx-max-height: 36; -fx-font-size: 14px;">
+                    <PasswordField fx:id="txtContra" promptText="Ingresa tu contraseña" styleClass="campo-con-icono" onAction="#onIniciar"/>
+                    <TextField fx:id="txtContraVisible" promptText="Ingresa tu contraseña" styleClass="campo-con-icono" visible="false" onAction="#onIniciar"/>
+                    <ToggleButton fx:id="btnVer" styleClass="btn-ojo">
                         <StackPane.margin><Insets right="6"/></StackPane.margin>
                     </ToggleButton>
                 </StackPane>

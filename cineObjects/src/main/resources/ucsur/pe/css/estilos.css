@@ -3,7 +3,10 @@
  * Colores del diseño:
  *   azul prusia #03132c (fondo y texto), dorado #e5a93c (acción principal), rojo vino #9b180c (activo),
  *   crema #faf0e0 (avisos), beige #f5edde (etiquetas), bordes rgba(3,19,44,0.22).
- * Fuente Manrope: cada peso se carga como su propia familia ("Manrope Medium", "Manrope SemiBold"...).
+ * Fuente Manrope: Regular y Bold comparten familia "Manrope" (normal/bold);
+ * Medium, SemiBold y ExtraBold se cargan como familia propia ("Manrope Medium", "Manrope SemiBold", "Manrope ExtraBold").
+ * Relieve sin -fx-effect en contenedores de texto: usa capas de -fx-background-color/-fx-background-insets
+ * para mantener antialiasing LCD nítido (ClearType) y máximo rendimiento en JavaFX.
  */
 
 /* ===== BASE ===== */
@@ -21,127 +24,224 @@
     -beige: #f5edde;
     -borde: rgba(3, 19, 44, 0.22);
 }
+.text { -fx-font-smoothing-type: lcd; }
 .label { -fx-text-fill: #03132c; }
-.fondo { -fx-background-color: #03132c; }
+/* Foco ambiental de sala de cine dentro de la misma gama azul prusia */
+.fondo {
+    -fx-background-color: radial-gradient(center 50% 0%, radius 85%, #16325f 0%, #091d3e 38%, #03132c 74%, #010917 100%);
+}
 
 .scroll-pane, .scroll-pane > .viewport {
     -fx-background-color: transparent;
     -fx-background: transparent;
 }
 .scroll-pane { -fx-padding: 0; }
-.scroll-bar { -fx-background-color: transparent; }
-.scroll-bar .thumb { -fx-background-color: rgba(255, 255, 255, 0.25); -fx-background-radius: 6; }
-.tarjeta .scroll-bar .thumb { -fx-background-color: rgba(3, 19, 44, 0.2); }
+.scroll-bar { -fx-background-color: transparent; -fx-padding: 2; }
+.scroll-bar:vertical { -fx-pref-width: 10; }
+.scroll-bar:horizontal { -fx-pref-height: 10; }
+.scroll-bar .track { -fx-background-color: transparent; }
+.scroll-bar .thumb { -fx-background-color: rgba(255, 255, 255, 0.26); -fx-background-radius: 6; }
+.scroll-bar .thumb:hover { -fx-background-color: rgba(255, 255, 255, 0.45); }
+.tarjeta .scroll-bar .thumb, .columna-pedidos .scroll-bar .thumb { -fx-background-color: rgba(3, 19, 44, 0.22); }
+.tarjeta .scroll-bar .thumb:hover, .columna-pedidos .scroll-bar .thumb:hover { -fx-background-color: rgba(3, 19, 44, 0.38); }
 .scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 0; -fx-pref-height: 0; -fx-pref-width: 0; }
 .scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-shape: null; -fx-padding: 0; }
+
+/* ===== ÍCONOS VECTORIALES (SVGPath) ===== */
+.icono-svg { -fx-fill: #03132c; }
+.icono-claro { -fx-fill: white; }
+.icono-dorado { -fx-fill: #e5a93c; }
+.icono-rojo { -fx-fill: #9b180c; }
+.icono-suave { -fx-fill: rgba(3, 19, 44, 0.65); }
+.opcion-menu.activo .icono-svg, .btn-activo .icono-svg { -fx-fill: white; }
+.btn-cerrar:hover .icono-svg { -fx-fill: #9b180c; }
 
 /* ===== TIPOGRAFÍA ===== */
 .titulo { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 28px; -fx-text-fill: #03132c; }
 .titulo-claro { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 28px; -fx-text-fill: white; }
 .titulo-seccion { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: #03132c; }
-.tarjeta-titulo { -fx-font-family: "Manrope SemiBold"; -fx-font-size: 18px; -fx-text-fill: #03132c; }
+.tarjeta-titulo { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 18px; -fx-text-fill: #03132c; }
 .texto { -fx-font-family: "Manrope"; -fx-font-size: 16px; -fx-text-fill: #03132c; }
-.etiqueta { -fx-font-family: "Manrope Medium"; -fx-font-size: 14px; -fx-text-fill: #03132c; }
-.etiqueta-fuerte { -fx-font-family: "Manrope SemiBold"; -fx-font-size: 14px; -fx-text-fill: #03132c; }
-.nota { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: #03132c; }
+.etiqueta { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 14px; -fx-text-fill: #03132c; }
+.etiqueta-fuerte { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 14px; -fx-text-fill: #03132c; }
+.etiqueta-clara { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 14px; -fx-text-fill: white; }
+.nota { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: #03132c; }
 .nota-suave { -fx-font-family: "Manrope"; -fx-font-size: 13px; -fx-text-fill: rgba(3, 19, 44, 0.65); }
-.subtitulo-claro { -fx-font-family: "Manrope Medium"; -fx-font-size: 14px; -fx-text-fill: #faf0e0; }
-.texto-claro { -fx-font-family: "Manrope Medium"; -fx-font-size: 15px; -fx-text-fill: rgba(255, 255, 255, 0.65); }
-.nota-clara { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: rgba(255, 255, 255, 0.8); }
-.contador-texto { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: rgba(255, 255, 255, 0.65); }
-.total-grande { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 24px; -fx-text-fill: #03132c; }
-.importe { -fx-font-family: "Manrope SemiBold"; -fx-font-size: 14px; -fx-text-fill: #03132c; }
+.subtitulo-claro { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 14px; -fx-text-fill: #faf0e0; }
+.texto-claro { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 15px; -fx-text-fill: rgba(255, 255, 255, 0.78); }
+.nota-clara { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(255, 255, 255, 0.82); }
+.contador-texto { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(255, 255, 255, 0.76); }
+.total-grande { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 24px; -fx-text-fill: #03132c; }
+.importe { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 14px; -fx-text-fill: #03132c; }
 .texto-rojo { -fx-text-fill: #9b180c; }
 
-.mensaje { -fx-font-family: "Manrope SemiBold"; -fx-font-size: 13px; -fx-wrap-text: true; }
+.mensaje { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-wrap-text: true; }
 .mensaje.ok { -fx-text-fill: #047857; }
 .mensaje.error { -fx-text-fill: #9b180c; }
 .mensaje-claro.ok { -fx-text-fill: #86efac; }
 .mensaje-claro.error { -fx-text-fill: #fca5a5; }
 
 /* ===== LOGO ===== */
-.logo-cine { -fx-font-family: "Manrope ExtraBold"; -fx-font-size: 18px; -fx-text-fill: #03132c; }
+.logo-cine { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 18px; -fx-text-fill: #03132c; }
 .logo-planet { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #9b180c; }
 
-/* ===== ENCABEZADO (barra blanca redondeada) ===== */
+/* ===== ENCABEZADO (barra blanca flotante con sombra por capas) ===== */
 .encabezado {
-    -fx-background-color: white;
-    -fx-background-radius: 34;
+    -fx-background-color:
+        rgba(0, 0, 0, 0.36),
+        rgba(0, 0, 0, 0.18),
+        linear-gradient(to bottom, #ffffff 0%, #f8f5ef 100%);
+    -fx-background-insets: 5 4 -5 4, 2 2 -2 2, 0;
+    -fx-background-radius: 34, 34, 34;
+    -fx-border-color: rgba(255, 255, 255, 0.9);
+    -fx-border-width: 1;
+    -fx-border-radius: 34;
     -fx-min-height: 68;
     -fx-pref-height: 68;
     -fx-padding: 0 24 0 24;
     -fx-spacing: 12;
     -fx-alignment: center-left;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.28), 24, 0, 0, 8);
 }
-.encabezado-titulo { -fx-font-family: "Manrope SemiBold"; -fx-font-size: 18px; -fx-text-fill: #03132c; }
-.encabezado-detalle { -fx-font-family: "Manrope Medium"; -fx-font-size: 14px; -fx-text-fill: #03132c; }
+.encabezado-titulo { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 18px; -fx-text-fill: #03132c; }
+.encabezado-detalle { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 14px; -fx-text-fill: rgba(3, 19, 44, 0.78); }
 
 .tiempo {
-    -fx-background-color: #faf0e0;
-    -fx-border-color: rgba(229, 169, 60, 0.55);
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
-    -fx-padding: 4 18 4 18;
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f6e7cc 100%);
+    -fx-border-color: rgba(229, 169, 60, 0.75);
+    -fx-border-width: 2;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 3 18 3 18;
     -fx-alignment: center;
 }
-.tiempo-etiqueta { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: #03132c; }
-.tiempo-valor { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 22px; -fx-text-fill: #03132c; }
-.tiempo.urgente { -fx-background-color: #fde2df; -fx-border-color: #9b180c; }
+.tiempo-etiqueta { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 12px; -fx-text-fill: rgba(3, 19, 44, 0.75); }
+.tiempo-valor { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 22px; -fx-text-fill: #03132c; }
+.tiempo.urgente {
+    -fx-background-color: linear-gradient(to bottom, #feeae8 0%, #fcd5d0 100%);
+    -fx-border-color: #9b180c;
+}
+.tiempo.urgente .tiempo-etiqueta { -fx-text-fill: #9b180c; }
 .tiempo.urgente .tiempo-valor { -fx-text-fill: #9b180c; }
 
 /* ===== PASOS (Asientos · Dulcería · Pago) ===== */
 .pasos {
-    -fx-background-color: #faf0e0;
-    -fx-min-height: 46;
+    -fx-background-color:
+        rgba(0, 0, 0, 0.3),
+        linear-gradient(to bottom, #fdf7ec 0%, #f4e4c7 100%);
+    -fx-background-insets: 3 0 -3 0, 0;
+    -fx-border-color: rgba(229, 169, 60, 0.45) transparent rgba(229, 169, 60, 0.65) transparent;
+    -fx-border-width: 1 0 1 0;
+    -fx-min-height: 48;
     -fx-alignment: center;
     -fx-spacing: 12;
 }
 .paso-numero {
-    -fx-min-width: 26; -fx-min-height: 26; -fx-max-width: 26; -fx-max-height: 26;
-    -fx-background-radius: 13;
+    -fx-min-width: 28; -fx-min-height: 28; -fx-max-width: 28; -fx-max-height: 28;
+    -fx-background-radius: 14;
     -fx-background-color: white;
-    -fx-border-color: rgba(3, 19, 44, 0.35);
-    -fx-border-radius: 13;
+    -fx-border-color: rgba(3, 19, 44, 0.32);
+    -fx-border-radius: 14;
     -fx-alignment: center;
     -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 13px;
     -fx-text-fill: #03132c;
 }
-.paso-numero.activo { -fx-background-color: #9b180c; -fx-border-color: #9b180c; -fx-text-fill: white; }
-.paso-numero.hecho { -fx-background-color: #e5a93c; -fx-border-color: #e5a93c; -fx-text-fill: #03132c; }
-.paso-texto { -fx-font-family: "Manrope Medium"; -fx-font-size: 14px; -fx-text-fill: #03132c; }
-.paso-texto.activo { -fx-font-family: "Manrope"; -fx-font-weight: bold; }
-.paso-linea { -fx-background-color: rgba(3, 19, 44, 0.3); -fx-min-height: 1; -fx-max-height: 1; -fx-pref-width: 80; }
+.paso-numero.activo {
+    -fx-background-color: linear-gradient(to bottom, #b41f11 0%, #9b180c 60%, #821309 100%);
+    -fx-border-color: #7c1309;
+    -fx-text-fill: white;
+}
+.paso-numero.hecho {
+    -fx-background-color: linear-gradient(to bottom, #efc062 0%, #e5a93c 100%);
+    -fx-border-color: #c98a1d;
+    -fx-text-fill: #03132c;
+}
+.paso-texto { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 14px; -fx-text-fill: rgba(3, 19, 44, 0.72); }
+.paso-texto.activo { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-text-fill: #03132c; }
+.paso-linea {
+    -fx-background-color: rgba(3, 19, 44, 0.24);
+    -fx-background-radius: 2;
+    -fx-min-height: 2; -fx-max-height: 2; -fx-pref-width: 80;
+}
 
-/* ===== TARJETAS ===== */
+/* ===== TARJETAS (elevación por capas para mantener texto nítido) ===== */
 .tarjeta {
-    -fx-background-color: white;
-    -fx-background-radius: 20;
-    -fx-border-color: rgba(3, 19, 44, 0.08);
+    -fx-background-color:
+        rgba(0, 0, 0, 0.36),
+        rgba(0, 0, 0, 0.2),
+        linear-gradient(to bottom, #ffffff 0%, #fcfaf6 100%);
+    -fx-background-insets: 6 2 -6 2, 3 1 -3 1, 0;
+    -fx-background-radius: 20, 20, 20;
+    -fx-border-color: rgba(255, 255, 255, 0.85);
+    -fx-border-width: 1;
     -fx-border-radius: 20;
     -fx-padding: 24;
-    -fx-effect: dropshadow(gaussian, rgba(3, 19, 44, 0.14), 24, 0, 0, 8);
+}
+/* Tarjeta anidada dentro de otra tarjeta (ej. «Beneficios de tu nivel»): sin doble sombra */
+.tarjeta .tarjeta {
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #faf0e0 100%);
+    -fx-background-insets: 0;
+    -fx-border-color: rgba(229, 169, 60, 0.5);
+    -fx-border-radius: 16;
+    -fx-background-radius: 16;
 }
 .tarjeta-plana {
-    -fx-background-color: white;
-    -fx-background-radius: 20;
-    -fx-border-color: rgba(3, 19, 44, 0.22);
+    -fx-background-color:
+        rgba(0, 0, 0, 0.34),
+        linear-gradient(to bottom, #ffffff 0%, #fcfaf6 100%);
+    -fx-background-insets: 5 2 -5 2, 0;
+    -fx-background-radius: 20, 20;
+    -fx-border-color: rgba(255, 255, 255, 0.78);
+    -fx-border-width: 2;
     -fx-border-radius: 20;
     -fx-padding: 18 24 18 24;
 }
+.tarjeta-plana:hover { -fx-border-color: #e5a93c; }
+.tarjeta-sede {
+    -fx-cursor: hand;
+    -fx-border-width: 2;
+}
+.tarjeta-sede:hover {
+    -fx-border-color: #e5a93c;
+    -fx-background-color:
+        rgba(229, 169, 60, 0.28),
+        rgba(0, 0, 0, 0.3),
+        linear-gradient(to bottom, #ffffff 0%, #fdf9f1 100%);
+    -fx-background-insets: 6 0 -6 0, 3 1 -3 1, 0;
+}
+.tarjeta-sede.cerrada {
+    -fx-cursor: default;
+    -fx-opacity: 0.75;
+}
+.tarjeta-sede.cerrada:hover {
+    -fx-border-color: rgba(255, 255, 255, 0.85);
+    -fx-background-color:
+        rgba(0, 0, 0, 0.36),
+        rgba(0, 0, 0, 0.2),
+        linear-gradient(to bottom, #ffffff 0%, #fcfaf6 100%);
+    -fx-background-insets: 6 2 -6 2, 3 1 -3 1, 0;
+}
 .caja-dato {
-    -fx-background-color: white;
-    -fx-background-radius: 20;
-    -fx-border-color: rgba(3, 19, 44, 0.22);
-    -fx-border-radius: 20;
+    -fx-background-color:
+        rgba(0, 0, 0, 0.28),
+        linear-gradient(to bottom, #ffffff 0%, #f9f6f0 100%);
+    -fx-background-insets: 4 1 -4 1, 0;
+    -fx-background-radius: 16, 16;
+    -fx-border-color: rgba(255, 255, 255, 0.75);
+    -fx-border-radius: 16;
     -fx-padding: 10 16 10 16;
 }
-.aviso {
-    -fx-background-color: #faf0e0;
-    -fx-background-radius: 16;
+.tarjeta .caja-dato {
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #faf0e0 100%);
+    -fx-background-insets: 0;
     -fx-border-color: rgba(229, 169, 60, 0.55);
-    -fx-border-radius: 16;
-    -fx-padding: 14 20 14 20;
+}
+.aviso {
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f8ebd4 100%);
+    -fx-background-radius: 14;
+    -fx-border-color: rgba(229, 169, 60, 0.55) rgba(229, 169, 60, 0.55) rgba(229, 169, 60, 0.55) #e5a93c;
+    -fx-border-width: 1 1 1 4;
+    -fx-border-radius: 14;
+    -fx-padding: 14 20 14 18;
 }
 .separador { -fx-background-color: rgba(3, 19, 44, 0.1); -fx-min-height: 1; -fx-max-height: 1; }
 .separator .line { -fx-border-color: rgba(3, 19, 44, 0.12); -fx-border-width: 1 0 0 0; -fx-border-insets: 0; }
@@ -160,14 +260,65 @@
     -fx-min-height: 48;
     -fx-padding: 0 22 0 22;
 }
-.button:pressed { -fx-opacity: 0.85; }
-.button:disabled { -fx-opacity: 0.4; }
-.btn-primario { -fx-background-color: #e5a93c; }
-.btn-primario:hover { -fx-background-color: #d99b2c; }
-.btn-secundario { -fx-background-color: white; -fx-border-color: rgba(3, 19, 44, 0.22); }
-.btn-secundario:hover { -fx-background-color: #faf0e0; }
+.button:pressed { -fx-opacity: 0.9; }
+.button:disabled { -fx-opacity: 0.42; -fx-cursor: default; }
+.btn-primario {
+    -fx-background-color:
+        rgba(0, 0, 0, 0.24),
+        #c98a1d,
+        linear-gradient(to bottom, #f2c66d 0%, #e5a93c 55%, #d69628 100%);
+    -fx-background-insets: 2 1 -2 1, 0, 1;
+    -fx-background-radius: 16, 16, 15;
+    -fx-border-color: transparent;
+}
+.btn-primario:hover {
+    -fx-background-color:
+        rgba(229, 169, 60, 0.38),
+        #b87c16,
+        linear-gradient(to bottom, #f7d082 0%, #ebb44c 55%, #d99b2c 100%);
+    -fx-background-insets: 3 0 -3 0, 0, 1;
+}
+.btn-primario:pressed {
+    -fx-background-color: #c98a1d;
+    -fx-background-insets: 0;
+}
+.btn-secundario {
+    -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #f7f5f0 100%);
+    -fx-border-color: rgba(3, 19, 44, 0.24);
+    -fx-border-width: 1;
+}
+.btn-secundario:hover {
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f5e6cc 100%);
+    -fx-border-color: #e5a93c;
+}
+.btn-secundario:pressed { -fx-background-color: #f5edde; }
+/* Encabezado: indicador de sede actual y enlaces de navegación sin saturación (min 48 px: RNF-07) */
+.btn-sede {
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f5e6cc 100%);
+    -fx-border-color: rgba(229, 169, 60, 0.55);
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 14px;
+    -fx-min-height: 48;
+    -fx-padding: 0 18 0 16;
+}
+.btn-sede:hover {
+    -fx-background-color: linear-gradient(to bottom, #faeecd 0%, #f2dca8 100%);
+    -fx-border-color: #e5a93c;
+}
+.btn-nav {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 15px;
+    -fx-min-height: 48;
+    -fx-padding: 0 16 0 16;
+}
+.btn-nav:hover {
+    -fx-background-color: #faf0e0;
+    -fx-border-color: rgba(229, 169, 60, 0.35);
+}
 .btn-pastilla { -fx-background-radius: 24; -fx-border-radius: 24; }
+.btn-primario.btn-pastilla { -fx-background-radius: 24, 24, 23; }
 .btn-chico { -fx-font-size: 14px; -fx-min-height: 36; -fx-padding: 0 14 0 14; -fx-background-radius: 10; -fx-border-radius: 10; }
+.btn-primario.btn-chico { -fx-background-radius: 10, 10, 9; }
 /* Interruptor Activo / Inactivo de cupones y promociones: el mismo ancho en los dos estados */
 .btn-estado { -fx-min-width: 96; -fx-pref-width: 96; }
 .btn-link {
@@ -179,10 +330,12 @@
     -fx-min-height: 0;
     -fx-padding: 2 4 2 4;
 }
+.btn-link:hover { -fx-opacity: 0.78; }
 .btn-link-rojo { -fx-text-fill: #9b180c; }
-.btn-link-claro { -fx-text-fill: rgba(255, 255, 255, 0.8); }
+.btn-link-claro { -fx-text-fill: rgba(255, 255, 255, 0.88); }
+.btn-link-claro:hover { -fx-text-fill: #e5a93c; -fx-opacity: 1; }
 .btn-cerrar {
-    -fx-background-color: white;
+    -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #f7f5f0 100%);
     -fx-border-color: rgba(3, 19, 44, 0.22);
     -fx-background-radius: 24; -fx-border-radius: 24;
     -fx-min-width: 48; -fx-min-height: 48; -fx-max-width: 48; -fx-max-height: 48;
@@ -190,89 +343,216 @@
     -fx-font-size: 20px;
     -fx-font-family: "Manrope Medium"; -fx-font-weight: normal;
 }
+.btn-cerrar:hover { -fx-background-color: #faf0e0; -fx-border-color: #9b180c; -fx-text-fill: #9b180c; }
+/* Botón de mostrar/ocultar contraseña dentro del campo */
+.btn-ojo {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 18; -fx-border-radius: 18;
+    -fx-min-width: 36; -fx-min-height: 36; -fx-max-width: 36; -fx-max-height: 36;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+.btn-ojo:hover { -fx-background-color: #faf0e0; }
+.btn-ojo:selected { -fx-background-color: #f5edde; }
 
 /* Botones de la pantalla elegida (chips de género, días, medios de pago) */
 .chip {
     -fx-background-color: transparent;
-    -fx-text-fill: rgba(255, 255, 255, 0.85);
+    -fx-text-fill: rgba(255, 255, 255, 0.88);
     -fx-font-family: "Manrope Medium";
     -fx-font-weight: normal;
     -fx-font-size: 16px;
     -fx-background-radius: 24;
     -fx-min-height: 40;
-    -fx-padding: 0 14 0 14;
+    -fx-padding: 0 16 0 16;
 }
-.chip:hover { -fx-text-fill: white; -fx-background-color: rgba(255, 255, 255, 0.08); }
-.chip.activo { -fx-background-color: #9b180c; -fx-text-fill: white; -fx-font-family: "Manrope"; -fx-font-weight: bold; }
-.chip-dia { -fx-background-color: white; -fx-border-color: rgba(3, 19, 44, 0.22); -fx-background-radius: 24; -fx-border-radius: 24; }
-.chip-dia.activo { -fx-background-color: #9b180c; -fx-border-color: #9b180c; -fx-text-fill: white; }
+.chip:hover { -fx-text-fill: white; -fx-background-color: rgba(255, 255, 255, 0.14); }
+.chip.activo {
+    -fx-background-color:
+        rgba(0, 0, 0, 0.35),
+        linear-gradient(to bottom, #b41f11 0%, #9b180c 60%, #821309 100%);
+    -fx-background-insets: 2 1 -2 1, 0;
+    -fx-background-radius: 24, 24;
+    -fx-text-fill: white;
+    -fx-font-family: "Manrope"; -fx-font-weight: bold;
+}
+.chip.activo:hover {
+    -fx-background-color:
+        rgba(0, 0, 0, 0.35),
+        linear-gradient(to bottom, #c42314 0%, #aa1b0e 100%);
+}
+.chip-dia {
+    -fx-background-color:
+        rgba(0, 0, 0, 0.3),
+        linear-gradient(to bottom, #ffffff 0%, #f7f5f0 100%);
+    -fx-background-insets: 2 1 -2 1, 0;
+    -fx-background-radius: 24, 24;
+    -fx-border-color: rgba(255, 255, 255, 0.65);
+    -fx-border-radius: 24;
+}
+.chip-dia:hover { -fx-background-color: #faf0e0; -fx-background-insets: 0; -fx-border-color: #e5a93c; }
+.chip-dia.activo {
+    -fx-background-color:
+        rgba(0, 0, 0, 0.35),
+        linear-gradient(to bottom, #b41f11 0%, #9b180c 60%, #821309 100%);
+    -fx-background-insets: 2 1 -2 1, 0;
+    -fx-background-radius: 24, 24;
+    -fx-border-color: #b41f11;
+    -fx-text-fill: white;
+}
+.chip-dia.activo:hover {
+    -fx-background-color:
+        rgba(0, 0, 0, 0.35),
+        linear-gradient(to bottom, #c42314 0%, #aa1b0e 100%);
+}
 .opcion {
-    -fx-background-color: white;
+    -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #faf8f4 100%);
     -fx-border-color: rgba(3, 19, 44, 0.22);
+    -fx-border-width: 2;
     -fx-alignment: center-left;
     -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 15px;
 }
-.opcion.activo { -fx-background-color: #e5a93c; -fx-border-color: #e5a93c; }
+.opcion:hover { -fx-background-color: #faf0e0; -fx-border-color: #e5a93c; }
+.opcion.activo {
+    -fx-background-color: linear-gradient(to bottom, #efc062 0%, #e5a93c 60%, #d69628 100%);
+    -fx-border-color: #c98a1d;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal;
+}
+.opcion.activo:hover { -fx-background-color: linear-gradient(to bottom, #f4ca76 0%, #e5a93c 100%); }
 .opcion-centro { -fx-alignment: center; }
+
+/* Opciones con foto en el modal de personalización de dulcería */
+.opcion-visual {
+    -fx-padding: 6 6 8 6;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-alignment: center;
+}
+.opcion-visual-nombre {
+    -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px;
+    -fx-text-fill: #03132c;
+}
+.opcion-visual.activo .opcion-visual-nombre {
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal;
+}
+
+/* Tarjetas enriquecidas de método de pago */
+.opcion-pago {
+    -fx-min-height: 76;
+    -fx-padding: 14 20 14 20;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+}
+.opcion-pago-titulo { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 15px; -fx-text-fill: #03132c; }
+.opcion-pago-subtitulo { -fx-font-family: "Manrope"; -fx-font-size: 12px; -fx-text-fill: rgba(3, 19, 44, 0.68); }
+.opcion-pago.activo .opcion-pago-subtitulo { -fx-text-fill: rgba(3, 19, 44, 0.85); }
+.radio-indicador {
+    -fx-min-width: 20; -fx-min-height: 20; -fx-max-width: 20; -fx-max-height: 20;
+    -fx-background-color: white;
+    -fx-border-color: rgba(3, 19, 44, 0.45);
+    -fx-border-width: 2;
+    -fx-background-radius: 10; -fx-border-radius: 10;
+}
+.radio-indicador.activo {
+    -fx-background-color: #03132c;
+    -fx-border-color: white;
+    -fx-border-width: 4;
+}
 
 /* ===== CAMPOS ===== */
 .text-field, .password-field, .text-area {
     -fx-background-color: white;
     -fx-background-radius: 16;
     -fx-border-color: rgba(3, 19, 44, 0.22);
+    -fx-border-width: 2;
     -fx-border-radius: 16;
     -fx-padding: 0 16 0 16;
     -fx-min-height: 46;
     -fx-font-family: "Manrope Medium";
     -fx-font-size: 14px;
     -fx-text-fill: #03132c;
-    -fx-prompt-text-fill: rgba(3, 19, 44, 0.55);
+    -fx-prompt-text-fill: rgba(3, 19, 44, 0.52);
 }
-.text-field:focused, .password-field:focused { -fx-border-color: #e5a93c; }
+.campo-con-icono { -fx-padding: 0 48 0 16; }
+.campo-con-icono-izq { -fx-padding: 0 16 0 44; }
+.text-field:hover, .password-field:hover, .text-area:hover { -fx-border-color: rgba(3, 19, 44, 0.42); }
+.text-field:focused, .password-field:focused, .text-area:focused { -fx-border-color: #e5a93c; }
 .campo-oscuro {
-    -fx-background-color: transparent;
-    -fx-border-color: rgba(255, 255, 255, 0.25);
+    -fx-background-color: rgba(255, 255, 255, 0.09);
+    -fx-border-color: rgba(255, 255, 255, 0.28);
+    -fx-border-width: 2;
     -fx-text-fill: white;
-    -fx-prompt-text-fill: rgba(255, 255, 255, 0.6);
+    -fx-prompt-text-fill: rgba(255, 255, 255, 0.65);
     -fx-border-radius: 24; -fx-background-radius: 24;
 }
+.campo-oscuro:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.14);
+    -fx-border-color: rgba(255, 255, 255, 0.46);
+}
+.campo-oscuro:focused {
+    -fx-background-color: rgba(255, 255, 255, 0.16);
+    -fx-border-color: #e5a93c;
+}
 .campo-error { -fx-border-color: #9b180c; }
-.etiqueta-campo { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: #03132c; }
+.etiqueta-campo { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: #03132c; }
 
 .combo-box {
     -fx-background-color: white;
     -fx-background-radius: 16;
     -fx-border-color: rgba(3, 19, 44, 0.22);
+    -fx-border-width: 2;
     -fx-border-radius: 16;
     -fx-min-height: 46;
     -fx-padding: 0 6 0 6;
     -fx-font-family: "Manrope Medium";
     -fx-font-size: 14px;
+    -fx-cursor: hand;
 }
+.combo-box:hover { -fx-border-color: rgba(3, 19, 44, 0.42); }
+.combo-box:focused, .combo-box:showing { -fx-border-color: #e5a93c; }
 .combo-box .list-cell { -fx-text-fill: #03132c; -fx-background-color: transparent; }
 .combo-box .arrow-button { -fx-background-color: transparent; }
 .combo-box .arrow { -fx-background-color: #03132c; }
 .combo-oscuro {
-    -fx-background-color: transparent;
-    -fx-border-color: rgba(255, 255, 255, 0.25);
+    -fx-background-color: rgba(255, 255, 255, 0.09);
+    -fx-border-color: rgba(255, 255, 255, 0.28);
     -fx-border-radius: 24; -fx-background-radius: 24;
+}
+.combo-oscuro:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.14);
+    -fx-border-color: rgba(255, 255, 255, 0.46);
+}
+.combo-oscuro:focused, .combo-oscuro:showing {
+    -fx-background-color: rgba(255, 255, 255, 0.16);
+    -fx-border-color: #e5a93c;
 }
 .combo-oscuro .list-cell { -fx-text-fill: white; }
 .combo-oscuro .arrow { -fx-background-color: white; }
-.combo-box-popup .list-view { -fx-background-color: white; -fx-background-radius: 12; -fx-border-color: rgba(3, 19, 44, 0.12); -fx-border-radius: 12; }
-.combo-box-popup .list-cell { -fx-padding: 8 12 8 12; -fx-text-fill: #03132c; -fx-background-color: white; }
+.combo-box-popup .list-view {
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-border-color: rgba(3, 19, 44, 0.18);
+    -fx-border-radius: 14;
+    -fx-padding: 4;
+}
+.combo-box-popup .list-cell { -fx-padding: 8 12 8 12; -fx-text-fill: #03132c; -fx-background-color: white; -fx-background-radius: 8; }
 .combo-box-popup .list-cell:filled:hover, .combo-box-popup .list-cell:filled:selected { -fx-background-color: #faf0e0; }
 
 .check-box { -fx-font-family: "Manrope Medium"; -fx-font-size: 14px; -fx-text-fill: #03132c; -fx-cursor: hand; }
-.check-box .box { -fx-background-color: white; -fx-border-color: #03132c; -fx-border-radius: 4; -fx-background-radius: 4; }
-.check-box:selected .box { -fx-background-color: #e5a93c; -fx-border-color: #e5a93c; }
+.check-box .box { -fx-background-color: white; -fx-border-color: rgba(3, 19, 44, 0.55); -fx-border-radius: 5; -fx-background-radius: 5; }
+.check-box:hover .box { -fx-border-color: #e5a93c; }
+.check-box:selected .box { -fx-background-color: #e5a93c; -fx-border-color: #c98a1d; }
 .check-box:selected .mark { -fx-background-color: #03132c; }
 
 /* ===== CARTELERA ===== */
 .barra-filtros {
-    -fx-background-color: rgba(255, 255, 255, 0.05);
-    -fx-background-radius: 30;
-    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-background-color:
+        rgba(0, 0, 0, 0.28),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
+    -fx-background-insets: 3 1 -3 1, 0;
+    -fx-background-radius: 30, 30;
+    -fx-border-color: rgba(255, 255, 255, 0.2);
     -fx-border-radius: 30;
     -fx-padding: 6 18 6 10;
     -fx-spacing: 10;
@@ -280,16 +560,19 @@
 }
 /* Cartelera: columna «Filtrar por:» y pestañas En cartelera · Preventa · Próximamente */
 .panel-filtros {
-    -fx-background-color: rgba(255, 255, 255, 0.05);
-    -fx-background-radius: 20;
-    -fx-border-color: rgba(255, 255, 255, 0.1);
-    -fx-border-radius: 20;
-    -fx-padding: 18;
+    -fx-background-color:
+        rgba(0, 0, 0, 0.34),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.04) 100%);
+    -fx-background-insets: 5 2 -5 2, 0;
+    -fx-background-radius: 22, 22;
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-radius: 22;
+    -fx-padding: 20;
 }
 .filtro-titulo { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: white; }
-.filtro-etiqueta { -fx-font-family: "Manrope SemiBold"; -fx-font-size: 13px; -fx-text-fill: rgba(255, 255, 255, 0.75); -fx-padding: 6 0 0 2; }
+.filtro-etiqueta { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(255, 255, 255, 0.82); -fx-padding: 6 0 0 2; }
 .combo-oscuro:disabled { -fx-opacity: 0.35; }
-.pestanas-cartelera { -fx-border-color: transparent transparent rgba(255, 255, 255, 0.12) transparent; -fx-padding: 0 0 2 0; }
+.pestanas-cartelera { -fx-border-color: transparent transparent rgba(255, 255, 255, 0.16) transparent; -fx-padding: 0 0 2 0; }
 .pestana-cartelera {
     -fx-background-color: transparent;
     -fx-background-radius: 0;
@@ -300,36 +583,92 @@
     -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 22px;
     -fx-padding: 0 14 6 14;
 }
-.pestana-cartelera:hover { -fx-text-fill: white; }
+.pestana-cartelera:hover {
+    -fx-text-fill: white;
+    -fx-border-color: transparent transparent rgba(255, 255, 255, 0.32) transparent;
+}
 .pestana-cartelera.activo { -fx-text-fill: white; -fx-border-color: transparent transparent #9b180c transparent; }
+
+/* Tarjeta de película con póster al ras superior y badges superpuestos */
 .tarjeta-pelicula {
-    -fx-background-color: white;
-    -fx-background-radius: 14;
-    -fx-padding: 8 10 10 10;
+    -fx-background-color:
+        rgba(0, 0, 0, 0.4),
+        linear-gradient(to bottom, #ffffff 0%, #faf8f4 100%);
+    -fx-background-insets: 5 2 -5 2, 0;
+    -fx-background-radius: 16, 16;
+    -fx-border-color: rgba(255, 255, 255, 0.24);
+    -fx-border-width: 2;
+    -fx-border-radius: 16;
+    -fx-padding: 0;
+    -fx-spacing: 0;
+}
+.tarjeta-pelicula:hover {
+    -fx-border-color: #e5a93c;
+    -fx-background-color:
+        rgba(229, 169, 60, 0.34),
+        linear-gradient(to bottom, #ffffff 0%, #fdf9f1 100%);
+    -fx-background-insets: 5 0 -5 0, 0;
+}
+.tarjeta-pelicula-cuerpo {
+    -fx-padding: 12 12 12 12;
     -fx-spacing: 8;
 }
-.pelicula-titulo { -fx-font-family: "Manrope Medium"; -fx-font-size: 16px; -fx-text-fill: #03132c; }
-.tag-genero {
-    -fx-background-color: #f5edde;
+.poster-sombra {
+    -fx-background-color: linear-gradient(to bottom, rgba(3, 19, 44, 0.42) 0%, transparent 28%, transparent 72%, rgba(3, 19, 44, 0.45) 100%);
+}
+.badge-poster-clasif {
+    -fx-background-color: rgba(3, 19, 44, 0.9);
+    -fx-border-color: rgba(255, 255, 255, 0.32);
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 3 8 3 8;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 12px;
+    -fx-text-fill: white;
+}
+.badge-poster-clasif.apta {
+    -fx-background-color: rgba(22, 101, 52, 0.94);
+    -fx-border-color: rgba(134, 199, 155, 0.75);
+    -fx-text-fill: white;
+}
+.badge-poster-preventa {
+    -fx-background-color: linear-gradient(to bottom, #efc062 0%, #e5a93c 100%);
+    -fx-border-color: rgba(3, 19, 44, 0.25);
+    -fx-border-radius: 12;
     -fx-background-radius: 12;
-    -fx-padding: 3 10 3 10;
-    -fx-font-family: "Manrope Medium"; -fx-font-size: 13px;
+    -fx-padding: 4 10 4 10;
+    -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 11px;
     -fx-text-fill: #03132c;
 }
-.tag-genero-claro { -fx-background-color: white; }
+.pelicula-titulo { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 16px; -fx-text-fill: #03132c; }
+.tag-genero {
+    -fx-background-color: #f5edde;
+    -fx-border-color: rgba(229, 169, 60, 0.32);
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 3 10 3 10;
+    -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 12px;
+    -fx-text-fill: #03132c;
+}
+.tag-genero-claro { -fx-background-color: white; -fx-border-color: rgba(255, 255, 255, 0.5); }
 .tag-clasificacion {
-    -fx-border-color: rgba(3, 19, 44, 0.3);
-    -fx-border-radius: 4;
+    -fx-border-color: rgba(3, 19, 44, 0.28);
+    -fx-border-radius: 6;
     -fx-background-color: #f3f6fb;
-    -fx-background-radius: 4;
-    -fx-padding: 2 6 2 6;
-    -fx-font-family: "Manrope SemiBold"; -fx-font-size: 13px;
+    -fx-background-radius: 6;
+    -fx-padding: 2 7 2 7;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 12px;
     -fx-text-fill: #03132c;
 }
 .tag-clasificacion.apta { -fx-background-color: #ecfdf3; -fx-border-color: #86c79b; -fx-text-fill: #166534; }
-.tag-dorada { -fx-background-color: #e5a93c; -fx-background-radius: 14; -fx-padding: 4 12 4 12; -fx-font-size: 13px; }
+.tag-dorada {
+    -fx-background-color: #e5a93c;
+    -fx-background-radius: 14;
+    -fx-padding: 4 12 4 12;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 12px;
+    -fx-text-fill: #03132c;
+}
 .poster-reemplazo {
-    -fx-background-color: linear-gradient(to bottom, #13284d, #03132c);
+    -fx-background-color: linear-gradient(to bottom, #16325f 0%, #03132c 100%);
     -fx-background-radius: 10;
     -fx-alignment: center;
     -fx-padding: 14;
@@ -338,48 +677,109 @@
 
 /* ===== HORARIOS ===== */
 .horario {
-    -fx-background-color: white;
+    -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #faf8f4 100%);
     -fx-border-color: rgba(3, 19, 44, 0.22);
-    -fx-background-radius: 18; -fx-border-radius: 18;
+    -fx-border-width: 2;
+    -fx-background-radius: 16; -fx-border-radius: 16;
     -fx-min-width: 128; -fx-min-height: 64;
     -fx-pref-width: 128;
     -fx-padding: 6;
 }
-.horario:hover { -fx-background-color: #faf0e0; -fx-border-color: #e5a93c; }
-.horario-hora { -fx-font-family: "Manrope SemiBold"; -fx-font-size: 18px; -fx-text-fill: #03132c; }
-.horario-idioma { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: #03132c; }
-.recargo { -fx-background-color: #f5edde; -fx-background-radius: 12; -fx-padding: 3 10 3 10; -fx-font-family: "Manrope SemiBold"; -fx-font-size: 13px; -fx-text-fill: #03132c; }
+.horario:hover {
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f6e7cc 100%);
+    -fx-border-color: #e5a93c;
+}
+.horario:disabled {
+    -fx-background-color: #f5edde;
+    -fx-border-color: rgba(3, 19, 44, 0.22);
+    -fx-border-style: segments(4, 3);
+    -fx-opacity: 0.55;
+}
+.horario-hora { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #03132c; }
+.horario-idioma { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(3, 19, 44, 0.72); }
+.recargo {
+    -fx-background-color: #f5edde;
+    -fx-border-color: rgba(229, 169, 60, 0.5);
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 3 10 3 10;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px;
+    -fx-text-fill: #03132c;
+}
 
 /* ===== ASIENTOS ===== */
-.pantalla-texto { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: #03132c; }
-.fila-letra { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: #03132c; -fx-min-width: 18; }
+.pantalla-marco { -fx-padding: 0 0 6 0; }
+.pantalla-resplandor {
+    -fx-background-color: linear-gradient(to bottom, rgba(229, 169, 60, 0.22) 0%, rgba(3, 19, 44, 0.06) 55%, transparent 100%);
+    -fx-background-radius: 0 0 40 40;
+    -fx-min-height: 22;
+    -fx-max-width: 520;
+    -fx-pref-width: 520;
+}
+.pantalla-texto { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 12px; -fx-text-fill: rgba(3, 19, 44, 0.65); }
+.fila-letra { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(3, 19, 44, 0.7); -fx-min-width: 18; -fx-alignment: center; }
 .butaca {
-    -fx-min-width: 30; -fx-min-height: 30; -fx-max-width: 30; -fx-max-height: 30;
-    -fx-pref-width: 30; -fx-pref-height: 30;
+    -fx-min-width: 32; -fx-min-height: 32; -fx-max-width: 32; -fx-max-height: 32;
+    -fx-pref-width: 32; -fx-pref-height: 32;
     -fx-padding: 0;
-    -fx-background-color: white;
-    -fx-border-color: rgba(3, 19, 44, 0.35);
-    -fx-background-radius: 6; -fx-border-radius: 6;
-    -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px;
+    -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #f2f4f8 100%);
+    -fx-border-color: rgba(3, 19, 44, 0.34);
+    -fx-border-width: 1 1 3 1;
+    -fx-background-radius: 8 8 4 4; -fx-border-radius: 8 8 4 4;
+    -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 12px;
 }
-.butaca:hover { -fx-border-color: #e5a93c; }
-.butaca.preferencial { -fx-background-color: #faf0e0; }
-.butaca.ocupada { -fx-background-color: #9b180c; -fx-border-color: #9b180c; -fx-text-fill: white; -fx-cursor: default; -fx-opacity: 1; }
-.butaca.sugerida { -fx-background-color: #f4cf8c; -fx-border-color: #03132c; -fx-border-style: segments(3, 3); }
-.butaca.elegida { -fx-background-color: #e5a93c; -fx-border-color: #c98a1d; -fx-border-style: solid; }
+.butaca:hover {
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f5e5c7 100%);
+    -fx-border-color: #e5a93c;
+}
+.butaca.preferencial {
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f5e5c7 100%);
+    -fx-border-color: #e5a93c;
+}
+.butaca.preferencial:hover {
+    -fx-background-color: #f4cf8c;
+    -fx-border-color: #c98a1d;
+}
+.butaca.ocupada, .butaca.ocupada:hover {
+    -fx-background-color: linear-gradient(to bottom, #b01d0f 0%, #9b180c 60%, #821309 100%);
+    -fx-border-color: #6b1007;
+    -fx-text-fill: white;
+    -fx-cursor: default;
+    -fx-opacity: 1;
+}
+.butaca.sugerida {
+    -fx-background-color: #f4cf8c;
+    -fx-border-color: #03132c;
+    -fx-border-width: 2;
+    -fx-border-style: segments(3, 3);
+}
+.butaca.elegida {
+    -fx-background-color: linear-gradient(to bottom, #efc062 0%, #e5a93c 60%, #d59627 100%);
+    -fx-border-color: #a66f14;
+    -fx-border-style: solid;
+    -fx-font-family: "Manrope"; -fx-font-weight: bold;
+}
+.butaca.elegida:hover {
+    -fx-background-color: linear-gradient(to bottom, #e5a93c 0%, #c98a1d 100%);
+    -fx-border-color: #9b180c;
+}
 .leyenda-cuadro {
-    -fx-min-width: 16; -fx-min-height: 16; -fx-max-width: 16; -fx-max-height: 16;
-    -fx-background-radius: 3; -fx-border-radius: 3;
-    -fx-background-color: white; -fx-border-color: #03132c;
+    -fx-min-width: 18; -fx-min-height: 18; -fx-max-width: 18; -fx-max-height: 18;
+    -fx-background-radius: 5 5 2 2; -fx-border-radius: 5 5 2 2;
+    -fx-border-width: 1 1 2 1;
+    -fx-background-color: white; -fx-border-color: rgba(3, 19, 44, 0.45);
     -fx-alignment: center;
-    -fx-font-size: 13px; -fx-font-family: "Manrope SemiBold";
+    -fx-font-size: 12px; -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal;
 }
-.leyenda-cuadro.ocupada { -fx-background-color: #9b180c; -fx-border-color: #9b180c; }
-.leyenda-cuadro.elegida { -fx-background-color: #e5a93c; -fx-border-color: #c98a1d; }
-.leyenda-cuadro.sugerida { -fx-background-color: #f4cf8c; -fx-border-style: segments(2, 2); }
-.leyenda-cuadro.preferencial { -fx-background-color: #faf0e0; }
+.leyenda-cuadro.ocupada { -fx-background-color: #9b180c; -fx-border-color: #7c1309; }
+.leyenda-cuadro.elegida { -fx-background-color: #e5a93c; -fx-border-color: #b87c16; }
+.leyenda-cuadro.sugerida { -fx-background-color: #f4cf8c; -fx-border-color: #03132c; -fx-border-width: 1; -fx-border-style: segments(2, 2); }
+.leyenda-cuadro.preferencial { -fx-background-color: #faf0e0; -fx-border-color: #e5a93c; }
+.leyenda-cuadro.accesible { -fx-background-color: #03132c; -fx-border-color: #03132c; }
 .contador {
     -fx-background-color: #faf0e0;
+    -fx-border-color: rgba(229, 169, 60, 0.4);
+    -fx-border-radius: 20;
     -fx-background-radius: 20;
     -fx-padding: 4;
     -fx-spacing: 10;
@@ -392,140 +792,270 @@
     -fx-font-size: 15px;
 }
 .contador-menos { -fx-background-color: white; -fx-border-color: rgba(3, 19, 44, 0.22); }
-.contador-mas { -fx-background-color: #e5a93c; -fx-border-color: #c98a1d; }
-.contador-valor { -fx-font-family: "Manrope SemiBold"; -fx-font-size: 15px; -fx-min-width: 22; -fx-alignment: center; }
+.contador-menos:hover { -fx-background-color: #f5edde; -fx-border-color: #03132c; }
+.contador-mas { -fx-background-color: linear-gradient(to bottom, #efc062 0%, #e5a93c 100%); -fx-border-color: #c98a1d; }
+.contador-mas:hover { -fx-background-color: #d99b2c; }
+.contador-valor { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 15px; -fx-min-width: 22; -fx-alignment: center; }
 .sugerencia {
-    -fx-background-color: #faf0e0;
-    -fx-background-radius: 10;
-    -fx-border-color: rgba(229, 169, 60, 0.55);
-    -fx-border-radius: 10;
-    -fx-padding: 10 14 10 20;
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f8ebd4 100%);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(229, 169, 60, 0.55) rgba(229, 169, 60, 0.55) rgba(229, 169, 60, 0.55) #e5a93c;
+    -fx-border-width: 1 1 1 4;
+    -fx-border-radius: 12;
+    -fx-padding: 10 14 10 18;
     -fx-alignment: center-left;
 }
 
 /* ===== DULCERÍA ===== */
 .producto {
-    -fx-background-color: white;
-    -fx-background-radius: 14;
+    -fx-background-color:
+        rgba(0, 0, 0, 0.38),
+        linear-gradient(to bottom, #ffffff 0%, #faf8f4 100%);
+    -fx-background-insets: 5 2 -5 2, 0;
+    -fx-background-radius: 16, 16;
+    -fx-border-color: rgba(255, 255, 255, 0.22);
+    -fx-border-width: 2;
+    -fx-border-radius: 16;
+    -fx-padding: 0;
+    -fx-spacing: 0;
+}
+.producto:hover {
+    -fx-border-color: #e5a93c;
+    -fx-background-color:
+        rgba(229, 169, 60, 0.3),
+        linear-gradient(to bottom, #ffffff 0%, #fdf9f1 100%);
+    -fx-background-insets: 5 0 -5 0, 0;
+}
+.producto.en-pedido {
+    -fx-border-color: #e5a93c;
+    -fx-border-width: 2;
+    -fx-background-color:
+        rgba(229, 169, 60, 0.38),
+        linear-gradient(to bottom, #ffffff 0%, #fdf9f1 100%);
+    -fx-background-insets: 5 0 -5 0, 0;
+}
+.producto.sin-stock {
+    -fx-opacity: 0.72;
+}
+.producto.sin-stock:hover {
+    -fx-border-color: rgba(255, 255, 255, 0.22);
+    -fx-background-color:
+        rgba(0, 0, 0, 0.38),
+        linear-gradient(to bottom, #ffffff 0%, #faf8f4 100%);
+    -fx-background-insets: 5 2 -5 2, 0;
+}
+.producto-cuerpo {
     -fx-padding: 10 14 14 14;
     -fx-spacing: 6;
 }
+.badge-cantidad {
+    -fx-background-color: linear-gradient(to bottom, #efc062 0%, #e5a93c 100%);
+    -fx-border-color: #03132c;
+    -fx-border-width: 2;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 2 9 2 9;
+    -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 12px;
+    -fx-text-fill: #03132c;
+}
 .producto-imagen {
-    -fx-background-color: #faf0e0;
-    -fx-background-radius: 10;
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f5e5c7 100%);
+    -fx-background-radius: 14 14 0 0;
     -fx-min-height: 110;
     -fx-alignment: center;
 }
 .producto-categoria { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 22px; -fx-text-fill: rgba(155, 24, 12, 0.55); }
-.producto-nombre { -fx-font-family: "Manrope SemiBold"; -fx-font-size: 15px; -fx-text-fill: #03132c; }
+.producto-nombre { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 15px; -fx-text-fill: #03132c; }
 .producto-precio { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #03132c; }
-.item-pedido { -fx-background-color: #faf0e0; -fx-background-radius: 12; -fx-padding: 12 14 12 14; }
+.item-pedido {
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f8ebd4 100%);
+    -fx-border-color: rgba(229, 169, 60, 0.4);
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 12 14 12 14;
+}
 
 /* ===== PIE (barra blanca inferior con Volver / total / Continuar) ===== */
 .pie {
-    -fx-background-color: white;
+    -fx-background-color:
+        rgba(0, 0, 0, 0.35),
+        linear-gradient(to bottom, #ffffff 0%, #f7f4ee 100%);
+    -fx-background-insets: -4 0 0 0, 0;
+    -fx-border-color: rgba(229, 169, 60, 0.55) transparent transparent transparent;
+    -fx-border-width: 2 0 0 0;
     -fx-min-height: 100;
     -fx-padding: 0 36 0 36;
     -fx-alignment: center;
     -fx-spacing: 16;
 }
-.pie-etiqueta { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: #03132c; }
-.pie-total { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 28px; -fx-text-fill: #03132c; }
+.pie-etiqueta { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(3, 19, 44, 0.72); }
+.pie-total { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 28px; -fx-text-fill: #03132c; }
 .pie .btn-primario { -fx-min-height: 56; -fx-pref-width: 300; -fx-font-size: 17px; }
 .pie .btn-secundario { -fx-min-height: 48; -fx-pref-width: 200; }
 
 /* ===== QR Y COMPROBANTE ===== */
 .marco-qr {
-    -fx-background-color: #faf0e0;
-    -fx-background-radius: 16;
-    -fx-border-color: rgba(229, 169, 60, 0.55);
-    -fx-border-radius: 16;
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f6e7cc 100%);
+    -fx-background-radius: 18;
+    -fx-border-color: rgba(229, 169, 60, 0.7);
+    -fx-border-width: 2;
+    -fx-border-radius: 18;
     -fx-padding: 22;
     -fx-alignment: center;
 }
-.qr-fondo { -fx-background-color: white; -fx-background-radius: 12; -fx-padding: 14; }
+.qr-fondo {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(3, 19, 44, 0.08);
+    -fx-border-radius: 12;
+    -fx-padding: 14;
+}
 .check-exito {
-    -fx-min-width: 46; -fx-min-height: 46; -fx-max-width: 46; -fx-max-height: 46;
-    -fx-background-color: #e5a93c; -fx-background-radius: 23;
+    -fx-min-width: 48; -fx-min-height: 48; -fx-max-width: 48; -fx-max-height: 48;
+    -fx-background-color: linear-gradient(to bottom, #efc062 0%, #e5a93c 100%);
+    -fx-border-color: #c98a1d;
+    -fx-border-radius: 24;
+    -fx-background-radius: 24;
     -fx-alignment: center;
     -fx-font-size: 24px; -fx-font-family: "Manrope"; -fx-font-weight: bold;
 }
+.separador-ticket {
+    -fx-border-color: rgba(3, 19, 44, 0.24) transparent transparent transparent;
+    -fx-border-style: segments(6, 5);
+    -fx-border-width: 2 0 0 0;
+    -fx-min-height: 2;
+    -fx-max-height: 2;
+}
+.espera-indicador {
+    -fx-progress-color: #e5a93c;
+    -fx-min-width: 22; -fx-min-height: 22;
+    -fx-pref-width: 22; -fx-pref-height: 22;
+    -fx-max-width: 22; -fx-max-height: 22;
+}
+.paso-mini-num {
+    -fx-min-width: 22; -fx-min-height: 22; -fx-max-width: 22; -fx-max-height: 22;
+    -fx-background-color: #faf0e0;
+    -fx-border-color: rgba(229, 169, 60, 0.65);
+    -fx-border-radius: 11; -fx-background-radius: 11;
+    -fx-alignment: center;
+    -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 11px;
+    -fx-text-fill: #03132c;
+}
 
 /* ===== MENÚ DE USUARIO POR ROL (wireframe 11) ===== */
-.btn-activo { -fx-background-color: #9b180c; -fx-text-fill: white; }
+.btn-activo {
+    -fx-background-color: linear-gradient(to bottom, #b41f11 0%, #9b180c 60%, #821309 100%);
+    -fx-text-fill: white;
+}
+.btn-activo:hover { -fx-background-color: linear-gradient(to bottom, #c42314 0%, #aa1b0e 100%); }
 .menu-usuario {
     -fx-background-color: white;
     -fx-background-radius: 18;
+    -fx-border-color: rgba(3, 19, 44, 0.18);
+    -fx-border-width: 1;
+    -fx-border-radius: 18;
     -fx-padding: 12;
-    -fx-effect: dropshadow(gaussian, rgba(3, 19, 44, 0.25), 24, 0, 0, 8);
 }
 .menu-usuario .menu-item {
     -fx-background-color: white;
-    -fx-border-color: rgba(3, 19, 44, 0.22);
+    -fx-border-color: rgba(3, 19, 44, 0.16);
     -fx-background-radius: 14; -fx-border-radius: 14;
     -fx-padding: 10 18 10 18;
-    -fx-pref-width: 230;
+    -fx-pref-width: 240;
 }
-.menu-usuario .menu-item .label { -fx-font-family: "Manrope SemiBold"; -fx-font-size: 15px; -fx-text-fill: #03132c; }
-.menu-usuario .menu-item:focused { -fx-background-color: #faf0e0; }
-.menu-usuario .menu-item.menu-destacado { -fx-background-color: #e5a93c; -fx-border-color: #e5a93c; }
+.menu-usuario .menu-item .label { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 15px; -fx-text-fill: #03132c; }
+.menu-usuario .menu-item:focused { -fx-background-color: #faf0e0; -fx-border-color: #e5a93c; }
+.menu-usuario .menu-item.menu-destacado {
+    -fx-background-color: linear-gradient(to bottom, #efc062 0%, #e5a93c 100%);
+    -fx-border-color: #c98a1d;
+}
+.menu-usuario .menu-item.menu-destacado:focused { -fx-background-color: #d99b2c; -fx-border-color: #c98a1d; }
 .menu-usuario .separator { -fx-padding: 4 0 4 0; }
 
 /* ===== CUENTA Y POSTVENTA (fase 2) ===== */
 .pestana {
-    -fx-background-color: white;
-    -fx-border-color: rgba(3, 19, 44, 0.22);
+    -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #f7f5f0 100%);
+    -fx-border-color: rgba(255, 255, 255, 0.65);
     -fx-font-size: 15px;
 }
-.pestana.activo { -fx-background-color: #e5a93c; -fx-border-color: #e5a93c; }
+.pestana:hover { -fx-background-color: #faf0e0; -fx-border-color: #e5a93c; }
+.pestana.activo {
+    -fx-background-color: linear-gradient(to bottom, #efc062 0%, #e5a93c 60%, #d69628 100%);
+    -fx-border-color: #c98a1d;
+}
+.pestana.activo:hover { -fx-background-color: linear-gradient(to bottom, #f4ca76 0%, #e5a93c 100%); }
 .estado-chip {
     -fx-background-color: white;
     -fx-border-color: rgba(3, 19, 44, 0.3);
     -fx-background-radius: 12; -fx-border-radius: 12;
     -fx-padding: 3 12 3 12;
-    -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: #03132c;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 12px; -fx-text-fill: #03132c;
 }
 .estado-chip.pagada { -fx-background-color: #ecfdf3; -fx-border-color: #86c79b; -fx-text-fill: #166534; }
 .estado-chip.reembolsada { -fx-background-color: #faf0e0; -fx-border-color: rgba(229, 169, 60, 0.55); }
 .estado-chip.anulada { -fx-background-color: #f3f4f6; -fx-text-fill: rgba(3, 19, 44, 0.6); }
-.estado-chip.respondido { -fx-background-color: #e5a93c; -fx-border-color: #e5a93c; }
+.estado-chip.respondido { -fx-background-color: #e5a93c; -fx-border-color: #c98a1d; }
 .tabla {
-    -fx-background-color: white;
-    -fx-background-radius: 16;
+    -fx-background-color:
+        rgba(0, 0, 0, 0.34),
+        white;
+    -fx-background-insets: 5 2 -5 2, 0;
+    -fx-background-radius: 16, 16;
+    -fx-border-color: rgba(255, 255, 255, 0.78);
+    -fx-border-radius: 16;
     -fx-padding: 0 0 6 0;
 }
 .tabla-cabecera {
-    -fx-padding: 10 18 10 18;
-    -fx-border-color: transparent transparent rgba(3, 19, 44, 0.12) transparent;
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f6e8cf 100%);
+    -fx-background-radius: 16 16 0 0;
+    -fx-padding: 12 18 12 18;
+    -fx-border-color: transparent transparent rgba(229, 169, 60, 0.35) transparent;
 }
-.tabla-cabecera .label { -fx-font-family: "Manrope Medium"; -fx-font-size: 13px; -fx-text-fill: rgba(3, 19, 44, 0.75); }
+.tabla-cabecera .label { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(3, 19, 44, 0.8); }
 .tabla-fila {
     -fx-padding: 10 18 10 18;
     -fx-min-height: 62;
     -fx-alignment: center-left;
     -fx-border-color: transparent transparent rgba(3, 19, 44, 0.08) transparent;
 }
+.tabla-fila:hover { -fx-background-color: rgba(250, 240, 224, 0.62); }
 .tabla-fila .label { -fx-font-size: 13px; }
 .pagina { -fx-min-width: 40; -fx-padding: 0 14 0 14; }
-.pagina.activo { -fx-background-color: #e5a93c; -fx-border-color: #e5a93c; }
-.puntos-grande { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 30px; -fx-text-fill: #03132c; }
-.nivel { -fx-background-color: white; -fx-border-color: rgba(3, 19, 44, 0.22); -fx-min-height: 40; -fx-font-size: 14px; }
-.nivel.activo { -fx-background-color: #9b180c; -fx-border-color: #9b180c; -fx-text-fill: white; }
-.progress-bar { -fx-pref-height: 10; }
-.progress-bar > .track { -fx-background-color: rgba(3, 19, 44, 0.08); -fx-background-radius: 6; -fx-background-insets: 0; }
-.progress-bar > .bar { -fx-background-color: #e5a93c; -fx-background-radius: 6; -fx-background-insets: 0; -fx-padding: 5; }
+.pagina.activo {
+    -fx-background-color: linear-gradient(to bottom, #efc062 0%, #e5a93c 100%);
+    -fx-border-color: #c98a1d;
+}
+.pagina.activo:hover { -fx-background-color: #d99b2c; }
+.puntos-grande { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 32px; -fx-text-fill: #03132c; }
+.nivel {
+    -fx-background-color: white;
+    -fx-border-color: rgba(3, 19, 44, 0.22);
+    -fx-min-height: 40;
+    -fx-font-size: 14px;
+    -fx-cursor: default;
+}
+.nivel.activo {
+    -fx-background-color: linear-gradient(to bottom, #b41f11 0%, #9b180c 60%, #821309 100%);
+    -fx-border-color: #821309;
+    -fx-text-fill: white;
+}
+.progress-bar { -fx-pref-height: 12; }
+.progress-bar > .track { -fx-background-color: #f5edde; -fx-background-radius: 6; -fx-background-insets: 0; }
+.progress-bar > .bar { -fx-background-color: linear-gradient(to right, #e5a93c 0%, #efc062 100%); -fx-background-radius: 6; -fx-background-insets: 0; -fx-padding: 6; }
 .estrella {
     -fx-background-color: transparent;
     -fx-font-size: 34px;
     -fx-padding: 0 6 0 0;
     -fx-min-height: 0;
-    -fx-text-fill: #03132c;
+    -fx-text-fill: rgba(3, 19, 44, 0.35);
 }
 .estrella:hover { -fx-text-fill: #e5a93c; }
 .text-area { -fx-padding: 8; }
 .text-area .content { -fx-background-color: white; -fx-background-radius: 14; }
 .texto-leido {
     -fx-background-color: #faf0e0;
+    -fx-border-color: rgba(229, 169, 60, 0.45);
+    -fx-border-radius: 14;
     -fx-background-radius: 14;
     -fx-padding: 12 16 12 16;
 }
@@ -539,18 +1069,24 @@
 
 /* ===== PANEL DE DULCERÍA (fase 3) ===== */
 .columna-pedidos {
-    -fx-background-color: white;
-    -fx-background-radius: 18;
+    -fx-background-color:
+        rgba(0, 0, 0, 0.34),
+        linear-gradient(to bottom, #ffffff 0%, #f9f7f2 100%);
+    -fx-background-insets: 5 2 -5 2, 0;
+    -fx-background-radius: 18, 18;
+    -fx-border-color: rgba(255, 255, 255, 0.78);
+    -fx-border-radius: 18;
     -fx-padding: 18 14 14 14;
 }
 .tarjeta-pedido {
     -fx-background-color: white;
     -fx-background-radius: 14;
-    -fx-border-color: rgba(3, 19, 44, 0.08);
+    -fx-border-color: rgba(3, 19, 44, 0.14);
+    -fx-border-width: 1;
     -fx-border-radius: 14;
     -fx-padding: 14 16 14 16;
-    -fx-effect: dropshadow(gaussian, rgba(3, 19, 44, 0.12), 14, 0, 0, 4);
 }
+.tarjeta-pedido:hover { -fx-border-color: #e5a93c; }
 .columna-pedidos .scroll-pane { -fx-padding: 4; }
 .insignia {
     -fx-min-width: 26; -fx-min-height: 26;
@@ -563,20 +1099,28 @@
 .insignia-dorada { -fx-background-color: #e5a93c; -fx-text-fill: #03132c; }
 .insignia-azul { -fx-background-color: #03132c; -fx-text-fill: white; }
 .insignia-gris { -fx-background-color: #e3e8f0; -fx-text-fill: #03132c; }
-.btn-entregado { -fx-background-color: #faf0e0; -fx-opacity: 1; }
+.btn-entregado { -fx-background-color: #faf0e0; -fx-border-color: rgba(229, 169, 60, 0.45); -fx-opacity: 1; }
 .btn-entregado:disabled { -fx-opacity: 0.85; }
 .lector {
-    -fx-background-color: #03132c;
+    -fx-background-color: radial-gradient(center 50% 45%, radius 75%, #16325f 0%, #03132c 100%);
     -fx-background-radius: 14;
     -fx-border-color: #e5a93c;
+    -fx-border-width: 2;
     -fx-border-radius: 14;
     -fx-min-height: 220;
 }
+.lector-titulo { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: white; }
+.lector-subtitulo { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(255, 255, 255, 0.8); }
 
 /* ===== ADMINISTRACIÓN (fase 4) ===== */
 .menu-lateral {
-    -fx-background-color: white;
-    -fx-background-radius: 22;
+    -fx-background-color:
+        rgba(0, 0, 0, 0.36),
+        linear-gradient(to bottom, #ffffff 0%, #f9f6f0 100%);
+    -fx-background-insets: 5 2 -5 2, 0;
+    -fx-background-radius: 22, 22;
+    -fx-border-color: rgba(255, 255, 255, 0.78);
+    -fx-border-radius: 22;
     -fx-padding: 18 12 18 12;
 }
 .opcion-menu {
@@ -586,95 +1130,137 @@
     -fx-background-radius: 12;
     -fx-min-height: 44;
     -fx-padding: 0 14 0 14;
+    -fx-graphic-text-gap: 12;
 }
 .opcion-menu:hover { -fx-background-color: #faf0e0; }
-.opcion-menu.activo { -fx-background-color: #9b180c; -fx-text-fill: white; }
+.opcion-menu.activo {
+    -fx-background-color: linear-gradient(to bottom, #b41f11 0%, #9b180c 60%, #821309 100%);
+    -fx-text-fill: white;
+}
+.opcion-menu.activo:hover { -fx-background-color: linear-gradient(to bottom, #c42314 0%, #aa1b0e 100%); }
 .barra-oscura {
-    -fx-background-color: rgba(255, 255, 255, 0.05);
-    -fx-background-radius: 26;
-    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-background-color:
+        rgba(0, 0, 0, 0.28),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.04) 100%);
+    -fx-background-insets: 3 1 -3 1, 0;
+    -fx-background-radius: 26, 26;
+    -fx-border-color: rgba(255, 255, 255, 0.2);
     -fx-border-radius: 26;
     -fx-padding: 8 14 8 18;
     -fx-spacing: 14;
     -fx-alignment: center-left;
 }
-.barra-oscura > .label { -fx-text-fill: white; -fx-font-family: "Manrope SemiBold"; }
+.barra-oscura > .label { -fx-text-fill: white; -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; }
 .tabla-cabecera.crema { -fx-background-color: #faf0e0; -fx-background-radius: 16 16 0 0; }
 .panel-crema {
-    -fx-background-color: #faf0e0;
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f6e7cc 100%);
     -fx-background-radius: 18;
-    -fx-border-color: rgba(229, 169, 60, 0.55);
+    -fx-border-color: rgba(229, 169, 60, 0.6);
     -fx-border-radius: 18;
     -fx-padding: 20 26 20 26;
 }
 .radio-button { -fx-font-family: "Manrope Medium"; -fx-font-size: 14px; -fx-cursor: hand; -fx-text-fill: #03132c; }
 .radio-button .radio { -fx-background-color: white; -fx-border-color: rgba(3, 19, 44, 0.5); -fx-border-radius: 10; -fx-background-radius: 10; }
+.radio-button:hover .radio { -fx-border-color: #e5a93c; }
+.radio-button:selected .radio { -fx-border-color: #c98a1d; }
 .radio-button:selected .dot { -fx-background-color: #e5a93c; }
 .poster-subida {
     -fx-background-color: #f6f7fa;
-    -fx-border-color: rgba(3, 19, 44, 0.25);
+    -fx-border-color: rgba(3, 19, 44, 0.28);
     -fx-border-style: segments(6, 4);
     -fx-border-radius: 14; -fx-background-radius: 14;
     -fx-min-height: 260;
     -fx-alignment: center;
 }
+.poster-subida:hover { -fx-background-color: #faf0e0; -fx-border-color: #e5a93c; }
 .reclamo-item {
     -fx-background-color: white;
     -fx-background-radius: 14;
+    -fx-border-color: rgba(3, 19, 44, 0.12);
+    -fx-border-radius: 14;
     -fx-padding: 12 16 12 16;
     -fx-cursor: hand;
 }
-.reclamo-item.activo { -fx-border-color: transparent transparent transparent #9b180c; -fx-border-width: 0 0 0 5; -fx-border-radius: 14; }
+.reclamo-item:hover { -fx-background-color: #faf0e0; -fx-border-color: rgba(229, 169, 60, 0.6); }
+.reclamo-item.activo {
+    -fx-background-color: #faf0e0;
+    -fx-border-color: rgba(229, 169, 60, 0.45) rgba(229, 169, 60, 0.45) rgba(229, 169, 60, 0.45) #9b180c;
+    -fx-border-width: 1 1 1 5;
+    -fx-border-radius: 14;
+}
 .mapa-mini .butaca-mini {
     -fx-min-width: 12; -fx-min-height: 12; -fx-max-width: 12; -fx-max-height: 12;
-    -fx-background-color: white; -fx-border-color: #03132c; -fx-border-radius: 2; -fx-background-radius: 2;
+    -fx-background-color: white; -fx-border-color: #03132c; -fx-border-radius: 3 3 1 1; -fx-background-radius: 3 3 1 1;
 }
-.mapa-mini .butaca-mini.preferencial { -fx-background-color: #faf0e0; -fx-border-color: #c98a1d; }
+.mapa-mini .butaca-mini.preferencial { -fx-background-color: #faf0e0; -fx-border-color: #e5a93c; }
 .mapa-mini .butaca-mini.accesible { -fx-background-color: #03132c; }
 .estado-chip.inactiva { -fx-background-color: #faf0e0; -fx-border-color: rgba(229, 169, 60, 0.55); }
 .estado-chip.cancelada { -fx-background-color: #9b180c; -fx-border-color: #9b180c; -fx-text-fill: white; }
 .estado-chip.agotado { -fx-background-color: #fde2df; -fx-border-color: #f3a39b; -fx-text-fill: #9b180c; }
 
 /* ===== VENTANAS SOBRE LA PANTALLA (sinopsis, avisos) ===== */
-.capa-modal { -fx-background-color: rgba(3, 19, 44, 0.62); }
+.capa-modal { -fx-background-color: rgba(1, 9, 23, 0.76); }
 /* Transición al cambiar entre la cuenta personal y el panel del empleado */
-.capa-transicion { -fx-background-color: rgba(3, 19, 44, 0.92); }
+.capa-transicion { -fx-background-color: rgba(2, 12, 29, 0.94); }
 .capa-transicion .progress-indicator { -fx-progress-color: #e5a93c; -fx-pref-width: 64; -fx-pref-height: 64; }
 .transicion-texto { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 24px; -fx-text-fill: white; }
 .campo-pin { -fx-font-size: 26px; -fx-alignment: center; }
 .dialogo {
-    -fx-background-color: white;
-    -fx-background-radius: 20;
+    -fx-background-color:
+        rgba(0, 0, 0, 0.45),
+        rgba(0, 0, 0, 0.25),
+        linear-gradient(to bottom, #ffffff 0%, #fcfaf6 100%);
+    -fx-background-insets: 8 4 -8 4, 4 2 -4 2, 0;
+    -fx-background-radius: 22, 22, 22;
+    -fx-border-color: rgba(255, 255, 255, 0.6);
+    -fx-border-width: 1;
+    -fx-border-radius: 22;
     -fx-padding: 28;
     -fx-spacing: 14;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 32, 0, 0, 10);
 }
 .dialogo-titulo { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 22px; -fx-text-fill: #03132c; }
 .dialogo-titulo.peligro { -fx-text-fill: #9b180c; }
-.cuenta-regresiva { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 34px; -fx-text-fill: #03132c; }
+.cuenta-regresiva { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 36px; -fx-text-fill: #03132c; }
 .trailer-caja {
-    -fx-background-color: linear-gradient(to bottom right, #13284d, #03132c);
-    -fx-background-radius: 12;
+    -fx-background-color: radial-gradient(center 50% 45%, radius 75%, #16325f 0%, #03132c 100%);
+    -fx-background-radius: 14;
+    -fx-border-color: rgba(229, 169, 60, 0.45);
+    -fx-border-radius: 14;
     -fx-min-height: 220;
     -fx-alignment: center;
 }
+.trailer-play-circulo {
+    -fx-min-width: 68; -fx-min-height: 68; -fx-max-width: 68; -fx-max-height: 68;
+    -fx-background-color: rgba(229, 169, 60, 0.22);
+    -fx-border-color: #e5a93c;
+    -fx-border-width: 2;
+    -fx-background-radius: 34; -fx-border-radius: 34;
+    -fx-alignment: center;
+}
 .trailer-boton {
-    -fx-background-color: rgba(255, 255, 255, 0.12);
+    -fx-background-color: rgba(255, 255, 255, 0.14);
     -fx-border-color: white;
     -fx-text-fill: white;
     -fx-background-radius: 24; -fx-border-radius: 24;
     -fx-font-size: 15px;
 }
+.trailer-boton:hover {
+    -fx-background-color: #e5a93c;
+    -fx-border-color: #e5a93c;
+    -fx-text-fill: #03132c;
+}
 
 /* ===== CORREO SIMULADO (aviso en la esquina con cada correo "enviado") ===== */
 .correo-simulado {
-    -fx-background-color: #faf0e0;
-    -fx-background-radius: 16;
-    -fx-border-color: #e5a93c;
+    -fx-background-color:
+        rgba(0, 0, 0, 0.36),
+        linear-gradient(to bottom, #fdf7ec 0%, #f6e7cc 100%);
+    -fx-background-insets: 5 2 -5 2, 0;
+    -fx-background-radius: 16, 16;
+    -fx-border-color: rgba(229, 169, 60, 0.65) rgba(229, 169, 60, 0.65) rgba(229, 169, 60, 0.65) #e5a93c;
     -fx-border-width: 1 1 1 5;
     -fx-border-radius: 16;
     -fx-padding: 14 18 16 18;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 24, 0, 0, 8);
 }
 .correo-titulo { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #9b180c; }
 .correo-cerrar {
@@ -685,6 +1271,6 @@
     -fx-font-family: "Manrope Medium"; -fx-font-weight: normal;
     -fx-background-radius: 14;
 }
-.correo-cerrar:hover { -fx-background-color: rgba(3, 19, 44, 0.08); }
+.correo-cerrar:hover { -fx-background-color: rgba(155, 24, 12, 0.14); -fx-text-fill: #9b180c; }
 /* Código de 6 dígitos de «Recuperar contraseña»: más grande y centrado, para leerlo como un código */
-.campo-codigo { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 20px; -fx-alignment: center; }
+.campo-codigo { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 22px; -fx-alignment: center; }

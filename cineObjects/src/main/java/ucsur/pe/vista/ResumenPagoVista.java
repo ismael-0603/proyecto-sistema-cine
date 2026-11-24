@@ -2,11 +2,13 @@ package ucsur.pe.vista;
 
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import ucsur.pe.controller.Respuesta;
@@ -33,6 +35,8 @@ public class ResumenPagoVista extends Pantalla {
 
     private Compra compra;
     private Metodo metodo;
+    private Region radioTarjeta;
+    private Region radioBilletera;
 
     public ResumenPagoVista(Navegador nav) {
         super(nav);
@@ -55,7 +59,26 @@ public class ResumenPagoVista extends Pantalla {
         boolean socio = estado().cliente() != null && estado().cliente().esSocio();
         lblSocio.setText(socio ? "Como socio, tus beneficios se validan al pagar."
                 : "Beneficios de socio: inicia sesión como socio para usar tus puntos y las promociones exclusivas.");
+        radioTarjeta = armarOpcionPago(btnTarjeta, Iconos.TARJETA,
+                "Tarjeta de crédito o débito", "Visa, Mastercard o American Express");
+        radioBilletera = armarOpcionPago(btnBilletera, Iconos.BILLETERA,
+                "Billetera digital", "Yape, Plin u otra app con código QR");
         refrescar();
+    }
+
+    private static Region armarOpcionPago(Button boton, String icono, String titulo, String subtitulo) {
+        Region radio = new Region();
+        radio.getStyleClass().add("radio-indicador");
+        Label lblTitulo = new Label(titulo);
+        lblTitulo.getStyleClass().add("opcion-pago-titulo");
+        Label lblSub = new Label(subtitulo);
+        lblSub.getStyleClass().add("opcion-pago-subtitulo");
+        VBox textos = new VBox(2, lblTitulo, lblSub);
+        HBox contenido = new HBox(14, radio, Iconos.crear(icono, 22), textos);
+        contenido.setAlignment(Pos.CENTER_LEFT);
+        boton.setText(null);
+        boton.setGraphic(contenido);
+        return radio;
     }
 
     private void refrescar() {
@@ -96,9 +119,15 @@ public class ResumenPagoVista extends Pantalla {
         metodo = m;
         btnTarjeta.getStyleClass().remove("activo");
         btnBilletera.getStyleClass().remove("activo");
-        btnTarjeta.setText((m == Metodo.TARJETA ? "◉" : "◯") + "   💳  Tarjeta de crédito o débito");
-        btnBilletera.setText((m == Metodo.BILLETERA ? "◉" : "◯") + "   📱  Billetera digital");
-        (m == Metodo.TARJETA ? btnTarjeta : btnBilletera).getStyleClass().add("activo");
+        radioTarjeta.getStyleClass().remove("activo");
+        radioBilletera.getStyleClass().remove("activo");
+        if (m == Metodo.TARJETA) {
+            btnTarjeta.getStyleClass().add("activo");
+            radioTarjeta.getStyleClass().add("activo");
+        } else {
+            btnBilletera.getStyleClass().add("activo");
+            radioBilletera.getStyleClass().add("activo");
+        }
         limpiar(lblMensaje);
     }
 
