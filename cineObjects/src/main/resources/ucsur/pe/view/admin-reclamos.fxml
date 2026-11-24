@@ -50,6 +50,7 @@
                     <Label fx:id="lblDescripcion" styleClass="texto-respuesta, nota" wrapText="true" maxWidth="Infinity" minHeight="70"/>
                     <Label text="Respuesta al cliente" styleClass="etiqueta-campo"><VBox.margin><Insets top="8"/></VBox.margin></Label>
                     <TextArea fx:id="txtRespuesta" promptText="Escribe la respuesta o el motivo del rechazo…" wrapText="true" prefRowCount="4"/>
+                    <Label fx:id="lblContadorRespuesta" text="Máximo 500 caracteres" styleClass="nota"/>
                     <Label fx:id="lblMensajeDetalle" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox spacing="12" alignment="CENTER_LEFT">

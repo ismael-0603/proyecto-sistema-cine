@@ -29,6 +29,7 @@ public class CalificarReclamoVista extends Pantalla {
     @FXML private Label lblCompraReclamo;
     @FXML private FlowPane tipos;
     @FXML private TextArea txtDescripcion;
+    @FXML private Label lblContadorReclamo;
     @FXML private Label lblMensajeReclamo;
     @FXML private Button btnReclamo;
 
@@ -68,6 +69,8 @@ public class CalificarReclamoVista extends Pantalla {
         elegirPuntuacion(0);
         txtComentario.textProperty().addListener((o, a, texto) ->
                 lblContador.setText(texto.length() + " de " + Calificacion.MAX_COMENTARIO + " caracteres"));
+        txtDescripcion.textProperty().addListener((o, a, texto) ->
+                lblContadorReclamo.setText(texto.length() + " de " + Reclamo.MAX_DESCRIPCION + " caracteres"));
 
         for (String tipo : Reclamo.TIPOS) {
             Button b = new Button("◯  " + Formato.tipoReclamo(tipo));

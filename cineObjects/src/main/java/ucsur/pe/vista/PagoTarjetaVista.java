@@ -10,6 +10,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import ucsur.pe.model.DateTime;
+import ucsur.pe.model.Persona;
 import ucsur.pe.model.TransaccionPago;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,7 +81,12 @@ public class PagoTarjetaVista extends PantallaPago {
     /** Revisión de formato del formulario (trabajo de la pantalla); devuelve el primer problema o null. */
     private String revisarFormulario() {
         String numero = soloDigitos(txtNumero.getText());
-        if (texto(txtTitular).isEmpty()) return "Ingresa el nombre del titular.";
+        String titular = texto(txtTitular);
+        if (titular.isEmpty()) return "Ingresa el nombre del titular.";
+        // Misma regla que los nombres de Persona: rechaza "123456".
+        if (!titular.matches(Persona.REGEX_NOMBRE)) {
+            return "El nombre del titular solo puede tener letras.";
+        }
         if (!numero.matches("\\d*")) return "El número de tarjeta solo puede tener dígitos.";
         if (numero.length() < 13 || numero.length() > 19) return "El número de tarjeta debe tener entre 13 y 19 dígitos.";
         if (cmbTipo.getValue() == null) return "Elige si la tarjeta es de crédito o débito.";
@@ -89,11 +95,19 @@ public class PagoTarjetaVista extends PantallaPago {
         int mes = Integer.parseInt(cmbMes.getValue());
         int anio = Integer.parseInt(cmbAnio.getValue());
         if (anio == hoy.getAnio() && mes < hoy.getMes()) return "La tarjeta está vencida.";
-        if (!soloDigitos(txtCvv.getText()).matches("\\d{3,4}") || txtCvv.getText().trim().length() > 4) {
-            return "El CVV tiene 3 o 4 dígitos.";
-        }
+        // El CVV se revisa tal cual se escribió ("12-3" no vale) y su largo depende de la marca:
+        // American Express (empieza con 34 o 37) usa 4 dígitos; Visa, Mastercard y las demás, 3.
+        boolean amex = numero.startsWith("34") || numero.startsWith("37");
+        if (amex && !texto(txtCvv).matches("\\d{4}")) return "El CVV de American Express tiene 4 dígitos.";
+        if (!amex && !texto(txtCvv).matches("\\d{3}")) return "El CVV tiene 3 dígitos.";
         if (cmbDocumento.getValue() == null) return "Elige el tipo de documento.";
-        if (texto(txtDocumento).isEmpty()) return "Ingresa tu número de documento.";
+        String documento = texto(txtDocumento);
+        if (documento.isEmpty()) return "Ingresa tu número de documento.";
+        if ("DNI".equals(cmbDocumento.getValue())) {
+            if (!Persona.esDniValido(documento)) return "El DNI debe tener exactamente 8 dígitos.";
+        } else if (!documento.matches("[A-Za-z0-9]{6,12}")) {
+            return "El documento debe tener entre 6 y 12 letras o números.";
+        }
         if (!chkTerminos.isSelected()) return "Debes aceptar los términos y condiciones.";
         return null;
     }

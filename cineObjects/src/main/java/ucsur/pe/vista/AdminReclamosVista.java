@@ -33,6 +33,7 @@ public class AdminReclamosVista extends PantallaAdmin {
     @FXML private Label lblFecha;
     @FXML private Label lblDescripcion;
     @FXML private TextArea txtRespuesta;
+    @FXML private Label lblContadorRespuesta;
     @FXML private Label lblMensajeDetalle;
     @FXML private Button btnRevision;
     @FXML private Button btnRechazar;
@@ -49,6 +50,8 @@ public class AdminReclamosVista extends PantallaAdmin {
     @FXML
     private void initialize() {
         if (!prepararAdmin("reclamos")) return;
+        txtRespuesta.textProperty().addListener((o, a, texto) -> lblContadorRespuesta.setText(
+                (texto == null ? 0 : texto.length()) + " de " + Reclamo.MAX_RESPUESTA + " caracteres"));
         agregarFiltro("Todos", Filtro.TODOS);
         agregarFiltro("Recibidos", Filtro.RECIBIDOS);
         agregarFiltro("En revisión", Filtro.EN_REVISION);

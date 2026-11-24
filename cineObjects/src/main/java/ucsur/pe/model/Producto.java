@@ -11,6 +11,7 @@ import java.util.Map;
 public class Producto implements Activable {
     // Valores fijos de los productos (constantes: se usan como Producto.NOMBRE y su valor no cambia).
     public static final int PUNTOS_COMBO = 2; // puntos que da cada combo vendido
+    public static final int MAX_STOCK = 100_000; // tope de unidades por sede
     public static final int UMBRAL_STOCK_BAJO = 15; // con 15 unidades o menos en una sede se avisa «Stock bajo»
 
     private int idProducto;
@@ -123,6 +124,10 @@ public class Producto implements Activable {
         }
         if (cant <= 0) {
             throw new IllegalArgumentException("La cantidad a reponer debe ser mayor a 0");
+        }
+        // Se compara restando para que una cantidad enorme (2 000 000 000) no desborde el int al sumar.
+        if (cant > MAX_STOCK - getStock(sede)) {
+            throw new IllegalArgumentException("El stock de una sede no puede superar " + MAX_STOCK + " unidades");
         }
         stockPorSede.put(sede, getStock(sede) + cant);
     }

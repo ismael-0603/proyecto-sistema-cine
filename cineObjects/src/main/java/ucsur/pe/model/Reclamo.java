@@ -13,6 +13,8 @@ public class Reclamo {
     public static final String PRODUCTO_DULCERIA = "PRODUCTO_DULCERIA"; // producto incompleto, frío o equivocado
     public static final String SALA_PROYECCION = "SALA_PROYECCION"; // imagen, sonido, limpieza o butaca de la sala
     public static final List<String> TIPOS = List.of(ATENCION, PRODUCTO_DULCERIA, SALA_PROYECCION);
+    public static final int MAX_DESCRIPCION = 500; // tope de texto, como Calificacion.MAX_COMENTARIO
+    public static final int MAX_RESPUESTA = 500;
 
     // Estados de un reclamo (constantes: se usan como Reclamo.NOMBRE y su valor no cambia).
     public static final String BORRADOR = "BORRADOR"; // solo en memoria hasta registrar(); no existe en la BD
@@ -35,6 +37,9 @@ public class Reclamo {
         }
         if (descripcion == null || descripcion.trim().isEmpty()) {
             throw new IllegalArgumentException("La descripción es obligatoria");
+        }
+        if (descripcion.trim().length() > MAX_DESCRIPCION) {
+            throw new IllegalArgumentException("La descripción no puede superar " + MAX_DESCRIPCION + " caracteres");
         }
         if (compra == null) {
             throw new IllegalArgumentException("La compra es obligatoria");
@@ -132,6 +137,9 @@ public class Reclamo {
     private void validarRespuesta(String texto) {
         if (texto == null || texto.trim().isEmpty()) {
             throw new IllegalArgumentException("La respuesta es obligatoria");
+        }
+        if (texto.trim().length() > MAX_RESPUESTA) {
+            throw new IllegalArgumentException("La respuesta no puede superar " + MAX_RESPUESTA + " caracteres");
         }
     }
 

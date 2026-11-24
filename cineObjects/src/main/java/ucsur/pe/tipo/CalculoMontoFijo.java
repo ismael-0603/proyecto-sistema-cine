@@ -13,8 +13,8 @@ public class CalculoMontoFijo implements CalculoDescuento {
     private final long montoCentavos; // en céntimos
 
     public CalculoMontoFijo(long montoCentavos) {
-        if (montoCentavos < 0) {
-            throw new IllegalArgumentException("El monto del descuento no puede ser negativo");
+        if (montoCentavos <= 0) { // S/ 0.00 crearía una promoción que no descuenta nada
+            throw new IllegalArgumentException("El monto del descuento debe ser mayor a 0");
         }
         this.montoCentavos = montoCentavos;
     }

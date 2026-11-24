@@ -9,11 +9,11 @@ public class CalculoPorcentaje implements CalculoDescuento {
     // Nombre en la BD (constante: se usa como CalculoPorcentaje.TIPO y su valor no cambia).
     public static final String TIPO = "PORCENTAJE";
 
-    private final long porcentaje; // entero de 0 a 100
+    private final long porcentaje; // entero de 1 a 100
 
     public CalculoPorcentaje(long porcentaje) {
-        if (porcentaje < 0 || porcentaje > 100) {
-            throw new IllegalArgumentException("El porcentaje debe estar entre 0 y 100");
+        if (porcentaje < 1 || porcentaje > 100) { // un 0 % crearía una promoción que no descuenta nada
+            throw new IllegalArgumentException("El porcentaje debe estar entre 1 y 100");
         }
         this.porcentaje = porcentaje;
     }

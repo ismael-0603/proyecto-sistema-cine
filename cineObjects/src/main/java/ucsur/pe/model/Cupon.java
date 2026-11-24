@@ -16,12 +16,17 @@ public class Cupon extends DescuentoBase implements DescuentoConUsos {
     /** Cantidad de veces que ya se aplicó en compras confirmadas. */
     private int usosRealizados;
 
+    /** De 3 a 30 letras, dígitos, guion o guion bajo (sin espacios ni símbolos): "CINE10" sí, "CINE 10!!" no. */
+    private static void validarCodigo(String codigo) {
+        if (codigo == null || !codigo.trim().matches("[A-Za-z0-9_-]{3,30}")) {
+            throw new IllegalArgumentException("El código debe tener de 3 a 30 letras, números, - o _ (sin espacios)");
+        }
+    }
+
     public Cupon(int idCupon, String codigo, CalculoDescuento calculo,
                  DateTime fechaInicio, DateTime fechaFin, int limiteUso, int nivelSocioMinimo, boolean estado) {
         super(calculo, fechaInicio, fechaFin, nivelSocioMinimo, estado);
-        if (codigo == null || codigo.trim().isEmpty() || codigo.trim().length() > 30) {
-            throw new IllegalArgumentException("El código es obligatorio (máx. 30 caracteres)");
-        }
+        validarCodigo(codigo);
         if (limiteUso < 0) {
             throw new IllegalArgumentException("El límite de uso no puede ser negativo");
         }
@@ -52,9 +57,7 @@ public class Cupon extends DescuentoBase implements DescuentoConUsos {
      */
     public void actualizar(String codigo, CalculoDescuento calculo, DateTime fechaInicio, DateTime fechaFin,
                            int limiteUso, int nivelSocioMinimo) {
-        if (codigo == null || codigo.trim().isEmpty() || codigo.trim().length() > 30) {
-            throw new IllegalArgumentException("El código es obligatorio (máx. 30 caracteres)");
-        }
+        validarCodigo(codigo);
         if (limiteUso < usosRealizados) {
             throw new IllegalArgumentException("El límite no puede ser menor a los " + usosRealizados + " usos ya realizados");
         }

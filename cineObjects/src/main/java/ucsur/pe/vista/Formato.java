@@ -102,7 +102,10 @@ public final class Formato {
     public static DateTime leerFecha(String texto, String campo) {
         String limpio = texto == null ? "" : texto.replace(" ", "");
         String[] partes = limpio.split("[/-]");
-        if (partes.length != 3) throw new IllegalArgumentException(campo + ": usa el formato dd/mm/aaaa.");
+        // El año va con 4 dígitos: "15/05/26" o "15/05/20266" no se adivinan.
+        if (partes.length != 3 || partes[2].length() != 4) {
+            throw new IllegalArgumentException(campo + ": usa el formato dd/mm/aaaa.");
+        }
         try {
             return new DateTime(Integer.parseInt(partes[0]), Integer.parseInt(partes[1]), Integer.parseInt(partes[2]));
         } catch (NumberFormatException e) {
@@ -112,10 +115,12 @@ public final class Formato {
 
     /** "15:40" -> DateTime(15, 40) */
     public static DateTime leerHora(String texto, String campo) {
-        String[] partes = (texto == null ? "" : texto.trim()).split(":");
-        if (partes.length != 2) throw new IllegalArgumentException(campo + ": usa el formato hh:mm.");
+        String t = texto == null ? "" : texto.trim();
+        // 1 o 2 dígitos de hora y 2 de minutos: "9:05" vale; "9:5", "-0:00" o "0015:0040" no.
+        if (!t.matches("\\d{1,2}:\\d{2}")) throw new IllegalArgumentException(campo + ": usa el formato hh:mm.");
+        String[] partes = t.split(":");
         try {
-            return new DateTime(Integer.parseInt(partes[0].trim()), Integer.parseInt(partes[1].trim()));
+            return new DateTime(Integer.parseInt(partes[0]), Integer.parseInt(partes[1]));
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(campo + ": usa el formato hh:mm.");
         }
@@ -211,7 +216,7 @@ public final class Formato {
 
     /** "SUBTITULADA" -> "Subtitulada" */
     public static String capitalizar(String texto) {
-        if (texto == null || texto.isEmpty()) return "";
+        if (texto == null || texto.isBlank()) return ""; // " " quedaría vacío tras trim y charAt(0) fallaría
         String t = texto.trim().toLowerCase().replace('_', ' ');
         return Character.toUpperCase(t.charAt(0)) + t.substring(1);
     }

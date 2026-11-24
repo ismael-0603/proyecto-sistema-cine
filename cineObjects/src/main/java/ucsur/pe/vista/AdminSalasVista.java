@@ -213,7 +213,10 @@ public class AdminSalasVista extends PantallaAdmin {
             int f = Integer.parseInt(txtFilas.getText().trim());
             int l = Integer.parseInt(txtLaterales.getText().trim());
             int c = Integer.parseInt(txtCentrales.getText().trim());
-            if (f <= 0 || l < 0 || c <= 0 || f > Sala.MAX_FILAS) throw new NumberFormatException();
+            // Mismos topes que Sala: así un "200" no hace dibujar miles de butacas en cada tecla.
+            if (f <= 0 || l < 0 || c <= 0 || f > Sala.MAX_FILAS || l > Sala.MAX_LATERAL || c > Sala.MAX_CENTRAL) {
+                throw new NumberFormatException();
+            }
             lblCapacidad.setText(f + " × (" + l + " + " + c + " + " + l + ") = " + f * (2 * l + c) + " butacas");
             mapa.getChildren().clear();
             for (int fila = 0; fila < f; fila++) {

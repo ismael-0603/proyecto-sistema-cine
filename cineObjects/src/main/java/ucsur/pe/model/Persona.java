@@ -8,6 +8,12 @@ public abstract class Persona implements Activable {
     // private (encapsulamiento): ni las subclases cambian estos datos sin pasar por las validaciones;
     // Cliente y Empleado los leen con los getters y cambian el estado con activar() y desactivar().
     public static final int MIN_CONTRA = 8; // wireframe 5: «Mínimo 8 caracteres»
+    public static final int EDAD_MIN = 15; // edad mínima para tener una cuenta
+    public static final int EDAD_MAX = 110; // por encima, la fecha de nacimiento es un error de tipeo
+    /** Letras (con tildes, ñ y ü), espacios, apóstrofo y guion; al menos una letra. Rechaza "12345" o "@@@". */
+    public static final String REGEX_NOMBRE = "(?=.*\\p{L})[\\p{L} '-]+";
+    /** usuario@dominio.tld con TLD de 2 letras o más: rechaza "a@..com", "a@.com", "a@b.c" o "user@dom,com". */
+    public static final String REGEX_CORREO = "[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*\\.[A-Za-z]{2,}";
     private String dni;
     private String nombres;
     private String apellidos;
@@ -24,8 +30,8 @@ public abstract class Persona implements Activable {
         if (reloj == null) throw new IllegalArgumentException("El reloj es obligatorio");
         this.reloj = reloj; // va primero: validarFechaNac lo necesita
         this.dni = validarDni(dni);
-        this.nombres = validarTexto(nombres, "Los nombres", 80);
-        this.apellidos = validarTexto(apellidos, "Los apellidos", 80);
+        this.nombres = validarNombre(nombres, "Los nombres", 80);
+        this.apellidos = validarNombre(apellidos, "Los apellidos", 80);
         this.fechaNac = validarFechaNac(fechaNac);
         this.correo = validarCorreo(correo);
         this.telefono = validarTelefono(telefono);
@@ -81,37 +87,64 @@ public abstract class Persona implements Activable {
         }
     }
 
-    /** Acepta un DNI nulo para invitados; si existe, debe contener exactamente ocho dígitos. */
+    /** Acepta un DNI nulo para invitados; si existe, debe contener exactamente ocho dígitos (y no ser 00000000). */
     private static String validarDni(String dni) {
-        if (dni != null && !dni.matches("\\d{8}")) {
+        if (dni == null) return null;
+        String d = dni.trim(); // "12345678 " (espacio al copiar) también vale
+        if (!esDniValido(d)) {
             throw new IllegalArgumentException("El DNI debe tener exactamente 8 dígitos");
         }
-        return dni;
+        return d;
     }
 
-    /** Recorta espacios y rechaza textos vacíos o que superen el máximo indicado. */
-    private static String validarTexto(String texto, String campo, int max) {
+    /** Formato de DNI peruano: 8 dígitos y no todos ceros. Lo usa también la pantalla de pago. */
+    public static boolean esDniValido(String dni) {
+        return dni != null && dni.matches("\\d{8}") && !dni.equals("00000000");
+    }
+
+    /** Recorta espacios; rechaza vacíos, textos que superen el máximo o que no sean un nombre (solo letras). */
+    private static String validarNombre(String texto, String campo, int max) {
         if (texto == null) return null;
         String t = texto.trim();
         if (t.isEmpty() || t.length() > max) {
             throw new IllegalArgumentException(campo + " no pueden estar vacíos ni superar " + max + " caracteres");
         }
+        if (!t.matches(REGEX_NOMBRE)) {
+            throw new IllegalArgumentException(campo + " solo pueden tener letras, espacios, apóstrofo o guion");
+        }
         return t;
     }
 
-    /** Rechaza fechas de nacimiento posteriores al momento actual. */
+    /** Rechaza fechas futuras y edades fuera de EDAD_MIN..EDAD_MAX (cumplidos a la fecha de hoy). */
     private DateTime validarFechaNac(DateTime fecha) {
-        if (fecha != null && fecha.esDespuesDe(reloj.ahora())) {
+        if (fecha == null) return null;
+        DateTime hoy = reloj.ahora();
+        if (fecha.esDespuesDe(hoy)) {
             throw new IllegalArgumentException("La fecha de nacimiento no puede ser futura");
         }
+        int edad = edadEn(fecha, hoy);
+        if (edad < EDAD_MIN) {
+            throw new IllegalArgumentException("Debes tener al menos " + EDAD_MIN + " años");
+        }
+        if (edad > EDAD_MAX) {
+            throw new IllegalArgumentException("Revisa la fecha de nacimiento: la edad no puede superar " + EDAD_MAX + " años");
+        }
         return fecha;
+    }
+
+    /** Años cumplidos a la fecha indicada: resta uno si aún no llega el cumpleaños de ese año. */
+    private static int edadEn(DateTime nacimiento, DateTime hoy) {
+        int edad = hoy.getAnio() - nacimiento.getAnio();
+        boolean faltaCumple = hoy.getMes() < nacimiento.getMes()
+                || (hoy.getMes() == nacimiento.getMes() && hoy.getDia() < nacimiento.getDia());
+        return faltaCumple ? edad - 1 : edad;
     }
 
     /** Acepta un correo nulo cuando el tipo de persona lo permite; valida formato y longitud si se informa. */
     private static String validarCorreo(String correo) {
         if (correo == null) return null;
         String c = correo.trim();
-        if (c.length() > 100 || !c.matches("[^@\\s]+@[^@\\s]+\\.[^@\\s]+")) {
+        if (c.length() > 100 || !c.matches(REGEX_CORREO)) {
             throw new IllegalArgumentException("Correo inválido");
         }
         return c;
@@ -126,18 +159,27 @@ public abstract class Persona implements Activable {
         this.contra = validarContra(nueva);
     }
 
-    /** Permite omitir el teléfono; si se informa, debe tener exactamente 9 dígitos (celular de Perú). */
+    /**
+     * Permite omitir el teléfono: nulo o vacío ("" es lo que devuelve un TextField sin llenar) se guarda como null.
+     * Si se informa, debe ser un celular de Perú: 9 dígitos que empiezan con 9.
+     */
     private static String validarTelefono(String telefono) {
-        if (telefono != null && !telefono.matches("\\d{9}")) {
-            throw new IllegalArgumentException("El teléfono debe tener exactamente 9 dígitos");
+        if (telefono == null || telefono.isBlank()) return null;
+        String t = telefono.trim();
+        if (!t.matches("9\\d{8}")) {
+            throw new IllegalArgumentException("El celular debe tener 9 dígitos y empezar con 9");
         }
-        return telefono;
+        return t;
     }
 
-    /** Permite contraseña nula para invitados; si se informa, debe tener entre 8 y 255 caracteres. */
+    /** Permite contraseña nula para invitados; si se informa, 8 a 255 caracteres y no solo espacios. */
     private static String validarContra(String contra) {
-        if (contra != null && (contra.length() < MIN_CONTRA || contra.length() > 255)) {
+        if (contra == null) return null;
+        if (contra.length() < MIN_CONTRA || contra.length() > 255) {
             throw new IllegalArgumentException("La contraseña debe tener entre " + MIN_CONTRA + " y 255 caracteres");
+        }
+        if (contra.isBlank()) {
+            throw new IllegalArgumentException("La contraseña no puede estar formada solo por espacios");
         }
         return contra;
     }

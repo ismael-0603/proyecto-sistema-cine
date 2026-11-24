@@ -291,8 +291,10 @@ public class AutenticacionService {
     }
 
     private void exigirDniLibre(String dni) {
-        if (clientes.buscarPorDni(dni).isPresent()) {
-            throw new ReglaNegocioException("Ya existe una cuenta registrada con el DNI " + dni);
+        if (dni == null) return; // el DNI obligatorio lo exige el modelo al crear el cliente
+        String d = dni.trim(); // igual que Persona: "12345678 " es el mismo DNI que "12345678"
+        if (clientes.buscarPorDni(d).isPresent()) {
+            throw new ReglaNegocioException("Ya existe una cuenta registrada con el DNI " + d);
         }
     }
 

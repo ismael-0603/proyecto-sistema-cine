@@ -30,7 +30,7 @@ public class Sede {
         this.nombre = nombre.trim();
         this.direccion = direccion.trim();
         this.distrito = distrito.trim();
-        this.telefono = telefono;
+        this.telefono = limpiarTelefono(telefono);
         this.horarioAtencion = horarioAtencion;
         this.salas = new ArrayList<>();
         this.cartelera = new ArrayList<>();
@@ -43,8 +43,13 @@ public class Sede {
         this.nombre = nombre.trim();
         this.direccion = direccion.trim();
         this.distrito = distrito.trim();
-        this.telefono = telefono;
+        this.telefono = limpiarTelefono(telefono);
         this.horarioAtencion = horarioAtencion;
+    }
+
+    /** El teléfono es opcional: nulo o vacío ("" de un TextField sin llenar) queda como null; si no, sin espacios a los lados. */
+    private static String limpiarTelefono(String telefono) {
+        return telefono == null || telefono.isBlank() ? null : telefono.trim();
     }
 
     private static void validarDatos(String nombre, String direccion, String distrito, String telefono, String horarioAtencion) {
@@ -57,8 +62,9 @@ public class Sede {
         if (distrito == null || distrito.trim().isEmpty() || distrito.trim().length() > 60) {
             throw new IllegalArgumentException("El distrito es obligatorio (máx. 60 caracteres)");
         }
-        if (telefono != null && telefono.length() > 20) {
-            throw new IllegalArgumentException("El teléfono no puede superar 20 caracteres");
+        String tel = limpiarTelefono(telefono);
+        if (tel != null && (tel.length() > 20 || !tel.matches("[\\d\\s+()-]+") || tel.replaceAll("\\D", "").length() < 6)) {
+            throw new IllegalArgumentException("El teléfono solo admite dígitos, espacios, +, ( ) y - (6 dígitos mín., 20 caracteres máx.)");
         }
         if (horarioAtencion != null && horarioAtencion.length() > 100) {
             throw new IllegalArgumentException("El horario no puede superar 100 caracteres");

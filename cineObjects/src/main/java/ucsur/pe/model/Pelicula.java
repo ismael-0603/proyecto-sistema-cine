@@ -28,19 +28,21 @@ public class Pelicula {
     private String estado;
     /** Géneros de la película; no se agregan dos veces géneros con el mismo identificador. */
     private List<Genero> generos;
+    public static final int MIN_DURACION = 15; // minutos: un cortometraje
+    public static final int MAX_DURACION = 400; // minutos: evita valores absurdos al programar funciones
 
     public Pelicula(int idPelicula, String titulo, String sinopsis, int duracion,
                     String clasificacionEdad, String trailer, String poster,
                     DateTime fechaEstreno, String estado) {
-        if (duracion <= 0) {
-            throw new IllegalArgumentException("La duración debe ser mayor a 0");
+        if (duracion < MIN_DURACION || duracion > MAX_DURACION) {
+            throw new IllegalArgumentException("La duración debe estar entre " + MIN_DURACION + " y " + MAX_DURACION + " minutos");
         }
         this.idPelicula = idPelicula;
         this.titulo = validarTitulo(titulo);
         this.sinopsis = validarSinopsis(sinopsis);
         this.duracion = duracion;
         this.clasificacionEdad = validarClasificacion(clasificacionEdad);
-        this.trailer = validarEnlace(trailer, "tráiler");
+        this.trailer = validarTrailer(trailer);
         this.poster = validarEnlace(poster, "póster");
         this.fechaEstreno = fechaEstreno;
         setEstado(estado != null ? estado : EN_CARTELERA);
@@ -78,7 +80,7 @@ public class Pelicula {
         String nuevoTitulo = validarTitulo(titulo);
         String nuevaSinopsis = validarSinopsis(sinopsis);
         String nuevaClasificacion = validarClasificacion(clasificacionEdad);
-        String nuevoTrailer = validarEnlace(trailer, "tráiler");
+        String nuevoTrailer = validarTrailer(trailer);
         String nuevoPoster = validarEnlace(poster, "póster");
         String nuevoEstado = validarEstado(estado);
         this.titulo = nuevoTitulo;
@@ -129,6 +131,15 @@ public class Pelicula {
             throw new IllegalArgumentException("El enlace del " + campo + " no puede superar 255 caracteres");
         }
         return enlace;
+    }
+
+    /** El tráiler es un enlace web: si se informa, debe empezar con http:// o https://. (El póster es una ruta local.) */
+    private static String validarTrailer(String trailer) {
+        String t = validarEnlace(trailer, "tráiler");
+        if (t != null && !t.matches("(?i)https?://\\S+")) {
+            throw new IllegalArgumentException("El enlace del tráiler debe empezar con http:// o https://");
+        }
+        return t;
     }
 
     /** Agrega el género si no se había agregado ya; un valor nulo se ignora. */

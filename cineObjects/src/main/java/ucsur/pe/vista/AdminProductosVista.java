@@ -163,7 +163,14 @@ public class AdminProductosVista extends PantallaAdmin {
 
     @FXML
     private void onConfirmarReponer() {
-        Respuesta<Integer> r = app().adminProductos().reponerStock(admin, reponiendo, cantidad());
+        int cantidad;
+        try {
+            cantidad = Formato.leerEntero(txtCantidad.getText(), "La cantidad"); // "abc" avisa que no es un número
+        } catch (IllegalArgumentException e) {
+            mostrarError(lblMensajeReponer, e.getMessage());
+            return;
+        }
+        Respuesta<Integer> r = app().adminProductos().reponerStock(admin, reponiendo, cantidad);
         if (!r.ok()) {
             mostrarError(lblMensajeReponer, r.mensaje());
             return;

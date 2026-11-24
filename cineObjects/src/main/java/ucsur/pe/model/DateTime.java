@@ -8,7 +8,10 @@ package ucsur.pe.model;
 public final class DateTime {
     private final int dia; // Día válido para el mes y año indicados.
     private final int mes; // Mes del año, de 1 a 12.
-    private final int anio; // Año positivo.
+    private final int anio; // Año de 4 dígitos, entre ANIO_MIN y ANIO_MAX.
+    /** Rango de años aceptado: siempre 4 dígitos (MySQL DATE pide >= 1000) y sin fechas absurdas. */
+    public static final int ANIO_MIN = 1900;
+    public static final int ANIO_MAX = 2100;
     private final int hora; // Hora en formato de 24 horas, de 0 a 23.
     private final int minuto; // Minutos, de 0 a 59.
     private final int segundo; // Segundos, de 0 a 59.
@@ -54,7 +57,9 @@ public final class DateTime {
     
     /** Lanza error si algún componente está fuera de rango o el día no existe en ese mes. */
     private static void validar(int dia, int mes, int anio, int hora, int minuto, int segundo) {
-        if (anio < 1) throw new IllegalArgumentException("Año inválido");
+        if (anio < ANIO_MIN || anio > ANIO_MAX) {
+            throw new IllegalArgumentException("Año inválido: debe estar entre " + ANIO_MIN + " y " + ANIO_MAX);
+        }
         if (mes < 1 || mes > 12) throw new IllegalArgumentException("Mes inválido");
         if (dia < 1 || dia > diasDelMes(mes, anio)) throw new IllegalArgumentException("Día inválido");
         if (hora < 0 || hora > 23) throw new IllegalArgumentException("Hora inválida");

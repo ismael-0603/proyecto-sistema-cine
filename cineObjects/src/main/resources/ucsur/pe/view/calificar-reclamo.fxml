@@ -51,6 +51,7 @@
                         <VBox.margin><Insets top="22"/></VBox.margin>
                     </Label>
                     <TextArea fx:id="txtDescripcion" promptText="Describe lo que pasó…" wrapText="true" prefRowCount="5"/>
+                    <Label fx:id="lblContadorReclamo" text="Máximo 500 caracteres" styleClass="nota"/>
                     <Label text="Recibirás la respuesta en tu correo y en Mis compras." styleClass="nota"/>
                     <Label fx:id="lblMensajeReclamo" styleClass="mensaje" visible="false" managed="false"/>
                     <Region VBox.vgrow="ALWAYS"/>

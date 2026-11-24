@@ -14,6 +14,8 @@ public class Sala {
     public static final String EN_MANTENIMIENTO = "EN_MANTENIMIENTO"; // en reparación temporal
     public static final int BUFFER_LIMPIEZA_MIN = 15; // minutos de limpieza entre el fin de una función y la siguiente
     public static final int MAX_FILAS = 26; // filas de la A a la Z
+    public static final int MAX_LATERAL = 20; // butacas por bloque lateral en una fila
+    public static final int MAX_CENTRAL = 30; // butacas del bloque central en una fila
     
     private int idSala;
     private int numero; // número visible de la sala dentro de su sede
@@ -116,11 +118,11 @@ public class Sala {
         if (filas <= 0 || filas > MAX_FILAS) {
             throw new IllegalArgumentException("La sala debe tener entre 1 y " + MAX_FILAS + " filas");
         }
-        if (lateral < 0) {
-            throw new IllegalArgumentException("Las butacas laterales no pueden ser negativas");
+        if (lateral < 0 || lateral > MAX_LATERAL) {
+            throw new IllegalArgumentException("Las butacas laterales deben estar entre 0 y " + MAX_LATERAL);
         }
-        if (central <= 0) {
-            throw new IllegalArgumentException("El bloque central debe tener al menos una butaca");
+        if (central <= 0 || central > MAX_CENTRAL) {
+            throw new IllegalArgumentException("El bloque central debe tener entre 1 y " + MAX_CENTRAL + " butacas");
         }
         if (lateral > 0 && central <= lateral) {
             throw new IllegalArgumentException("El bloque central debe ser más ancho que los laterales");
