@@ -510,7 +510,7 @@ public class CompraMySqlDao implements CompraDao {
         }
     }
 
-    /** Review Focus 4: la serie la inventa la base (trigger), Java solo la relee. */
+    /** La serie la inventa la base (trigger), Java solo la relee. */
     private void releerSerie(Compra compra) {
         boolean pagada = Compra.CONFIRMADA.equals(compra.getEstado()) || Compra.REEMBOLSADA.equals(compra.getEstado());
         if (!pagada || compra.getSerieNumero() != null) return;

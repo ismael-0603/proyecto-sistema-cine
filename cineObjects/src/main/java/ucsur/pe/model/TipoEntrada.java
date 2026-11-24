@@ -19,11 +19,6 @@ public class TipoEntrada implements Activable {
     private boolean estado;
 
     public TipoEntrada(int idTipoEntrada, String nombre, String descripcion, long tarifaCentavos,
-                       int puntosPorEntrada, boolean requiereSocio, boolean estado) {
-        this(idTipoEntrada, nombre, descripcion, tarifaCentavos, puntosPorEntrada, requiereSocio, estado, 0);
-    }
-
-    public TipoEntrada(int idTipoEntrada, String nombre, String descripcion, long tarifaCentavos,
                        int puntosPorEntrada, boolean requiereSocio, boolean estado, int puntosCanje) {
         if (nombre == null || nombre.trim().isEmpty() || nombre.trim().length() > 40) {
             throw new IllegalArgumentException("El nombre es obligatorio (máx. 40 caracteres)");

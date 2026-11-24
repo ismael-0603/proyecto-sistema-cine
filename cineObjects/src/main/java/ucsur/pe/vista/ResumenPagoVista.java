@@ -15,6 +15,7 @@ import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.Promocion;
 import java.util.List;
+import javafx.application.Platform;
 
 /** 8 · Resumen y pago: importes, cupón, promoción y elección del método de pago. */
 public class ResumenPagoVista extends Pantalla {
@@ -47,7 +48,7 @@ public class ResumenPagoVista extends Pantalla {
         encabezadoController.setPaso(3);
         compra = estado().getCompra();
         if (compra == null) {
-            javafx.application.Platform.runLater(() -> nav.ir("cartelera"));
+            Platform.runLater(() -> nav.ir("cartelera"));
             return;
         }
         Respuesta<List<Promocion>> promos = app().cartelera().consultarPromociones();

@@ -22,6 +22,9 @@ import ucsur.pe.util.ConversorDinero;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import javafx.geometry.Rectangle2D;
 
 /**
  * Por qué existe: convertir datos a texto o imagen es trabajo de la pantalla, no del modelo.
@@ -65,7 +68,7 @@ public final class Formato {
 
     /** "16/11/2026" */
     public static String fecha(DateTime fecha) {
-        return String.format("%02d/%02d/%04d", fecha.getDia(), fecha.getMes(), fecha.getAnio());
+        return fecha.soloFecha();
     }
 
     /** "124 min" -> "2 h 4 min" */
@@ -84,13 +87,13 @@ public final class Formato {
     }
 
     /** [2] -> "Válida los martes"; [1..7] o vacía -> "Válida todos los días"; [6, 7] -> "Válida sábado y domingo" */
-    public static String diasAplicables(java.util.List<Integer> dias) {
+    public static String diasAplicables(List<Integer> dias) {
         if (dias == null || dias.isEmpty() || dias.size() == 7) return "Válida todos los días";
         if (dias.size() == 1) {
             String d = DIAS[dias.get(0) - 1].toLowerCase();
             return "Válida los " + (d.endsWith("s") ? d : d + "s");
         }
-        java.util.List<String> nombres = new java.util.ArrayList<>();
+        List<String> nombres = new ArrayList<>();
         for (int d : dias.stream().sorted().toList()) nombres.add(DIAS[d - 1].toLowerCase());
         String ultimos = nombres.remove(nombres.size() - 1);
         return "Válida " + String.join(", ", nombres) + " y " + ultimos;
@@ -233,24 +236,19 @@ public final class Formato {
     public static Node poster(String tituloPelicula, String ruta, double ancho, double alto) {
         Image imagen = cargarImagen(ruta);
         if (imagen != null && !imagen.isError()) return marcoRecortado(imagen, ancho, alto, 16);
-        Label titulo = new Label(tituloPelicula);
-        titulo.getStyleClass().add("poster-reemplazo-titulo");
-        titulo.setMaxWidth(ancho - 28);
-        titulo.setAlignment(Pos.CENTER);
-        StackPane reemplazo = new StackPane(titulo);
-        reemplazo.getStyleClass().add("poster-reemplazo");
-        reemplazo.setAlignment(Pos.CENTER);
-        reemplazo.setPrefSize(ancho, alto);
-        reemplazo.setMinSize(ancho, alto);
-        reemplazo.setMaxSize(ancho, alto);
-        return reemplazo;
+        return posterReemplazo(tituloPelicula, ancho, alto);
     }
 
     /** Igual que {@link #poster(Pelicula, double, double)}, sin recorte interno (lo recorta el contenedor padre). */
-    public static Node posterSuperior(Pelicula pelicula, double ancho, double alto, double radio) {
+    public static Node posterSuperior(Pelicula pelicula, double ancho, double alto) {
         Image imagen = cargarImagen(pelicula.getPoster());
         if (imagen != null && !imagen.isError()) return marcoRecortado(imagen, ancho, alto, (Shape) null);
-        Label titulo = new Label(pelicula.getTitulo());
+        return posterReemplazo(pelicula.getTitulo(), ancho, alto);
+    }
+
+    /** Póster dibujado con el título, para cuando la película todavía no tiene imagen. */
+    private static StackPane posterReemplazo(String tituloPelicula, double ancho, double alto) {
+        Label titulo = new Label(tituloPelicula);
         titulo.getStyleClass().add("poster-reemplazo-titulo");
         titulo.setMaxWidth(ancho - 28);
         titulo.setAlignment(Pos.CENTER);
@@ -272,23 +270,21 @@ public final class Formato {
     }
 
     /** Igual que {@link #imagenProducto(Producto, double, double)}, sin recorte interno (lo recorta el contenedor). */
-    public static Node imagenProductoSuperior(Producto producto, double ancho, double alto, double radio) {
+    public static Node imagenProductoSuperior(Producto producto, double ancho, double alto) {
         Image imagen = cargarImagen(producto.getImagen());
         if (imagen != null && !imagen.isError()) return marcoRecortado(imagen, ancho, alto, (Shape) null);
-        Label categoria = new Label(capitalizar(producto.getCategoria()));
-        categoria.getStyleClass().add("producto-categoria");
-        StackPane reemplazo = new StackPane(categoria);
-        reemplazo.getStyleClass().add("producto-imagen");
-        reemplazo.setPrefSize(ancho, alto);
-        reemplazo.setMinSize(ancho, alto);
-        reemplazo.setMaxSize(ancho, alto);
-        return reemplazo;
+        return productoReemplazo(producto.getCategoria(), ancho, alto);
     }
 
     /** Igual que el anterior, con la ruta y la categoría sueltas (vista previa del formulario de producto). */
     public static Node imagenProducto(String ruta, String textoCategoria, double ancho, double alto) {
         Image imagen = cargarImagen(ruta);
         if (imagen != null && !imagen.isError()) return marcoRecortado(imagen, ancho, alto, 10);
+        return productoReemplazo(textoCategoria, ancho, alto);
+    }
+
+    /** Recuadro con el nombre de la categoría, para cuando el producto todavía no tiene foto. */
+    private static StackPane productoReemplazo(String textoCategoria, double ancho, double alto) {
         Label categoria = new Label(capitalizar(textoCategoria));
         categoria.getStyleClass().add("producto-categoria");
         StackPane reemplazo = new StackPane(categoria);
@@ -354,7 +350,7 @@ public final class Formato {
             ch = h;
             cw = h * proporcion;
         }
-        vista.setViewport(new javafx.geometry.Rectangle2D((w - cw) / 2, (h - ch) / 2, cw, ch));
+        vista.setViewport(new Rectangle2D((w - cw) / 2, (h - ch) / 2, cw, ch));
     }
 
     /** Póster o foto de producto: de internet, de un archivo elegido en el formulario o de los recursos del proyecto. */

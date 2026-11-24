@@ -34,6 +34,8 @@ import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Compra;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.List;
+import javafx.scene.control.TextArea;
 
 /**
  * Por qué existe: el kiosco es una sola ventana que va cambiando de pantalla. El navegador carga cada FXML
@@ -95,7 +97,7 @@ public class Navegador {
         Scene escena = new Scene(raiz, 1440, 900);
         escena.getStylesheets().add(App.class.getResource("css/estilos.css").toExternalForm());
         // Cualquier toque, tecla o desplazamiento reinicia el contador de inactividad
-        for (var tipo : java.util.List.of(MouseEvent.MOUSE_PRESSED, KeyEvent.KEY_PRESSED,
+        for (var tipo : List.of(MouseEvent.MOUSE_PRESSED, KeyEvent.KEY_PRESSED,
                 ScrollEvent.SCROLL, TouchEvent.TOUCH_PRESSED)) {
             escena.addEventFilter(tipo, this::reiniciarInactividad);
         }
@@ -172,10 +174,10 @@ public class Navegador {
 
     /** La impresora del kiosco se simula: muestra el ticket que se imprimiría. */
     public void mostrarTicket(String texto) {
-        javafx.scene.control.TextArea ticket = new javafx.scene.control.TextArea(texto);
+        TextArea ticket = new TextArea(texto);
         ticket.setEditable(false);
         ticket.setPrefRowCount(18);
-        ticket.setStyle("-fx-font-family: 'Consolas'; -fx-font-size: 13px;");
+        ticket.getStyleClass().add("ticket-texto");
         DialogoVista d = dialogo();
         d.configurar("Comprobante para imprimir", "Así sale el ticket en la impresora del kiosco.", false);
         d.agregarContenido(ticket);
@@ -302,11 +304,7 @@ public class Navegador {
 
     /** «← Volver» desde Asientos: se abandona la compra y se vuelve a elegir horario. */
     public void volverAHorarios() {
-        if (estado.hayCompra() && Compra.EN_PROCESO.equals(estado.getCompra().getEstado())) {
-            app.compra().cancelar(estado.getCompra());
-        }
-        estado.terminarCompra();
-        inactividad.stop();
+        abandonarCompra();
         ir("horario");
     }
 
@@ -347,11 +345,7 @@ public class Navegador {
     /** Se acabaron los 4 minutos: la compra se cancela (si el modelo no la venció ya) y se avisa. */
     private void tiempoAgotado() {
         cerrarModal(); // si estaba abierto «¿Sigues ahí?», se detiene su cuenta para que no mande a la cartelera luego
-        if (estado.hayCompra() && Compra.EN_PROCESO.equals(estado.getCompra().getEstado())) {
-            app.compra().cancelar(estado.getCompra()); // si ya expiró en el modelo, el mensaje de error se ignora
-        }
-        estado.terminarCompra();
-        inactividad.stop();
+        abandonarCompra(); // si la compra ya expiró en el modelo, el mensaje de error de cancelar se ignora
         DialogoVista d = dialogo();
         d.configurar("Se acabó el tiempo",
                 "Tenías " + Compra.TIEMPO_MAXIMO_COMPRA_MIN + " minutos para completar la compra. Liberamos tus "

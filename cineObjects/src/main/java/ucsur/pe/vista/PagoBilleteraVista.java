@@ -6,6 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import ucsur.pe.model.TransaccionPago;
+import javafx.application.Platform;
 
 /** 8.2 · Pago con billetera digital (Yape, Plin u otra app con QR). */
 public class PagoBilleteraVista extends PantallaPago {
@@ -16,7 +17,6 @@ public class PagoBilleteraVista extends PantallaPago {
     @FXML private Button btnQr;
     @FXML private StackPane marcoQr;
     @FXML private Label lblMonto;
-    @FXML private Label lblMensaje;
     @FXML private VBox resumen;
     @FXML private Label lblPieTotal;
 
@@ -30,7 +30,7 @@ public class PagoBilleteraVista extends PantallaPago {
     private void initialize() {
         encabezadoController.setPaso(3);
         if (compra() == null) {
-            javafx.application.Platform.runLater(() -> nav.ir("cartelera"));
+            Platform.runLater(() -> nav.ir("cartelera"));
             return;
         }
         String total = Formato.dinero(compra().getTotalCentavos());

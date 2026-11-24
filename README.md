@@ -16,12 +16,12 @@ Modelo de dominio desarrollado en Java para representar las operaciones principa
 
 ## Tecnologías
 
-- Java 26
+- Java 21 (JavaFX 21)
 - Maven
 
 ## Requisitos
 
-- JDK 26 o compatible con la versión configurada en `cineObjects/pom.xml`.
+- JDK 21 o superior (el `pom.xml` compila con `release 21`).
 - Apache Maven.
 
 ## Compilar y ejecutar
@@ -66,7 +66,7 @@ con el título.
 ## Estado actual
 
 El proyecto está organizado por capas (vista, controller, service, repository, model) con repositorios en
-MySQL (el script SQL se mantiene aparte). La interfaz gráfica tiene las cuatro fases de los wireframes: el flujo de
+MySQL (los scripts SQL están en `cineObjects/src/main/resources/ucsur/pe/db/`). La interfaz gráfica tiene las cuatro fases de los wireframes: el flujo de
 compra del cliente (sede, cartelera, horario, identificación, asientos, dulcería, pago y comprobante) y la cuenta
 y postventa (promociones, recuperar entradas, mi cuenta, mis compras, calificar y reclamos), el panel de
 dulcería para el personal (cola de pedidos y entrega con código) y la administración (películas, funciones,

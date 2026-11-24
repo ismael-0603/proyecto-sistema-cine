@@ -15,6 +15,7 @@ import ucsur.pe.model.ResumenImporte;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * Por qué existe: «Resumen y pago», «Datos de tarjeta» y «Pago con billetera» muestran los mismos importes
@@ -76,7 +77,7 @@ final class ResumenCompra {
     /** Filas del comprobante (9) y del detalle de compra (23), a partir del DetalleCompra que arma el modelo. */
     static List<Node> filasDetalle(DetalleCompra d) {
         ResumenImporte imp = d.getImporte();
-        List<String> entradas = new java.util.ArrayList<>();
+        List<String> entradas = new ArrayList<>();
         d.getEntradasPorTipo().forEach((tipo, n) -> entradas.add(n + " × " + tipo));
         return List.of(
                 fila("Película", valor(d.getPelicula()), true),
@@ -89,17 +90,9 @@ final class ResumenCompra {
                 fila("IGV (18 %)", Formato.dinero(imp.getIgvCentavos()), true));
     }
 
-    /** «Total pagado  S/ 95.00» (o «Total reembolsado» si la compra se reembolsó). */
+    /** «Total pagado  S/ 95.00». */
     static HBox filaTotalPagado(DetalleCompra d) {
-        Label izq = new Label("Total pagado");
-        izq.getStyleClass().add("total-grande");
-        Label der = new Label(Formato.dinero(d.getImporte().getTotalCentavos()));
-        der.getStyleClass().add("total-grande");
-        Region espacio = new Region();
-        HBox.setHgrow(espacio, Priority.ALWAYS);
-        HBox h = new HBox(izq, espacio, der);
-        h.setPadding(new Insets(10, 0, 4, 0));
-        return h;
+        return filaTotal("Total pagado", d.getImporte().getTotalCentavos());
     }
 
     private static String valor(String s) {
@@ -121,9 +114,14 @@ final class ResumenCompra {
 
     /** Fila final «Total  S/ 95.00» en grande. */
     static HBox filaTotal(Compra compra) {
-        Label izq = new Label("Total");
+        return filaTotal("Total", compra.getTotalCentavos());
+    }
+
+    /** Fila de total en letra grande: la etiqueta a la izquierda y el importe a la derecha. */
+    private static HBox filaTotal(String etiqueta, long centavos) {
+        Label izq = new Label(etiqueta);
         izq.getStyleClass().add("total-grande");
-        Label der = new Label(Formato.dinero(compra.getTotalCentavos()));
+        Label der = new Label(Formato.dinero(centavos));
         der.getStyleClass().add("total-grande");
         Region espacio = new Region();
         HBox.setHgrow(espacio, Priority.ALWAYS);
@@ -140,7 +138,7 @@ final class ResumenCompra {
         v.getChildren().addAll(filasFuncion(f, compra));
         v.getChildren().addAll(filasImporte(compra));
         v.getChildren().add(filaTotal(compra));
-        Label seguro = new Label("🛡  Pago 100 % seguro\n" + notaSeguridad);
+        Label seguro = new Label("Pago 100 % seguro\n" + notaSeguridad);
         seguro.getStyleClass().addAll("caja-dato", "nota");
         seguro.setMaxWidth(Double.MAX_VALUE);
         v.getChildren().add(seguro);

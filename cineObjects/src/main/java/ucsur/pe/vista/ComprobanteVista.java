@@ -10,6 +10,7 @@ import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.DetalleCompra;
 import ucsur.pe.model.TransaccionPago;
+import javafx.application.Platform;
 
 /** 9 · Comprobante: el detalle de la compra pagada, el código para entrar y recoger, y los puntos ganados. */
 public class ComprobanteVista extends Pantalla {
@@ -43,7 +44,7 @@ public class ComprobanteVista extends Pantalla {
         btnImprimir.setGraphicTextGap(8);
         compra = estado().getCompra();
         if (compra == null) {
-            javafx.application.Platform.runLater(nav::volverAlInicio);
+            Platform.runLater(nav::volverAlInicio);
             return;
         }
         Respuesta<DetalleCompra> r = app().emision().verDetalle(compra);

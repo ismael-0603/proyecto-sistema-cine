@@ -10,7 +10,7 @@
     <top>
         <VBox>
             <padding><Insets top="10" left="24" right="24"/></padding>
-            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+            <fx:include source="encabezado.fxml"/>
         </VBox>
     </top>
     <center>

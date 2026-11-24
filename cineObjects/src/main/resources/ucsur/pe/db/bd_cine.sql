@@ -64,7 +64,7 @@ CREATE TABLE tipo_entrada (
     estado             BOOLEAN      NOT NULL DEFAULT TRUE,
 
     CONSTRAINT pk_tipo_entrada             PRIMARY KEY (id_tipo_entrada),
-    CONSTRAINT uq_tipo_entrada_formato     UNIQUE (nombre),
+    CONSTRAINT uq_tipo_entrada_nombre      UNIQUE (nombre),
     CONSTRAINT ck_tipo_entrada_tarifa      CHECK (tarifa >= 0),
     CONSTRAINT ck_tipo_entrada_puntos      CHECK (puntos_por_entrada >= 0),
     CONSTRAINT ck_tipo_entrada_canje       CHECK (puntos_canje >= 0),
@@ -630,39 +630,39 @@ DO
        AND fecha_estreno <= CURDATE();
 
 -- ============================================================
--- CONSULTAS DE VERIFICACION
+-- CONSULTAS DE VERIFICACION (comentadas: quitar el "-- " para revisar una tabla)
 -- ============================================================
 
 -- Catálogos y configuración
-SELECT * FROM rol;
-SELECT * FROM sede;
-SELECT * FROM genero;
-SELECT * FROM tipo_sala;
-SELECT * FROM tipo_entrada;
-SELECT * FROM promocion;
-SELECT * FROM cupon;
-SELECT * FROM producto;
-SELECT * FROM pelicula;
+-- SELECT * FROM rol;
+-- SELECT * FROM sede;
+-- SELECT * FROM genero;
+-- SELECT * FROM tipo_sala;
+-- SELECT * FROM tipo_entrada;
+-- SELECT * FROM promocion;
+-- SELECT * FROM cupon;
+-- SELECT * FROM producto;
+-- SELECT * FROM pelicula;
 
 -- Usuarios y estructura física
-SELECT * FROM cliente;
-SELECT * FROM empleado;
-SELECT * FROM sala;
-SELECT * FROM butaca;
+-- SELECT * FROM cliente;
+-- SELECT * FROM empleado;
+-- SELECT * FROM sala;
+-- SELECT * FROM butaca;
 
 -- Operaciones principales
-SELECT * FROM funcion;
-SELECT * FROM compra;
-SELECT * FROM entrada;
-SELECT * FROM transaccion_pago;
-SELECT * FROM pedido;
+-- SELECT * FROM funcion;
+-- SELECT * FROM compra;
+-- SELECT * FROM entrada;
+-- SELECT * FROM transaccion_pago;
+-- SELECT * FROM pedido;
 
 -- Servicio postventa
-SELECT * FROM reclamo;
-SELECT * FROM calificacion;
+-- SELECT * FROM reclamo;
+-- SELECT * FROM calificacion;
 
 -- Tablas intermedias
-SELECT * FROM pelicula_genero;
-SELECT * FROM promocion_dia;
-SELECT * FROM inventario_sede;
-SELECT * FROM detalle_pedido;
+-- SELECT * FROM pelicula_genero;
+-- SELECT * FROM promocion_dia;
+-- SELECT * FROM inventario_sede;
+-- SELECT * FROM detalle_pedido;

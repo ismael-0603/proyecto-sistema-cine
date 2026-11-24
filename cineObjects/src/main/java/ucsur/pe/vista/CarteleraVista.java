@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import javafx.application.Platform;
 
 /**
  * 1 · Cartelera de la sede elegida. A la izquierda, «Filtrar por:» fecha, género, idioma, formato y clasificación
@@ -48,7 +49,6 @@ public class CarteleraVista extends Pantalla {
 
     private enum Pestana { CARTELERA, PREVENTA, PROXIMAMENTE }
 
-    @FXML private EncabezadoVista encabezadoController;
     @FXML private TextField txtBuscar;
     @FXML private ComboBox<Opcion<DateTime>> cmbFecha;
     @FXML private ComboBox<Opcion<Genero>> cmbGenero;
@@ -74,7 +74,7 @@ public class CarteleraVista extends Pantalla {
     @FXML
     private void initialize() {
         if (estado().getSede() == null) { // se entró sin sede: primero hay que elegirla
-            javafx.application.Platform.runLater(() -> nav.ir("elegir-sede"));
+            Platform.runLater(() -> nav.ir("elegir-sede"));
             return;
         }
         estado().setFuncion(null);
@@ -260,7 +260,7 @@ public class CarteleraVista extends Pantalla {
     private VBox tarjeta(Pelicula p) {
         double anchoPoster = Math.max(120, anchoTarjeta - BORDE);
         double altoPoster = Math.round(anchoPoster * 1.45);
-        Node imagen = Formato.posterSuperior(p, anchoPoster, altoPoster, 14);
+        Node imagen = Formato.posterSuperior(p, anchoPoster, altoPoster);
 
         Region sombra = new Region();
         sombra.getStyleClass().add("poster-sombra");

@@ -10,7 +10,7 @@
     <top>
         <VBox>
             <padding><Insets top="10" left="24" right="24"/></padding>
-            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
+            <fx:include source="encabezado.fxml"/>
         </VBox>
     </top>
     <left>
@@ -32,13 +32,13 @@
                 <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minWidth="290" prefWidth="340" maxWidth="380">
                     <VBox fx:id="lista" spacing="12"/>
                 </ScrollPane>
-                <VBox fx:id="detalle" styleClass="tarjeta" spacing="10" HBox.hgrow="ALWAYS">
+                <VBox styleClass="tarjeta" spacing="10" HBox.hgrow="ALWAYS">
                     <HBox alignment="CENTER_LEFT">
                         <Label fx:id="lblTitulo" text="Elige un reclamo" styleClass="tarjeta-titulo"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Label fx:id="lblEstado" styleClass="estado-chip" visible="false"/>
                     </HBox>
-                    <GridPane fx:id="datos" hgap="40" vgap="8">
+                    <GridPane hgap="40" vgap="8">
                         <Label text="Cliente" styleClass="nota" GridPane.rowIndex="0"/>
                         <Label fx:id="lblCliente" styleClass="nota" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
                         <Label text="Compra" styleClass="nota" GridPane.rowIndex="1"/>

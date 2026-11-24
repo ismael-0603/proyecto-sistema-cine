@@ -47,7 +47,6 @@
                                 <Label text="Confirma el pago" styleClass="nota"/>
                             </HBox>
                         </HBox>
-                        <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false"/>
                     </VBox>
                     <VBox fx:id="resumen" minWidth="420" prefWidth="520" maxWidth="520"/>
                 </HBox>

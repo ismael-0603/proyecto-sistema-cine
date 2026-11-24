@@ -16,6 +16,7 @@ import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Promocion;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.geometry.Insets;
 
 /** 10 · Promociones vigentes hoy, con filtro «Para todos» o «Socios». */
 public class PromocionesVista extends Pantalla {
@@ -103,7 +104,7 @@ public class PromocionesVista extends Pantalla {
         VBox.setVgrow(espacio, Priority.ALWAYS);
         t.getChildren().addAll(nombre, descripcion, dias, vigencia, espacio, publico(p));
         t.getStyleClass().add("tarjeta");
-        t.setPadding(new javafx.geometry.Insets(22));
+        t.setPadding(new Insets(22));
         t.setPrefWidth(442);
         t.setMinHeight(302);
         return t;

@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import javafx.application.Platform;
 
 /**
  * 6 · Selección de asientos: el cliente toca las butacas en el mapa y cada butaca es una entrada. Todas
@@ -34,7 +35,6 @@ public class AsientosVista extends Pantalla {
 
     @FXML private EncabezadoCompraVista encabezadoController;
     @FXML private GridPane mapa;
-    @FXML private HBox cajaSugerencia;
     @FXML private Label lblSugerencia;
     @FXML private Button btnSugerencia;
     @FXML private Label lblGrupo;
@@ -74,7 +74,7 @@ public class AsientosVista extends Pantalla {
         funcion = estado().getFuncion();
         compra = estado().getCompra();
         if (funcion == null || compra == null) {
-            javafx.application.Platform.runLater(() -> nav.ir("cartelera"));
+            Platform.runLater(() -> nav.ir("cartelera"));
             return;
         }
         volverAElegir();

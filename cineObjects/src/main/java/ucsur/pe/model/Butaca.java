@@ -23,11 +23,6 @@ public class Butaca {
     private String bloque; // IZQUIERDA, CENTRO o DERECHA; dos butacas de bloques distintos tienen un pasillo en medio
     private Sala sala;
 
-    /** Butaca de una sala sin pasillos internos: toda la fila es un solo bloque (CENTRO). */
-    public Butaca(int idButaca, String fila, int numero, String tipo, Sala sala) {
-        this(idButaca, fila, numero, tipo, CENTRO, sala);
-    }
-
     public Butaca(int idButaca, String fila, int numero, String tipo, String bloque, Sala sala) {
         if (fila == null || fila.trim().isEmpty() || fila.trim().length() > 3) {
             throw new IllegalArgumentException("La fila es obligatoria (máx. 3 caracteres)");

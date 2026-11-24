@@ -92,14 +92,7 @@ public class PeliculaMySqlDao implements PeliculaDao {
         int[] id = {0};
         Transaccion.ejecutar(conexion, "No se pudo registrar la película " + pelicula.getTitulo() + ".", () -> {
             try (PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                ps.setString(1, pelicula.getTitulo());
-                ps.setString(2, pelicula.getSinopsis());
-                ps.setInt(3, pelicula.getDuracion());
-                ps.setString(4, pelicula.getClasificacionEdad());
-                ps.setString(5, pelicula.getTrailer());
-                ps.setString(6, pelicula.getPoster());
-                ps.setDate(7, Fechas.aDate(pelicula.getFechaEstreno()));
-                ps.setString(8, pelicula.getEstado());
+                enlazarDatos(ps, pelicula);
                 ps.executeUpdate();
                 id[0] = Claves.generada(ps);
             }
@@ -118,14 +111,7 @@ public class PeliculaMySqlDao implements PeliculaDao {
                 """;
         Transaccion.ejecutar(conexion, "No se pudo actualizar la película " + pelicula.getTitulo() + ".", () -> {
             try (PreparedStatement ps = conexion.prepareStatement(sql)) {
-                ps.setString(1, pelicula.getTitulo());
-                ps.setString(2, pelicula.getSinopsis());
-                ps.setInt(3, pelicula.getDuracion());
-                ps.setString(4, pelicula.getClasificacionEdad());
-                ps.setString(5, pelicula.getTrailer());
-                ps.setString(6, pelicula.getPoster());
-                ps.setDate(7, Fechas.aDate(pelicula.getFechaEstreno()));
-                ps.setString(8, pelicula.getEstado());
+                enlazarDatos(ps, pelicula);
                 ps.setInt(9, pelicula.getIdPelicula());
                 ps.executeUpdate();
             }
@@ -134,6 +120,18 @@ public class PeliculaMySqlDao implements PeliculaDao {
     }
 
     // ---------- apoyo ----------
+
+    /** Llena los 8 primeros parámetros (los mismos en INSERT y UPDATE, en el mismo orden). */
+    private static void enlazarDatos(PreparedStatement ps, Pelicula pelicula) throws SQLException {
+        ps.setString(1, pelicula.getTitulo());
+        ps.setString(2, pelicula.getSinopsis());
+        ps.setInt(3, pelicula.getDuracion());
+        ps.setString(4, pelicula.getClasificacionEdad());
+        ps.setString(5, pelicula.getTrailer());
+        ps.setString(6, pelicula.getPoster());
+        ps.setDate(7, Fechas.aDate(pelicula.getFechaEstreno()));
+        ps.setString(8, pelicula.getEstado());
+    }
 
     /** Reemplaza los géneros de la película por los que tiene en Java (va dentro de la transacción). */
     private void guardarGeneros(Pelicula pelicula, int idPelicula) throws SQLException {

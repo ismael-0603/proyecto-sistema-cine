@@ -14,7 +14,7 @@
 
     <Region minHeight="18"/>
 
-    <HBox fx:id="botones" spacing="12">
+    <HBox spacing="12">
         <Button fx:id="btnSecundario" styleClass="btn-secundario" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
         <Button fx:id="btnPrincipal" styleClass="btn-primario" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
     </HBox>

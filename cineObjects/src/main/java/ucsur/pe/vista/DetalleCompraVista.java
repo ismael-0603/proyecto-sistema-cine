@@ -9,6 +9,7 @@ import javafx.scene.layout.VBox;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.DetalleCompra;
+import javafx.scene.control.Button;
 
 /**
  * 23 · Detalle de compra. Llega de dos lados: «Mis compras» (con la compra del cliente) o «Recuperar entradas»
@@ -19,7 +20,7 @@ public class DetalleCompraVista extends Pantalla {
 
     @FXML private Label lblTitulo;
     @FXML private HBox pestanas;
-    @FXML private javafx.scene.control.Button btnVolver;
+    @FXML private Button btnVolver;
     @FXML private Label lblSerie;
     @FXML private Label lblEstado;
     @FXML private Label lblFecha;

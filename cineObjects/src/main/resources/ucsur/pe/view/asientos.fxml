@@ -30,7 +30,7 @@
                                 <Label text="P A N T A L L A" styleClass="pantalla-texto"/>
                             </VBox>
                             <GridPane fx:id="mapa" hgap="6" vgap="8" alignment="CENTER"/>
-                            <HBox fx:id="cajaSugerencia" styleClass="sugerencia" spacing="14" maxWidth="Infinity">
+                            <HBox styleClass="sugerencia" spacing="14" maxWidth="Infinity">
                                 <VBox spacing="2" HBox.hgrow="ALWAYS">
                                     <Label fx:id="lblSugerencia" styleClass="etiqueta"/>
                                     <Label text="Elige el tamaño del grupo, o toca las butacas libres del mapa a tu gusto." styleClass="nota"/>
@@ -89,7 +89,7 @@
             <Label fx:id="lblPieSubtotal" styleClass="pie-total"/>
             <Region HBox.hgrow="ALWAYS"/>
             <VBox alignment="CENTER_RIGHT" spacing="4">
-                <Button fx:id="btnContinuar" text="Continuar" styleClass="btn-primario" onAction="#onContinuar"/>
+                <Button text="Continuar" styleClass="btn-primario" onAction="#onContinuar"/>
                 <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false" maxWidth="420"/>
             </VBox>
         </HBox>

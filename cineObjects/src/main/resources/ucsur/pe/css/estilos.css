@@ -92,7 +92,6 @@
 .texto { -fx-font-family: "Manrope"; -fx-font-size: 16px; -fx-text-fill: #03132c; }
 .etiqueta { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 14px; -fx-text-fill: #03132c; }
 .etiqueta-fuerte { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 14px; -fx-text-fill: #03132c; }
-.etiqueta-clara { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 14px; -fx-text-fill: white; }
 .nota { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: #03132c; }
 .nota-suave { -fx-font-family: "Manrope"; -fx-font-size: 13px; -fx-text-fill: rgba(3, 19, 44, 0.65); }
 .subtitulo-claro { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 14px; -fx-text-fill: #faf0e0; }
@@ -101,7 +100,6 @@
 .contador-texto { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(255, 255, 255, 0.76); }
 .total-grande { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 28px; -fx-text-fill: #03132c; }
 .importe { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 14px; -fx-text-fill: #03132c; }
-.texto-rojo { -fx-text-fill: #9b180c; }
 
 .mensaje { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-wrap-text: true; }
 .mensaje.ok { -fx-text-fill: #047857; }
@@ -110,8 +108,6 @@
 .mensaje-claro.error { -fx-text-fill: #fca5a5; }
 
 /* ===== LOGO ===== */
-.logo-cine { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 18px; -fx-text-fill: #03132c; }
-.logo-planet { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #9b180c; }
 
 /* ===== ENCABEZADO (barra blanca flotante con sombra por capas) ===== */
 .encabezado {
@@ -274,7 +270,6 @@
     -fx-border-radius: 14;
     -fx-padding: 14 20 14 18;
 }
-.separador { -fx-background-color: rgba(3, 19, 44, 0.1); -fx-min-height: 1; -fx-max-height: 1; }
 .separator .line { -fx-border-color: rgba(3, 19, 44, 0.12); -fx-border-width: 1 0 0 0; -fx-border-insets: 0; }
 .fila-resumen { -fx-padding: 8 0 8 0; -fx-border-color: transparent transparent rgba(3, 19, 44, 0.08) transparent; }
 
@@ -529,7 +524,6 @@
     -fx-background-color: rgba(255, 255, 255, 0.16);
     -fx-border-color: #e5a93c;
 }
-.campo-error { -fx-border-color: #9b180c; }
 .etiqueta-campo { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: #03132c; }
 
 .combo-box {
@@ -708,23 +702,6 @@
     -fx-text-fill: #03132c;
 }
 .tag-genero-claro { -fx-background-color: white; -fx-border-color: rgba(255, 255, 255, 0.5); }
-.tag-clasificacion {
-    -fx-border-color: rgba(3, 19, 44, 0.28);
-    -fx-border-radius: 6;
-    -fx-background-color: #f3f6fb;
-    -fx-background-radius: 6;
-    -fx-padding: 2 7 2 7;
-    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px;
-    -fx-text-fill: #03132c;
-}
-.tag-clasificacion.apta { -fx-background-color: #ecfdf3; -fx-border-color: #86c79b; -fx-text-fill: #166534; }
-.tag-dorada {
-    -fx-background-color: #e5a93c;
-    -fx-background-radius: 14;
-    -fx-padding: 4 12 4 12;
-    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px;
-    -fx-text-fill: #03132c;
-}
 .poster-reemplazo {
     -fx-background-color: linear-gradient(to bottom, #16325f 0%, #03132c 100%);
     -fx-background-radius: 10;
@@ -786,6 +763,8 @@
     -fx-background-radius: 8 8 4 4; -fx-border-radius: 8 8 4 4;
     -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px;
 }
+/* .tarjeta .button pone relleno lateral; en una butaca de 32 px eso oculta el número */
+.tarjeta .butaca { -fx-padding: 0; }
 .butaca:hover {
     -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f5e5c7 100%);
     -fx-border-color: #e5a93c;
@@ -849,6 +828,7 @@
     -fx-background-radius: 15; -fx-border-radius: 15;
     -fx-font-size: 15px;
 }
+.tarjeta .contador-menos, .tarjeta .contador-mas { -fx-padding: 0; }
 .contador-menos { -fx-background-color: white; -fx-border-color: rgba(3, 19, 44, 0.22); }
 .contador-menos:hover { -fx-background-color: #f5edde; -fx-border-color: #03132c; }
 .contador-mas { -fx-background-color: linear-gradient(to bottom, #efc062 0%, #e5a93c 100%); -fx-border-color: #c98a1d; }
@@ -977,6 +957,8 @@
     -fx-alignment: center;
     -fx-font-size: 24px; -fx-font-family: "Manrope"; -fx-font-weight: bold;
 }
+/* Texto del ticket impreso (simulado) en el diálogo «Comprobante para imprimir» */
+.ticket-texto { -fx-font-family: "Consolas"; -fx-font-size: 13px; }
 .separador-ticket {
     -fx-border-color: rgba(3, 19, 44, 0.24) transparent transparent transparent;
     -fx-border-style: segments(6, 5);
@@ -1134,7 +1116,6 @@
     -fx-background-radius: 14; -fx-border-radius: 14;
     -fx-padding: 12 16 12 16;
 }
-.promo-imagen { -fx-background-radius: 14; }
 
 /* ===== PANEL DE DULCERÍA (fase 3) ===== */
 .columna-pedidos {
@@ -1269,7 +1250,6 @@
     -fx-alignment: center-left;
 }
 .barra-oscura > .label { -fx-text-fill: white; -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; }
-.tabla-cabecera.crema { -fx-background-color: #faf0e0; -fx-background-radius: 16 16 0 0; }
 .panel-crema {
     -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f6e7cc 100%);
     -fx-background-radius: 18;

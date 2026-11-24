@@ -4,7 +4,6 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 /**
@@ -16,7 +15,6 @@ public class DialogoVista extends Pantalla {
     @FXML private Label lblTitulo;
     @FXML private Label lblTexto;
     @FXML private VBox contenido;
-    @FXML private HBox botones;
     @FXML private Button btnSecundario;
     @FXML private Button btnPrincipal;
     @FXML private Button btnEnlace;

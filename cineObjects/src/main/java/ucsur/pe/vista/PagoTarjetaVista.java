@@ -14,6 +14,7 @@ import ucsur.pe.model.Persona;
 import ucsur.pe.model.TransaccionPago;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.application.Platform;
 
 /**
  * 8.1 · Datos de tarjeta. La pantalla solo revisa que el formulario esté completo y bien escrito;
@@ -47,7 +48,7 @@ public class PagoTarjetaVista extends PantallaPago {
     private void initialize() {
         encabezadoController.setPaso(3);
         if (compra() == null) {
-            javafx.application.Platform.runLater(() -> nav.ir("cartelera"));
+            Platform.runLater(() -> nav.ir("cartelera"));
             return;
         }
         cmbTipo.setItems(FXCollections.observableArrayList(CREDITO, DEBITO));

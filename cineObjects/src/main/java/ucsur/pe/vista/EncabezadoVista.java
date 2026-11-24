@@ -7,6 +7,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import ucsur.pe.service.Sesion;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 
 /**
  * Encabezado blanco de las pantallas del cliente. Por defecto muestra la sede elegida, «¿Perdiste tus
@@ -21,9 +23,9 @@ public class EncabezadoVista extends Pantalla {
     @FXML private Button btnPromociones;
     @FXML private Button btnSesion;
     @FXML private Button btnVolver;
-    @FXML private javafx.scene.layout.VBox cajaTitulo;
-    @FXML private javafx.scene.control.Label lblTituloPanel;
-    @FXML private javafx.scene.control.Label lblSubtituloPanel;
+    @FXML private VBox cajaTitulo;
+    @FXML private Label lblTituloPanel;
+    @FXML private Label lblSubtituloPanel;
     @FXML private Button btnComprar;
 
     private Runnable accionVolver = () -> { };

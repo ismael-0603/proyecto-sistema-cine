@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import javafx.application.Platform;
 
 /**
  * 7 · Dulcería: el menú de la sede para este cliente. Cada −/+ cambia el pedido de la compra en el servicio,
@@ -82,7 +83,7 @@ public class DulceriaVista extends Pantalla {
         encabezadoController.setPaso(2);
         compra = estado().getCompra();
         if (compra == null) {
-            javafx.application.Platform.runLater(() -> nav.ir("cartelera"));
+            Platform.runLater(() -> nav.ir("cartelera"));
             return;
         }
         Respuesta<List<Producto>> r = app().dulceria().consultarMenu(estado().getSede(), estado().cliente());
@@ -149,7 +150,7 @@ public class DulceriaVista extends Pantalla {
         boolean agotado = p.estaAgotado(estado().getSede());
 
         // Foto del producto al ras superior; sin foto, el recuadro muestra su categoría
-        Node imagen = Formato.imagenProductoSuperior(p, ANCHO_IMAGEN, ALTO_IMAGEN, 14);
+        Node imagen = Formato.imagenProductoSuperior(p, ANCHO_IMAGEN, ALTO_IMAGEN);
         StackPane portada = new StackPane(imagen);
         portada.setPrefSize(ANCHO_IMAGEN, ALTO_IMAGEN);
         portada.setMinSize(ANCHO_IMAGEN, ALTO_IMAGEN);
