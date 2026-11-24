@@ -14,16 +14,16 @@
         </VBox>
     </top>
     <center>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+        <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED">
             <VBox alignment="TOP_CENTER">
-                <padding><Insets top="40" left="24" right="24" bottom="40"/></padding>
+                <padding><Insets top="24" left="24" right="24" bottom="32"/></padding>
                 <VBox spacing="10" maxWidth="1380">
                     <Label text="Mi cuenta" styleClass="titulo-claro"/>
                     <Label fx:id="lblSubtitulo" styleClass="nota-clara"/>
-                    <HBox spacing="28">
-                        <VBox.margin><Insets top="24"/></VBox.margin>
+                    <HBox spacing="24">
+                        <VBox.margin><Insets top="14"/></VBox.margin>
                         <VBox styleClass="tarjeta" spacing="10" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-                            <padding><Insets top="30" left="38" right="38" bottom="30"/></padding>
+                            <padding><Insets top="26" left="28" right="28" bottom="26"/></padding>
                             <Label text="Datos personales" styleClass="tarjeta-titulo">
                                 <VBox.margin><Insets bottom="10"/></VBox.margin>
                             </Label>

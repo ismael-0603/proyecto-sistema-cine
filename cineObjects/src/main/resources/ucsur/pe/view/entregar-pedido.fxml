@@ -16,10 +16,10 @@
         </VBox>
         <Button text="✕" styleClass="btn-cerrar" onAction="#onCerrar"/>
     </HBox>
-    <HBox spacing="32">
+    <HBox spacing="24">
         <VBox.margin><Insets top="10"/></VBox.margin>
         <!-- Lector / código -->
-        <VBox spacing="10" prefWidth="350" minWidth="330">
+        <VBox spacing="10" prefWidth="330" minWidth="300">
             <StackPane styleClass="lector">
                 <VBox alignment="CENTER" spacing="10">
                     <Rectangle width="60" height="60" fill="TRANSPARENT" stroke="#e5a93c" strokeWidth="2"
@@ -45,8 +45,8 @@
             <HBox fx:id="estados" spacing="8"/>
             <Region VBox.vgrow="ALWAYS"/>
             <HBox spacing="12" alignment="CENTER_RIGHT">
-                <Button text="Cancelar" styleClass="btn-secundario" prefWidth="140" onAction="#onCerrar"/>
-                <Button fx:id="btnConfirmar" text="Confirmar entrega" styleClass="btn-primario" prefWidth="200" onAction="#onConfirmar"/>
+                <Button text="Cancelar" styleClass="btn-secundario" minWidth="-Infinity" prefWidth="135" onAction="#onCerrar"/>
+                <Button fx:id="btnConfirmar" text="Confirmar entrega" styleClass="btn-primario" minWidth="-Infinity" prefWidth="195" onAction="#onConfirmar"/>
             </HBox>
         </VBox>
     </HBox>

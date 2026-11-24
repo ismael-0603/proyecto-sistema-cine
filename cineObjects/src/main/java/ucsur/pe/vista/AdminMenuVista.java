@@ -1,11 +1,15 @@
 package ucsur.pe.vista;
 
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.layout.VBox;
 
 /** Menú lateral de administración: marca la sección actual y lleva a las demás. */
 public class AdminMenuVista extends Pantalla {
 
+    @FXML private VBox raizMenu;
+    @FXML private Button btnColapsar;
     @FXML private Button btnPeliculas;
     @FXML private Button btnFunciones;
     @FXML private Button btnSalas;
@@ -15,12 +19,18 @@ public class AdminMenuVista extends Pantalla {
     @FXML private Button btnReclamos;
     @FXML private Button btnComprar;
 
+    private Runnable alColapsar = () -> { };
+
     public AdminMenuVista(Navegador nav) {
         super(nav);
     }
 
     @FXML
     private void initialize() {
+        if (btnColapsar != null) {
+            btnColapsar.setGraphic(Iconos.crear(Iconos.CHEVRON_IZQ, 15));
+            btnColapsar.setGraphicTextGap(2);
+        }
         btnPeliculas.setGraphic(Iconos.crear(Iconos.PELICULA, 17));
         btnFunciones.setGraphic(Iconos.crear(Iconos.RELOJ, 17));
         btnSalas.setGraphic(Iconos.crear(Iconos.SALA, 17));
@@ -57,5 +67,27 @@ public class AdminMenuVista extends Pantalla {
     @FXML
     private void onComprar() {
         nav.irACuentaPersonal();
+    }
+
+    public void configurarColapso(Runnable accion) {
+        this.alColapsar = accion != null ? accion : () -> { };
+    }
+
+    @FXML
+    private void onColapsar() {
+        alColapsar.run();
+    }
+
+    /** Oculta o muestra el menú lateral y su contenedor izquierdo en el BorderPane para ceder todo el ancho a la tabla. */
+    public void aplicarVisibilidad(boolean visible) {
+        VBox nodo = raizMenu != null ? raizMenu : (btnPeliculas != null && btnPeliculas.getParent() instanceof VBox v ? v : null);
+        if (nodo == null) return;
+        nodo.setVisible(visible);
+        nodo.setManaged(visible);
+        Parent contenedorIzq = nodo.getParent();
+        if (contenedorIzq instanceof VBox) {
+            contenedorIzq.setVisible(visible);
+            contenedorIzq.setManaged(visible);
+        }
     }
 }

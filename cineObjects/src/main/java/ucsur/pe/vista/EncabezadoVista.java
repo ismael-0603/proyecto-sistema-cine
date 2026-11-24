@@ -16,6 +16,7 @@ import ucsur.pe.service.Sesion;
 public class EncabezadoVista extends Pantalla {
 
     @FXML private Button btnSede;
+    @FXML private Button btnMenuAdmin;
     @FXML private Button btnPerdiste;
     @FXML private Button btnPromociones;
     @FXML private Button btnSesion;
@@ -26,6 +27,7 @@ public class EncabezadoVista extends Pantalla {
     @FXML private Button btnComprar;
 
     private Runnable accionVolver = () -> { };
+    private Runnable accionMenuAdmin = () -> { };
 
     public EncabezadoVista(Navegador nav) {
         super(nav);
@@ -34,6 +36,7 @@ public class EncabezadoVista extends Pantalla {
     @FXML
     private void initialize() {
         ocultar(btnVolver);
+        ocultar(btnMenuAdmin);
         if (estado().getSede() != null) {
             btnSede.setText("Sede: " + estado().getSede().getNombre() + " · Cambiar");
             btnSede.setGraphic(Iconos.crear(Iconos.UBICACION, 15, "icono-rojo"));
@@ -51,12 +54,14 @@ public class EncabezadoVista extends Pantalla {
     /** Para «Elegir sede»: todavía no hay sede ni entradas que recuperar. */
     public void sinSede() {
         ocultar(btnSede);
+        ocultar(btnMenuAdmin);
         ocultar(btnPerdiste);
     }
 
     /** Para login, registro y comprobante: solo un botón a la derecha («Volver», «Volver al inicio»). */
     public void soloVolver(String texto, Runnable accion) {
         ocultar(btnSede);
+        ocultar(btnMenuAdmin);
         ocultar(btnPerdiste);
         ocultar(btnPromociones);
         ocultar(btnSesion);
@@ -74,12 +79,31 @@ public class EncabezadoVista extends Pantalla {
     /** Para los paneles de empleado: título, sede, «Ir a comprar entradas» y el menú del usuario. */
     public void modoPanel(String titulo, String subtitulo) {
         ocultar(btnSede);
+        ocultar(btnMenuAdmin);
         ocultar(btnPerdiste);
         ocultar(btnPromociones);
         lblTituloPanel.setText(titulo);
         lblSubtituloPanel.setText(subtitulo);
         mostrarNodo(cajaTitulo);
         mostrarNodo(btnComprar);
+    }
+
+    /** Solo para Administración: muestra el botón táctil (☰) que oculta o despliega el menú lateral. */
+    public void configurarMenuLateral(boolean menuOculto, Runnable alAlternar) {
+        this.accionMenuAdmin = alAlternar != null ? alAlternar : () -> { };
+        actualizarBotonMenu(menuOculto);
+        mostrarNodo(btnMenuAdmin);
+    }
+
+    public void actualizarBotonMenu(boolean menuOculto) {
+        btnMenuAdmin.setGraphic(Iconos.crear(Iconos.MENU, 20));
+        btnMenuAdmin.getStyleClass().remove("activo");
+        if (!menuOculto) btnMenuAdmin.getStyleClass().add("activo");
+    }
+
+    @FXML
+    private void onAlternarMenu() {
+        accionMenuAdmin.run();
     }
 
     private static void mostrarNodo(Node nodo) {

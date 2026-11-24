@@ -28,7 +28,7 @@
                     <Region HBox.hgrow="ALWAYS"/>
                     <Button fx:id="btnNuevaPromo" text="+ Nueva promoción" styleClass="btn-primario" onAction="#onNuevaPromocion"/>
                 </HBox>
-                <HBox spacing="24">
+                <HBox spacing="18">
                     <VBox spacing="16" HBox.hgrow="ALWAYS">
                         <HBox styleClass="barra-oscura">
                             <Button fx:id="btnCupones" text="Cupones" styleClass="pestana, btn-chico" onAction="#onCupones"/>
@@ -40,7 +40,7 @@
                         <Label fx:id="lblAyuda" styleClass="nota-clara" wrapText="true"/>
                     </VBox>
                     <!-- Formulario de cupón (nuevo o el de la fila elegida) -->
-                    <VBox fx:id="formCupon" styleClass="tarjeta" spacing="8" minWidth="340" prefWidth="360" maxWidth="380">
+                    <VBox fx:id="formCupon" styleClass="tarjeta" spacing="8" minWidth="300" prefWidth="325" maxWidth="350">
                         <Label fx:id="lblFormTitulo" text="Nuevo cupón" styleClass="tarjeta-titulo"/>
                         <Label text="Código" styleClass="etiqueta-campo"><VBox.margin><Insets top="8"/></VBox.margin></Label>
                         <TextField fx:id="txtCodigo" promptText="Ej. CINE20"/>

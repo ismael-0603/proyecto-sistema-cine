@@ -14,18 +14,20 @@
         </VBox>
     </top>
     <center>
-        <VBox alignment="TOP_CENTER">
-            <padding><Insets top="22" left="24" right="24" bottom="24"/></padding>
-            <VBox spacing="16" maxWidth="1680" VBox.vgrow="ALWAYS">
-                <HBox styleClass="barra-oscura">
-                    <Label text="Buscar pedido" minWidth="-Infinity"/>
-                    <TextField fx:id="txtBuscar" promptText="Número de pedido o código del comprobante" HBox.hgrow="ALWAYS" onAction="#onBuscar"/>
-                    <Button text="Buscar" styleClass="btn-primario, btn-chico" prefWidth="120" onAction="#onBuscar"/>
-                </HBox>
-                <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
-                <Label fx:id="lblStock" styleClass="aviso, nota" wrapText="true" maxWidth="Infinity" visible="false" managed="false"/>
-                <HBox fx:id="columnas" spacing="18" VBox.vgrow="ALWAYS"/>
+        <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED">
+            <VBox alignment="TOP_LEFT">
+                <padding><Insets top="18" left="20" right="20" bottom="20"/></padding>
+                <VBox spacing="14" maxWidth="1680" VBox.vgrow="ALWAYS">
+                    <HBox styleClass="barra-oscura">
+                        <Label text="Buscar pedido" minWidth="-Infinity"/>
+                        <TextField fx:id="txtBuscar" promptText="Número de pedido o código del comprobante" HBox.hgrow="ALWAYS" onAction="#onBuscar"/>
+                        <Button text="Buscar" styleClass="btn-primario, btn-chico" minWidth="-Infinity" prefWidth="115" onAction="#onBuscar"/>
+                    </HBox>
+                    <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
+                    <Label fx:id="lblStock" styleClass="aviso, nota" wrapText="true" maxWidth="Infinity" visible="false" managed="false"/>
+                    <HBox fx:id="columnas" spacing="12" VBox.vgrow="ALWAYS"/>
+                </VBox>
             </VBox>
-        </VBox>
+        </ScrollPane>
     </center>
 </BorderPane>

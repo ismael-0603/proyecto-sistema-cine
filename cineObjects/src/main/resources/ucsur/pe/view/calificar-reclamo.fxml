@@ -15,21 +15,21 @@
     </top>
     <center>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
-            <HBox alignment="TOP_CENTER" spacing="40">
-                <padding><Insets top="100" left="24" right="24" bottom="40"/></padding>
+            <HBox alignment="TOP_CENTER" spacing="32">
+                <padding><Insets top="32" left="24" right="24" bottom="32"/></padding>
                 <!-- Calificación -->
-                <VBox styleClass="tarjeta" spacing="10" prefWidth="600" maxWidth="600" minHeight="720">
-                    <padding><Insets top="34" left="40" right="40" bottom="34"/></padding>
+                <VBox styleClass="tarjeta" spacing="10" prefWidth="580" maxWidth="580" minHeight="500">
+                    <padding><Insets top="28" left="36" right="36" bottom="28"/></padding>
                     <Label text="Califica tu experiencia" styleClass="tarjeta-titulo"/>
                     <Label fx:id="lblCompraCalif" styleClass="nota"/>
                     <HBox fx:id="estrellas" spacing="4">
-                        <VBox.margin><Insets top="22"/></VBox.margin>
+                        <VBox.margin><Insets top="14"/></VBox.margin>
                     </HBox>
                     <Label fx:id="lblPuntaje" styleClass="nota"/>
                     <Label text="Comentario (opcional)" styleClass="etiqueta-campo">
-                        <VBox.margin><Insets top="22"/></VBox.margin>
+                        <VBox.margin><Insets top="14"/></VBox.margin>
                     </Label>
-                    <TextArea fx:id="txtComentario" promptText="Cuéntanos qué te pareció la función…" wrapText="true" prefRowCount="5"/>
+                    <TextArea fx:id="txtComentario" promptText="Cuéntanos qué te pareció la función…" wrapText="true" prefRowCount="4"/>
                     <Label fx:id="lblContador" text="Máximo 300 caracteres" styleClass="nota"/>
                     <Label fx:id="lblMensajeCalif" styleClass="mensaje" visible="false" managed="false"/>
                     <Region VBox.vgrow="ALWAYS"/>
@@ -39,18 +39,18 @@
                     </HBox>
                 </VBox>
                 <!-- Reclamo -->
-                <VBox styleClass="tarjeta" spacing="10" prefWidth="600" maxWidth="600" minHeight="720">
-                    <padding><Insets top="34" left="40" right="40" bottom="34"/></padding>
+                <VBox styleClass="tarjeta" spacing="10" prefWidth="580" maxWidth="580" minHeight="500">
+                    <padding><Insets top="28" left="36" right="36" bottom="28"/></padding>
                     <Label text="Presentar reclamo" styleClass="tarjeta-titulo"/>
                     <Label fx:id="lblCompraReclamo" styleClass="nota"/>
                     <Label text="Tipo de reclamo" styleClass="etiqueta-campo">
-                        <VBox.margin><Insets top="22"/></VBox.margin>
+                        <VBox.margin><Insets top="14"/></VBox.margin>
                     </Label>
                     <FlowPane fx:id="tipos" hgap="12" vgap="12"/>
                     <Label text="Descripción" styleClass="etiqueta-campo">
-                        <VBox.margin><Insets top="22"/></VBox.margin>
+                        <VBox.margin><Insets top="14"/></VBox.margin>
                     </Label>
-                    <TextArea fx:id="txtDescripcion" promptText="Describe lo que pasó…" wrapText="true" prefRowCount="5"/>
+                    <TextArea fx:id="txtDescripcion" promptText="Describe lo que pasó…" wrapText="true" prefRowCount="4"/>
                     <Label fx:id="lblContadorReclamo" text="Máximo 500 caracteres" styleClass="nota"/>
                     <Label text="Recibirás la respuesta en tu correo y en Mis compras." styleClass="nota"/>
                     <Label fx:id="lblMensajeReclamo" styleClass="mensaje" visible="false" managed="false"/>

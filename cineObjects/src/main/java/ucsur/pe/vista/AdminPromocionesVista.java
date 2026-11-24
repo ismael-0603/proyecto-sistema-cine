@@ -49,10 +49,10 @@ public class AdminPromocionesVista extends PantallaAdmin {
 
     private final Tabla<Cupon> tablaCupones = new Tabla<>(
             new String[] {"Código", "Tipo", "Valor", "Vigencia", "Usos", "Estado", "Acciones"},
-            new double[] {115, 105, 80, 110, 80, 110}, 8); // más angosta: comparte el ancho con el formulario
+            new double[] {105, 95, 75, 100, 72, 98}, 8); // más angosta: comparte el ancho con el formulario
     private final Tabla<Promocion> tablaPromos = new Tabla<>(
             new String[] {"Nombre", "Valor", "Días", "Vigencia", "Para", "Estado", "Acciones"},
-            new double[] {200, 90, 170, 120, 150, 110}, 8);
+            new double[] {185, 85, 150, 110, 135, 102}, 8);
     private boolean verCupones = true;
     private Cupon cuponEditando;
 

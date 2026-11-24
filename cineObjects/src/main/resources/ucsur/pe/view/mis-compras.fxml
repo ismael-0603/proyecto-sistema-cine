@@ -14,9 +14,9 @@
         </VBox>
     </top>
     <center>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+        <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED">
             <VBox alignment="TOP_CENTER">
-                <padding><Insets top="40" left="24" right="24" bottom="40"/></padding>
+                <padding><Insets top="28" left="20" right="20" bottom="32"/></padding>
                 <VBox spacing="16" maxWidth="1380">
                     <Label text="Mi cuenta" styleClass="titulo-claro"/>
                     <HBox spacing="12">
