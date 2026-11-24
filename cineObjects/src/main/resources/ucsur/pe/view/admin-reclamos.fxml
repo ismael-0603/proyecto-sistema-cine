@@ -29,7 +29,7 @@
             </HBox>
             <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false" wrapText="true"/>
             <HBox spacing="20" VBox.vgrow="ALWAYS">
-                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minWidth="360" prefWidth="430" maxWidth="460">
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minWidth="290" prefWidth="340" maxWidth="380">
                     <VBox fx:id="lista" spacing="12"/>
                 </ScrollPane>
                 <VBox fx:id="detalle" styleClass="tarjeta" spacing="10" HBox.hgrow="ALWAYS">
@@ -52,11 +52,11 @@
                     <TextArea fx:id="txtRespuesta" promptText="Escribe la respuesta o el motivo del rechazo…" wrapText="true" prefRowCount="4"/>
                     <Label fx:id="lblMensajeDetalle" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
-                    <HBox spacing="12" alignment="CENTER_LEFT">
-                        <Button fx:id="btnRevision" text="Iniciar revisión" styleClass="btn-secundario" onAction="#onIniciarRevision"/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Button fx:id="btnRevision" text="Iniciar revisión" styleClass="btn-secundario" minWidth="-Infinity" onAction="#onIniciarRevision"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="btnRechazar" text="Rechazar" styleClass="btn-secundario" onAction="#onRechazar"/>
-                        <Button fx:id="btnResponder" text="Responder y cerrar" styleClass="btn-primario" onAction="#onResponder"/>
+                        <Button fx:id="btnRechazar" text="Rechazar" styleClass="btn-secundario" minWidth="-Infinity" onAction="#onRechazar"/>
+                        <Button fx:id="btnResponder" text="Responder y cerrar" styleClass="btn-primario" minWidth="-Infinity" onAction="#onResponder"/>
                     </HBox>
                 </VBox>
             </HBox>

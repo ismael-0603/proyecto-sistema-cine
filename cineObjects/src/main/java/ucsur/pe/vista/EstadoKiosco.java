@@ -47,6 +47,7 @@ public class EstadoKiosco {
     private int paginaCompras;
     // Administración: el registro que se abre en un formulario para editarlo (null = nuevo)
     private Object enEdicion;
+    private boolean menuAdminOculto;
     // Correo escrito en «Iniciar sesión» o «Recuperar contraseña», para no volver a escribirlo al pasar de una a otra
     private String correoLogin;
 
@@ -81,6 +82,7 @@ public class EstadoKiosco {
         compraElegida = null;
         paginaCompras = 0;
         correoLogin = null;
+        menuAdminOculto = false;
     }
 
     /** El cliente con sesión iniciada (no el invitado); null si no hay. */
@@ -183,4 +185,6 @@ public class EstadoKiosco {
         return tipo.isInstance(enEdicion) ? tipo.cast(enEdicion) : null;
     }
     public List<Butaca> getButacas() { return butacas; }
+    public boolean isMenuAdminOculto() { return menuAdminOculto; }
+    public void setMenuAdminOculto(boolean oculto) { this.menuAdminOculto = oculto; }
 }

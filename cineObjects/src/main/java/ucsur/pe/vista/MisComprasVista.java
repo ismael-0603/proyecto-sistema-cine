@@ -28,7 +28,7 @@ public class MisComprasVista extends Pantalla {
 
     private static final int POR_PAGINA = 5;
     // Ancho de cada columna: fecha, película, sede · sala, total, estado (acciones ocupa el resto)
-    private static final double[] ANCHOS = {130, 280, 250, 110, 140};
+    private static final double[] ANCHOS = {100, 180, 170, 85, 108};
 
     @FXML private HBox cabecera;
     @FXML private VBox tabla;
@@ -98,6 +98,8 @@ public class MisComprasVista extends Pantalla {
                 + " automáticamente (no hay que pedirlo)." : "");
         lblNota.setManaged(reembolsado > 0);
         lblMostrando.setText(compras.isEmpty() ? "" : "Mostrando " + (desde + 1) + "–" + hasta + " de " + compras.size());
+        btnAnterior.setMinWidth(Region.USE_PREF_SIZE);
+        btnSiguiente.setMinWidth(Region.USE_PREF_SIZE);
         btnAnterior.setDisable(pagina == 0);
         btnSiguiente.setDisable(pagina >= totalPaginas() - 1);
         paginas.getChildren().clear();
@@ -105,6 +107,7 @@ public class MisComprasVista extends Pantalla {
             int destino = p;
             Button b = new Button(String.valueOf(p + 1));
             b.getStyleClass().addAll("btn-secundario", "btn-chico", "pagina");
+            b.setMinWidth(Region.USE_PREF_SIZE);
             if (p == pagina) b.getStyleClass().add("activo");
             b.setOnAction(e -> irAPagina(destino));
             paginas.getChildren().add(b);
@@ -126,7 +129,7 @@ public class MisComprasVista extends Pantalla {
         Label estado = new Label(Formato.estadoCompra(c.getEstado()));
         estado.getStyleClass().addAll("estado-chip", Compra.CONFIRMADA.equals(c.getEstado()) ? "pagada" : "reembolsada");
 
-        HBox acciones = new HBox(10);
+        HBox acciones = new HBox(6);
         acciones.setAlignment(Pos.CENTER_LEFT);
         acciones.getChildren().add(boton("Ver", false, () -> {
             estado().setCompraElegida(c);
@@ -171,6 +174,7 @@ public class MisComprasVista extends Pantalla {
     private static Button boton(String texto, boolean principal, Runnable accion) {
         Button b = new Button(texto);
         b.getStyleClass().addAll(principal ? "btn-primario" : "btn-secundario", "btn-chico");
+        b.setMinWidth(Region.USE_PREF_SIZE);
         b.setOnAction(e -> accion.run());
         return b;
     }

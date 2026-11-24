@@ -124,12 +124,12 @@ public class PanelDulceriaVista extends Pantalla {
         desplazable.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         VBox.setVgrow(desplazable, Priority.ALWAYS);
 
-        VBox col = new VBox(14, cabecera, desplazable);
+        VBox col = new VBox(12, cabecera, desplazable);
         col.getStyleClass().add("columna-pedidos");
         HBox.setHgrow(col, Priority.ALWAYS);
         col.setMaxWidth(Double.MAX_VALUE);
-        col.setMinWidth(260);
-        col.setPrefWidth(400);
+        col.setMinWidth(200);
+        col.setPrefWidth(320);
         return col;
     }
 

@@ -289,21 +289,24 @@ public class CarteleraVista extends Pantalla {
         Label titulo = new Label(p.getTitulo());
         titulo.getStyleClass().add("pelicula-titulo");
         titulo.setWrapText(true);
-        titulo.setMinHeight(44);
+        titulo.setMinHeight(58);
+        titulo.setPrefHeight(58);
+        titulo.setMaxHeight(58);
         titulo.setAlignment(Pos.TOP_LEFT);
 
-        HBox datos = new HBox(8);
+        HBox datos = new HBox(4);
         datos.setAlignment(Pos.CENTER_LEFT);
         if (!p.getGeneros().isEmpty()) {
             Label genero = new Label(p.getGeneros().get(0).getNombre());
             genero.getStyleClass().add("tag-genero");
-            genero.setMinWidth(Region.USE_PREF_SIZE); // si falta espacio, se acorta la duración, no el género
+            genero.setMinWidth(Region.USE_PREF_SIZE);
             datos.getChildren().add(genero);
         }
         Region espacio = new Region();
         HBox.setHgrow(espacio, Priority.ALWAYS);
         Label detalle = new Label(pestana == Pestana.PROXIMAMENTE ? estreno(p) : Formato.duracion(p.getDuracion()));
         detalle.getStyleClass().add("nota-suave");
+        detalle.setMinWidth(Region.USE_PREF_SIZE);
         datos.getChildren().addAll(espacio, detalle);
 
         VBox cuerpo = new VBox(8, titulo, datos, boton(p));

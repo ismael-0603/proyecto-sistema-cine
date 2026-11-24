@@ -11,6 +11,9 @@
     <Button fx:id="btnSede" styleClass="btn-sede, btn-pastilla" onAction="#onCambiarSede">
         <HBox.margin><Insets left="14"/></HBox.margin>
     </Button>
+    <Button fx:id="btnMenuAdmin" styleClass="btn-toggle-menu" visible="false" managed="false" onAction="#onAlternarMenu">
+        <HBox.margin><Insets left="10"/></HBox.margin>
+    </Button>
     <!-- Modo panel (dulcería y administración): título y sede del empleado -->
     <VBox fx:id="cajaTitulo" alignment="CENTER_LEFT" spacing="2" visible="false" managed="false">
         <HBox.margin><Insets left="14"/></HBox.margin>

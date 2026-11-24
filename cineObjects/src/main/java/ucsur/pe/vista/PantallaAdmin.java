@@ -31,6 +31,15 @@ public abstract class PantallaAdmin extends Pantalla {
         encabezadoController.modoPanel("Administración", "Gestión del cine · "
                 + (admin.getSede() == null ? "" : "Sede " + admin.getSede().getNombre()));
         menuController.marcar(seccion);
+        Runnable alternar = () -> {
+            boolean nuevoOculto = !estado().isMenuAdminOculto();
+            estado().setMenuAdminOculto(nuevoOculto);
+            menuController.aplicarVisibilidad(!nuevoOculto);
+            encabezadoController.actualizarBotonMenu(nuevoOculto);
+        };
+        menuController.configurarColapso(alternar);
+        menuController.aplicarVisibilidad(!estado().isMenuAdminOculto());
+        encabezadoController.configurarMenuLateral(estado().isMenuAdminOculto(), alternar);
         return true;
     }
 }

@@ -13,39 +13,67 @@
 .root {
     -fx-font-family: "Manrope Medium";
     -fx-font-size: 14px;
-    -fx-text-fill: #03132c;
-    -fx-background-color: #03132c;
+    -fx-text-fill: #03132C;
+    -fx-background-color: #03132C;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
-    -azul: #03132c;
-    -dorado: #e5a93c;
-    -rojo: #9b180c;
-    -crema: #faf0e0;
-    -beige: #f5edde;
+    -azul: #03132C;
+    -dorado: #E5A93C;
+    -rojo: #9B180C;
+    -crema: #FAF0E0;
+    -blanco: #FFFFFF;
+    -beige: #F5EDDE;
     -borde: rgba(3, 19, 44, 0.22);
 }
+.root.popup { -fx-background-color: transparent; }
 .text { -fx-font-smoothing-type: lcd; }
-.label { -fx-text-fill: #03132c; }
+.label { -fx-text-fill: #03132C; }
 /* Foco ambiental de sala de cine dentro de la misma gama azul prusia */
 .fondo {
-    -fx-background-color: radial-gradient(center 50% 0%, radius 85%, #16325f 0%, #091d3e 38%, #03132c 74%, #010917 100%);
+    -fx-background-color: radial-gradient(center 50% 0%, radius 85%, #16325f 0%, #091d3e 38%, #03132C 74%, #010917 100%);
 }
 
-.scroll-pane, .scroll-pane > .viewport {
+.scroll-pane, .scroll-pane > .viewport, .scroll-pane > .corner {
     -fx-background-color: transparent;
     -fx-background: transparent;
 }
 .scroll-pane { -fx-padding: 0; }
 .scroll-bar { -fx-background-color: transparent; -fx-padding: 2; }
-.scroll-bar:vertical { -fx-pref-width: 10; }
-.scroll-bar:horizontal { -fx-pref-height: 10; }
-.scroll-bar .track { -fx-background-color: transparent; }
-.scroll-bar .thumb { -fx-background-color: rgba(255, 255, 255, 0.26); -fx-background-radius: 6; }
-.scroll-bar .thumb:hover { -fx-background-color: rgba(255, 255, 255, 0.45); }
-.tarjeta .scroll-bar .thumb, .columna-pedidos .scroll-bar .thumb { -fx-background-color: rgba(3, 19, 44, 0.22); }
-.tarjeta .scroll-bar .thumb:hover, .columna-pedidos .scroll-bar .thumb:hover { -fx-background-color: rgba(3, 19, 44, 0.38); }
-.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 0; -fx-pref-height: 0; -fx-pref-width: 0; }
-.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-shape: null; -fx-padding: 0; }
+.scroll-bar:vertical { -fx-pref-width: 12; -fx-min-width: 12; }
+.scroll-bar:horizontal { -fx-pref-height: 12; -fx-min-height: 12; }
+.scroll-bar .track {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-background-radius: 999;
+    -fx-border-color: transparent;
+}
+.scroll-bar .thumb {
+    -fx-background-color: rgba(250, 240, 224, 0.38);
+    -fx-background-radius: 999;
+    -fx-background-insets: 1;
+}
+.scroll-bar .thumb:hover { -fx-background-color: #E5A93C; }
+.scroll-bar .thumb:pressed { -fx-background-color: #C98A1D; }
+.tarjeta .scroll-bar .track, .columna-pedidos .scroll-bar .track {
+    -fx-background-color: rgba(3, 19, 44, 0.06);
+    -fx-background-radius: 999;
+}
+.tarjeta .scroll-bar .thumb, .columna-pedidos .scroll-bar .thumb {
+    -fx-background-color: rgba(3, 19, 44, 0.28);
+    -fx-background-radius: 999;
+}
+.tarjeta .scroll-bar .thumb:hover, .columna-pedidos .scroll-bar .thumb:hover { -fx-background-color: #E5A93C; }
+.tarjeta .scroll-bar .thumb:pressed, .columna-pedidos .scroll-bar .thumb:pressed { -fx-background-color: #C98A1D; }
+.scroll-bar .increment-button, .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-pref-width: 0;
+}
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
+    -fx-shape: null;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
 
 /* ===== ÍCONOS VECTORIALES (SVGPath) ===== */
 .icono-svg { -fx-fill: #03132c; }
@@ -71,7 +99,7 @@
 .texto-claro { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 15px; -fx-text-fill: rgba(255, 255, 255, 0.78); }
 .nota-clara { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(255, 255, 255, 0.82); }
 .contador-texto { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(255, 255, 255, 0.76); }
-.total-grande { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 24px; -fx-text-fill: #03132c; }
+.total-grande { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 28px; -fx-text-fill: #03132c; }
 .importe { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 14px; -fx-text-fill: #03132c; }
 .texto-rojo { -fx-text-fill: #9b180c; }
 
@@ -98,8 +126,8 @@
     -fx-border-radius: 34;
     -fx-min-height: 68;
     -fx-pref-height: 68;
-    -fx-padding: 0 24 0 24;
-    -fx-spacing: 12;
+    -fx-padding: 0 20 0 18;
+    -fx-spacing: 8;
     -fx-alignment: center-left;
 }
 .encabezado-titulo { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 18px; -fx-text-fill: #03132c; }
@@ -114,8 +142,8 @@
     -fx-padding: 3 18 3 18;
     -fx-alignment: center;
 }
-.tiempo-etiqueta { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 12px; -fx-text-fill: rgba(3, 19, 44, 0.75); }
-.tiempo-valor { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 22px; -fx-text-fill: #03132c; }
+.tiempo-etiqueta { -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(3, 19, 44, 0.75); }
+.tiempo-valor { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 24px; -fx-text-fill: #03132c; }
 .tiempo.urgente {
     -fx-background-color: linear-gradient(to bottom, #feeae8 0%, #fcd5d0 100%);
     -fx-border-color: #9b180c;
@@ -174,7 +202,10 @@
     -fx-border-color: rgba(255, 255, 255, 0.85);
     -fx-border-width: 1;
     -fx-border-radius: 20;
-    -fx-padding: 24;
+    -fx-padding: 20;
+}
+.tarjeta .button {
+    -fx-padding: 0 12 0 12;
 }
 /* Tarjeta anidada dentro de otra tarjeta (ej. «Beneficios de tu nivel»): sin doble sombra */
 .tarjeta .tarjeta {
@@ -258,7 +289,7 @@
     -fx-background-radius: 16;
     -fx-border-radius: 16;
     -fx-min-height: 48;
-    -fx-padding: 0 22 0 22;
+    -fx-padding: 0 16 0 16;
 }
 .button:pressed { -fx-opacity: 0.9; }
 .button:disabled { -fx-opacity: 0.42; -fx-cursor: default; }
@@ -296,9 +327,9 @@
 .btn-sede {
     -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f5e6cc 100%);
     -fx-border-color: rgba(229, 169, 60, 0.55);
-    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 14px;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px;
     -fx-min-height: 48;
-    -fx-padding: 0 18 0 16;
+    -fx-padding: 0 12 0 10;
 }
 .btn-sede:hover {
     -fx-background-color: linear-gradient(to bottom, #faeecd 0%, #f2dca8 100%);
@@ -307,20 +338,24 @@
 .btn-nav {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
-    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 15px;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 14px;
     -fx-min-height: 48;
-    -fx-padding: 0 16 0 16;
+    -fx-padding: 0 10 0 10;
 }
 .btn-nav:hover {
     -fx-background-color: #faf0e0;
     -fx-border-color: rgba(229, 169, 60, 0.35);
+}
+.encabezado .btn-primario, .encabezado .btn-secundario, .encabezado .btn-activo {
+    -fx-padding: 0 14 0 14;
+    -fx-font-size: 14px;
 }
 .btn-pastilla { -fx-background-radius: 24; -fx-border-radius: 24; }
 .btn-primario.btn-pastilla { -fx-background-radius: 24, 24, 23; }
 .btn-chico { -fx-font-size: 14px; -fx-min-height: 36; -fx-padding: 0 14 0 14; -fx-background-radius: 10; -fx-border-radius: 10; }
 .btn-primario.btn-chico { -fx-background-radius: 10, 10, 9; }
 /* Interruptor Activo / Inactivo de cupones y promociones: el mismo ancho en los dos estados */
-.btn-estado { -fx-min-width: 96; -fx-pref-width: 96; }
+.btn-estado { -fx-min-width: 84; -fx-pref-width: 84; -fx-padding: 0 8 0 8; -fx-font-size: 13px; }
 .btn-link {
     -fx-background-color: transparent;
     -fx-font-family: "Manrope Medium";
@@ -445,7 +480,7 @@
     -fx-border-radius: 16;
 }
 .opcion-pago-titulo { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 15px; -fx-text-fill: #03132c; }
-.opcion-pago-subtitulo { -fx-font-family: "Manrope"; -fx-font-size: 12px; -fx-text-fill: rgba(3, 19, 44, 0.68); }
+.opcion-pago-subtitulo { -fx-font-family: "Manrope"; -fx-font-size: 13px; -fx-text-fill: rgba(3, 19, 44, 0.68); }
 .opcion-pago.activo .opcion-pago-subtitulo { -fx-text-fill: rgba(3, 19, 44, 0.85); }
 .radio-indicador {
     -fx-min-width: 20; -fx-min-height: 20; -fx-max-width: 20; -fx-max-height: 20;
@@ -504,15 +539,15 @@
     -fx-border-width: 2;
     -fx-border-radius: 16;
     -fx-min-height: 46;
-    -fx-padding: 0 6 0 6;
+    -fx-padding: 0 2 0 4;
     -fx-font-family: "Manrope Medium";
     -fx-font-size: 14px;
     -fx-cursor: hand;
 }
 .combo-box:hover { -fx-border-color: rgba(3, 19, 44, 0.42); }
 .combo-box:focused, .combo-box:showing { -fx-border-color: #e5a93c; }
-.combo-box .list-cell { -fx-text-fill: #03132c; -fx-background-color: transparent; }
-.combo-box .arrow-button { -fx-background-color: transparent; }
+.combo-box .list-cell { -fx-text-fill: #03132c; -fx-background-color: transparent; -fx-padding: 4 2 4 6; }
+.combo-box .arrow-button { -fx-background-color: transparent; -fx-padding: 0 8 0 2; }
 .combo-box .arrow { -fx-background-color: #03132c; }
 .combo-oscuro {
     -fx-background-color: rgba(255, 255, 255, 0.09);
@@ -567,7 +602,10 @@
     -fx-background-radius: 22, 22;
     -fx-border-color: rgba(255, 255, 255, 0.2);
     -fx-border-radius: 22;
-    -fx-padding: 20;
+    -fx-min-width: 230;
+    -fx-pref-width: 230;
+    -fx-max-width: 230;
+    -fx-padding: 14;
 }
 .filtro-titulo { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: white; }
 .filtro-etiqueta { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(255, 255, 255, 0.82); -fx-padding: 6 0 0 2; }
@@ -601,17 +639,28 @@
     -fx-border-radius: 16;
     -fx-padding: 0;
     -fx-spacing: 0;
+    -fx-cursor: hand;
 }
 .tarjeta-pelicula:hover {
-    -fx-border-color: #e5a93c;
+    -fx-border-color: #E5A93C;
     -fx-background-color:
-        rgba(229, 169, 60, 0.34),
+        rgba(229, 169, 60, 0.38),
         linear-gradient(to bottom, #ffffff 0%, #fdf9f1 100%);
     -fx-background-insets: 5 0 -5 0, 0;
+    -fx-effect: dropshadow(gaussian, rgba(229, 169, 60, 0.48), 18, 0.25, 0, 4);
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
 }
 .tarjeta-pelicula-cuerpo {
-    -fx-padding: 12 12 12 12;
+    -fx-padding: 10 8 12 8;
     -fx-spacing: 8;
+}
+.tarjeta-pelicula-cuerpo > HBox {
+    -fx-spacing: 2;
+}
+.tarjeta-pelicula .button {
+    -fx-padding: 0 8 0 8;
+    -fx-font-size: 14px;
 }
 .poster-sombra {
     -fx-background-color: linear-gradient(to bottom, rgba(3, 19, 44, 0.42) 0%, transparent 28%, transparent 72%, rgba(3, 19, 44, 0.45) 100%);
@@ -622,7 +671,7 @@
     -fx-border-radius: 8;
     -fx-background-radius: 8;
     -fx-padding: 3 8 3 8;
-    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 12px;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px;
     -fx-text-fill: white;
 }
 .badge-poster-clasif.apta {
@@ -636,17 +685,26 @@
     -fx-border-radius: 12;
     -fx-background-radius: 12;
     -fx-padding: 4 10 4 10;
-    -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 11px;
+    -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 13px;
     -fx-text-fill: #03132c;
 }
-.pelicula-titulo { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 16px; -fx-text-fill: #03132c; }
+.pelicula-titulo {
+    -fx-font-family: "Manrope SemiBold";
+    -fx-font-weight: normal;
+    -fx-font-size: 16px;
+    -fx-text-fill: #03132c;
+    -fx-min-height: 60;
+    -fx-pref-height: 60;
+    -fx-max-height: 60;
+    -fx-alignment: top-left;
+}
 .tag-genero {
-    -fx-background-color: #f5edde;
-    -fx-border-color: rgba(229, 169, 60, 0.32);
+    -fx-background-color: #faf0e0;
+    -fx-border-color: rgba(229, 169, 60, 0.45);
     -fx-border-radius: 12;
     -fx-background-radius: 12;
-    -fx-padding: 3 10 3 10;
-    -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 12px;
+    -fx-padding: 2 6 2 6;
+    -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px;
     -fx-text-fill: #03132c;
 }
 .tag-genero-claro { -fx-background-color: white; -fx-border-color: rgba(255, 255, 255, 0.5); }
@@ -656,7 +714,7 @@
     -fx-background-color: #f3f6fb;
     -fx-background-radius: 6;
     -fx-padding: 2 7 2 7;
-    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 12px;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px;
     -fx-text-fill: #03132c;
 }
 .tag-clasificacion.apta { -fx-background-color: #ecfdf3; -fx-border-color: #86c79b; -fx-text-fill: #166534; }
@@ -664,7 +722,7 @@
     -fx-background-color: #e5a93c;
     -fx-background-radius: 14;
     -fx-padding: 4 12 4 12;
-    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 12px;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px;
     -fx-text-fill: #03132c;
 }
 .poster-reemplazo {
@@ -716,7 +774,7 @@
     -fx-max-width: 520;
     -fx-pref-width: 520;
 }
-.pantalla-texto { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 12px; -fx-text-fill: rgba(3, 19, 44, 0.65); }
+.pantalla-texto { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(3, 19, 44, 0.65); }
 .fila-letra { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(3, 19, 44, 0.7); -fx-min-width: 18; -fx-alignment: center; }
 .butaca {
     -fx-min-width: 32; -fx-min-height: 32; -fx-max-width: 32; -fx-max-height: 32;
@@ -726,7 +784,7 @@
     -fx-border-color: rgba(3, 19, 44, 0.34);
     -fx-border-width: 1 1 3 1;
     -fx-background-radius: 8 8 4 4; -fx-border-radius: 8 8 4 4;
-    -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 12px;
+    -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px;
 }
 .butaca:hover {
     -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f5e5c7 100%);
@@ -769,7 +827,7 @@
     -fx-border-width: 1 1 2 1;
     -fx-background-color: white; -fx-border-color: rgba(3, 19, 44, 0.45);
     -fx-alignment: center;
-    -fx-font-size: 12px; -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal;
+    -fx-font-size: 13px; -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal;
 }
 .leyenda-cuadro.ocupada { -fx-background-color: #9b180c; -fx-border-color: #7c1309; }
 .leyenda-cuadro.elegida { -fx-background-color: #e5a93c; -fx-border-color: #b87c16; }
@@ -855,7 +913,7 @@
     -fx-border-radius: 12;
     -fx-background-radius: 12;
     -fx-padding: 2 9 2 9;
-    -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 12px;
+    -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 13px;
     -fx-text-fill: #03132c;
 }
 .producto-imagen {
@@ -933,12 +991,12 @@
     -fx-max-width: 22; -fx-max-height: 22;
 }
 .paso-mini-num {
-    -fx-min-width: 22; -fx-min-height: 22; -fx-max-width: 22; -fx-max-height: 22;
+    -fx-min-width: 24; -fx-min-height: 24; -fx-max-width: 24; -fx-max-height: 24;
     -fx-background-color: #faf0e0;
     -fx-border-color: rgba(229, 169, 60, 0.65);
-    -fx-border-radius: 11; -fx-background-radius: 11;
+    -fx-border-radius: 12; -fx-background-radius: 12;
     -fx-alignment: center;
-    -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 11px;
+    -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 13px;
     -fx-text-fill: #03132c;
 }
 
@@ -948,7 +1006,7 @@
     -fx-text-fill: white;
 }
 .btn-activo:hover { -fx-background-color: linear-gradient(to bottom, #c42314 0%, #aa1b0e 100%); }
-.menu-usuario {
+.context-menu, .menu-usuario {
     -fx-background-color: white;
     -fx-background-radius: 18;
     -fx-border-color: rgba(3, 19, 44, 0.18);
@@ -988,8 +1046,8 @@
     -fx-background-color: white;
     -fx-border-color: rgba(3, 19, 44, 0.3);
     -fx-background-radius: 12; -fx-border-radius: 12;
-    -fx-padding: 3 12 3 12;
-    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 12px; -fx-text-fill: #03132c;
+    -fx-padding: 3 10 3 10;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: #03132c;
 }
 .estado-chip.pagada { -fx-background-color: #ecfdf3; -fx-border-color: #86c79b; -fx-text-fill: #166534; }
 .estado-chip.reembolsada { -fx-background-color: #faf0e0; -fx-border-color: rgba(229, 169, 60, 0.55); }
@@ -1006,21 +1064,32 @@
     -fx-padding: 0 0 6 0;
 }
 .tabla-cabecera {
-    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #f6e8cf 100%);
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #faf0e0 100%);
     -fx-background-radius: 16 16 0 0;
-    -fx-padding: 12 18 12 18;
-    -fx-border-color: transparent transparent rgba(229, 169, 60, 0.35) transparent;
+    -fx-padding: 12 14 12 16;
+    -fx-border-color: transparent transparent rgba(229, 169, 60, 0.45) transparent;
 }
-.tabla-cabecera .label { -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13px; -fx-text-fill: rgba(3, 19, 44, 0.8); }
+.tabla-cabecera .label {
+    -fx-font-family: "Manrope SemiBold";
+    -fx-font-weight: normal;
+    -fx-font-size: 13px;
+    -fx-text-fill: #03132c;
+    -fx-wrap-text: false;
+}
 .tabla-fila {
-    -fx-padding: 10 18 10 18;
+    -fx-padding: 10 14 10 16;
     -fx-min-height: 62;
     -fx-alignment: center-left;
     -fx-border-color: transparent transparent rgba(3, 19, 44, 0.08) transparent;
 }
+.tabla-fila .btn-chico {
+    -fx-min-height: 34;
+    -fx-padding: 0 9 0 9;
+    -fx-font-size: 13px;
+}
 .tabla-fila:hover { -fx-background-color: rgba(250, 240, 224, 0.62); }
 .tabla-fila .label { -fx-font-size: 13px; }
-.pagina { -fx-min-width: 40; -fx-padding: 0 14 0 14; }
+.pagina { -fx-min-width: 36; -fx-padding: 0 12 0 12; }
 .pagina.activo {
     -fx-background-color: linear-gradient(to bottom, #efc062 0%, #e5a93c 100%);
     -fx-border-color: #c98a1d;
@@ -1071,12 +1140,12 @@
 .columna-pedidos {
     -fx-background-color:
         rgba(0, 0, 0, 0.34),
-        linear-gradient(to bottom, #ffffff 0%, #f9f7f2 100%);
+        linear-gradient(to bottom, #fdf7ec 0%, #faf0e0 100%);
     -fx-background-insets: 5 2 -5 2, 0;
     -fx-background-radius: 18, 18;
-    -fx-border-color: rgba(255, 255, 255, 0.78);
+    -fx-border-color: rgba(229, 169, 60, 0.55);
     -fx-border-radius: 18;
-    -fx-padding: 18 14 14 14;
+    -fx-padding: 14 10 12 10;
 }
 .tarjeta-pedido {
     -fx-background-color: white;
@@ -1084,7 +1153,7 @@
     -fx-border-color: rgba(3, 19, 44, 0.14);
     -fx-border-width: 1;
     -fx-border-radius: 14;
-    -fx-padding: 14 16 14 16;
+    -fx-padding: 12 12 12 12;
 }
 .tarjeta-pedido:hover { -fx-border-color: #e5a93c; }
 .columna-pedidos .scroll-pane { -fx-padding: 4; }
@@ -1121,16 +1190,65 @@
     -fx-background-radius: 22, 22;
     -fx-border-color: rgba(255, 255, 255, 0.78);
     -fx-border-radius: 22;
-    -fx-padding: 18 12 18 12;
+    -fx-min-width: 222;
+    -fx-pref-width: 222;
+    -fx-max-width: 222;
+    -fx-padding: 16 6 16 6;
 }
 .opcion-menu {
     -fx-background-color: transparent;
     -fx-alignment: center-left;
-    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 15px;
+    -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal; -fx-font-size: 13.5px;
     -fx-background-radius: 12;
     -fx-min-height: 44;
-    -fx-padding: 0 14 0 14;
-    -fx-graphic-text-gap: 12;
+    -fx-padding: 0 6 0 6;
+    -fx-graphic-text-gap: 7;
+}
+.menu-lateral .btn-chico {
+    -fx-padding: 0 8 0 8;
+    -fx-font-size: 13px;
+}
+/* Botón táctil (☰) en el encabezado de Administración para mostrar/ocultar el menú lateral (min 48x48 RNF-07) */
+.btn-toggle-menu {
+    -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #f7f5f0 100%);
+    -fx-border-color: rgba(3, 19, 44, 0.24);
+    -fx-border-width: 1.5;
+    -fx-background-radius: 24;
+    -fx-border-radius: 24;
+    -fx-min-width: 48;
+    -fx-min-height: 48;
+    -fx-pref-width: 48;
+    -fx-pref-height: 48;
+    -fx-max-width: 48;
+    -fx-max-height: 48;
+    -fx-padding: 0;
+    -fx-alignment: center;
+}
+.btn-toggle-menu:hover {
+    -fx-background-color: #faf0e0;
+    -fx-border-color: #e5a93c;
+}
+.btn-toggle-menu.activo {
+    -fx-background-color: linear-gradient(to bottom, #fdf7ec 0%, #faf0e0 100%);
+    -fx-border-color: #e5a93c;
+}
+/* Botón compacto dentro de .menu-lateral para plegar la barra hacia la izquierda */
+.btn-colapsar-menu {
+    -fx-background-color: #faf0e0;
+    -fx-border-color: rgba(229, 169, 60, 0.55);
+    -fx-border-width: 1;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-min-height: 30;
+    -fx-padding: 2 8 2 6;
+    -fx-font-family: "Manrope SemiBold";
+    -fx-font-weight: normal;
+    -fx-font-size: 13px;
+    -fx-text-fill: #03132c;
+}
+.btn-colapsar-menu:hover {
+    -fx-background-color: #e5a93c;
+    -fx-border-color: #c98a1d;
 }
 .opcion-menu:hover { -fx-background-color: #faf0e0; }
 .opcion-menu.activo {
@@ -1220,7 +1338,7 @@
 }
 .dialogo-titulo { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 22px; -fx-text-fill: #03132c; }
 .dialogo-titulo.peligro { -fx-text-fill: #9b180c; }
-.cuenta-regresiva { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 36px; -fx-text-fill: #03132c; }
+.cuenta-regresiva { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 32px; -fx-text-fill: #03132c; }
 .trailer-caja {
     -fx-background-color: radial-gradient(center 50% 45%, radius 75%, #16325f 0%, #03132c 100%);
     -fx-background-radius: 14;
