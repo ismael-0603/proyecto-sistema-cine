@@ -28,9 +28,31 @@
             <artifactId>mysql-connector-j</artifactId>
             <version>8.4.0</version>
         </dependency>
+
+        <!-- ===== PRUEBAS ===== -->
+        <!-- JUnit 5: framework de pruebas unitarias.
+             scope=test: solo existe al compilar y correr src/test, no llega al ejecutable. -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.11.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
+            <!-- maven-surefire-plugin: es el que ejecuta las pruebas JUnit 5 en "Test" / mvn test.
+                 printSummary + reportFormat plain + useFile false: muestra cada prueba en la ventana Output. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <printSummary>true</printSummary>
+                    <reportFormat>plain</reportFormat>
+                    <useFile>false</useFile>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
