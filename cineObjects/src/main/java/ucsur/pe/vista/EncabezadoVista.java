@@ -122,17 +122,15 @@ public class EncabezadoVista extends Pantalla {
                     opcion("☆   Mis puntos", false, () -> nav.ir("mi-cuenta")));
             case DULCERIA -> menu.getItems().addAll(
                     opcion("▦   Panel de dulcería", true, () -> nav.ir("panel-dulceria")),
-                    opcion("👤   Mi cuenta", false, () -> nav.ir("mi-cuenta-empleado")),
-                    opcion("🎟   Comprar como invitado", false, this::comprarComoInvitado));
+                    opcion("👤   Mi cuenta", false, () -> nav.ir("mi-cuenta-empleado")));
             case ADMINISTRADOR -> menu.getItems().addAll(
                     opcion("⚙   Administración", true, () -> nav.ir("admin-peliculas")),
                     opcion("▦   Panel de dulcería", false, () -> nav.ir("panel-dulceria")),
-                    opcion("👤   Mi cuenta", false, () -> nav.ir("mi-cuenta-empleado")),
-                    opcion("🎟   Comprar como invitado", false, this::comprarComoInvitado));
+                    opcion("👤   Mi cuenta", false, () -> nav.ir("mi-cuenta-empleado")));
         }
         menu.getItems().add(opcion("⎋   Cerrar sesión", false, () -> {
             estado().cerrarSesion();
-            nav.ir("cartelera");
+            nav.ir(estado().getSede() == null ? "elegir-sede" : "cartelera");
         }));
         menu.show(btnSesion, Side.BOTTOM, -60, 8);
     }
@@ -142,12 +140,6 @@ public class EncabezadoVista extends Pantalla {
         if (destacada) item.getStyleClass().add("menu-destacado");
         item.setOnAction(e -> accion.run());
         return item;
-    }
-
-    /** El empleado sale de su cuenta para comprar como cualquier cliente. */
-    private void comprarComoInvitado() {
-        estado().cerrarSesion();
-        nav.ir(estado().getSede() == null ? "elegir-sede" : "cartelera");
     }
 
     @FXML

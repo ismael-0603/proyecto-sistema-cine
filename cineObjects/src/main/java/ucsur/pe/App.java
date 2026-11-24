@@ -23,6 +23,7 @@ import ucsur.pe.correo.ServicioCorreo;
 import ucsur.pe.db.CatalogoMySqlDao;
 import ucsur.pe.db.CompraMySqlDao;
 import ucsur.pe.db.DBConnection;
+import ucsur.pe.db.PeliculaDao;
 import ucsur.pe.db.PeliculaMySqlDao;
 import ucsur.pe.db.PersonaMySqlDao;
 import ucsur.pe.db.PostventaMySqlDao;
@@ -89,7 +90,8 @@ public class App extends Application {
             db = DBConnection.getInstance();
             // 2. Repositorios, servicios y controllers: cada repositorio carga sus datos al crearse.
             reloj = new RelojSistema();
-            conectarCapas(db.getConexion(), new PasarelaSimulada(reloj), correo);
+            PasarelaPago pasarela = new PasarelaSimulada(reloj);
+            conectarCapas(db.getConexion(), pasarela, correo);
         } catch (RepositoryException e) {
             Alert error = new Alert(Alert.AlertType.ERROR, e.getMessage()
                     + "\n\nRevise que XAMPP (MySQL) esté encendido y que db.properties tenga los datos correctos.");
@@ -134,7 +136,8 @@ public class App extends Application {
         // DAO y repositorios
         CatalogoMySqlDao catalogo = new CatalogoMySqlDao(conexion);
         SedeMySqlDao sedeDao = new SedeMySqlDao(conexion, reloj);
-        PeliculaJdbcRepository peliculas = new PeliculaJdbcRepository(new PeliculaMySqlDao(conexion));
+        PeliculaDao peliculaDao = new PeliculaMySqlDao(conexion);
+        PeliculaJdbcRepository peliculas = new PeliculaJdbcRepository(peliculaDao);
         TipoEntradaJdbcRepository tiposEntrada = new TipoEntradaJdbcRepository(catalogo);
         SedeJdbcRepository sedes = new SedeJdbcRepository(sedeDao, peliculas, tiposEntrada);
         SalaJdbcRepository salas = new SalaJdbcRepository(sedeDao, sedes, sedes.listarTiposSala());
@@ -160,21 +163,43 @@ public class App extends Application {
         CalificacionJdbcRepository calificaciones = new CalificacionJdbcRepository(postventaDao, compras);
 
         // Servicios y controllers
-        login = new LoginController(new AutenticacionService(clientes, empleados, correo, reloj));
-        cartelera = new CarteleraController(new CarteleraService(sedes, promociones, peliculas, reloj));
-        compra = new CompraController(new CompraService(compras, cupones, tiposEntrada,
-                calculadora, gestorPuntos, reloj));
+        AutenticacionService autenticacionService = new AutenticacionService(clientes, empleados, correo, reloj);
+        login = new LoginController(autenticacionService);
+
+        CarteleraService carteleraService = new CarteleraService(sedes, promociones, peliculas, reloj);
+        cartelera = new CarteleraController(carteleraService);
+
+        CompraService compraService = new CompraService(compras, cupones, tiposEntrada,
+                calculadora, gestorPuntos, reloj);
+        compra = new CompraController(compraService);
+
         PagoService pagoService = new PagoService(pagos, compras, pasarela, reloj);
         pago = new PagoController(pagoService);
-        dulceria = new DulceriaController(new PedidoService(pedidos, productos, compras, reloj));
+
+        PedidoService pedidoService = new PedidoService(pedidos, productos, compras, reloj);
+        dulceria = new DulceriaController(pedidoService);
+
         // Administración: un servicio y un controller por tema (películas, funciones, productos, descuentos, sedes y salas)
-        adminPeliculas = new AdminPeliculaController(new PeliculaAdminService(peliculas, sedes));
-        adminFunciones = new AdminFuncionController(new FuncionAdminService(sedes, compras, pagoService, reloj));
-        adminProductos = new AdminProductoController(new ProductoAdminService(productos));
-        adminDescuentos = new AdminDescuentoController(new DescuentoAdminService(cupones, promociones));
-        adminInfraestructura = new AdminInfraestructuraController(new InfraestructuraAdminService(sedes, salas));
-        postventa = new PostventaController(new PostventaService(reclamos, calificaciones, correo));
-        emision = new EmisionController(new EmisionService(compras, pagos, correo, reloj));
+        PeliculaAdminService peliculaAdminService = new PeliculaAdminService(peliculas, sedes);
+        adminPeliculas = new AdminPeliculaController(peliculaAdminService);
+
+        FuncionAdminService funcionAdminService = new FuncionAdminService(sedes, compras, pagoService, reloj);
+        adminFunciones = new AdminFuncionController(funcionAdminService);
+
+        ProductoAdminService productoAdminService = new ProductoAdminService(productos);
+        adminProductos = new AdminProductoController(productoAdminService);
+
+        DescuentoAdminService descuentoAdminService = new DescuentoAdminService(cupones, promociones);
+        adminDescuentos = new AdminDescuentoController(descuentoAdminService);
+
+        InfraestructuraAdminService infraestructuraAdminService = new InfraestructuraAdminService(sedes, salas);
+        adminInfraestructura = new AdminInfraestructuraController(infraestructuraAdminService);
+
+        PostventaService postventaService = new PostventaService(reclamos, calificaciones, correo);
+        postventa = new PostventaController(postventaService);
+
+        EmisionService emisionService = new EmisionService(compras, pagos, correo, reloj);
+        emision = new EmisionController(emisionService);
     }
 
     private static void cargarFuentes() {
