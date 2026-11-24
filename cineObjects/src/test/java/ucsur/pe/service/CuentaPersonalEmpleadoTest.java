@@ -148,6 +148,21 @@ class CuentaPersonalEmpleadoTest {
     }
 
     @Test
+    @DisplayName("Vincular una cuenta existente desactivada avisa que está desactivada, no que la contraseña falla")
+    void vincularExistente_desactivada() {
+        Cliente existente = new Cliente(0, DNI, "Ana", "Rojas Paz", null, "juana@gmail.com", null, "Personal@1", reloj);
+        existente.desactivar();
+        clientes.guardar(existente);
+        Sesion sesion = iniciarComoEmpleado();
+
+        ReglaNegocioException e = assertThrows(ReglaNegocioException.class,
+                () -> servicio.vincularCuentaExistente(sesion, "Personal@1"));
+
+        assertTrue(e.getMessage().contains("desactivada"));
+        assertFalse(empleado.tieneCuentaPersonal());
+    }
+
+    @Test
     @DisplayName("Con la cuenta personal desactivada no pasa a modo cliente")
     void cuentaPersonalDesactivada_noPasa() {
         Sesion sesion = iniciarComoEmpleado();

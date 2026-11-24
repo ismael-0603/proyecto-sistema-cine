@@ -143,8 +143,11 @@ public class Navegador {
         capaTransicion.setVisible(true);
         PauseTransition pausa = new PauseTransition(Duration.seconds(SEGUNDOS_TRANSICION));
         pausa.setOnFinished(e -> {
-            despues.run(); // la pantalla nueva se arma debajo y recién entonces se quita la capa
-            capaTransicion.setVisible(false);
+            try {
+                despues.run(); // la pantalla nueva se arma debajo y recién entonces se quita la capa
+            } finally {
+                capaTransicion.setVisible(false); // aunque falle, el kiosco no queda bloqueado
+            }
         });
         pausa.play();
     }
@@ -283,8 +286,17 @@ public class Navegador {
         ir("comprobante");
     }
 
-    /** «Ir a comprar entradas» de los paneles: pasa a la cuenta personal del empleado, sin cerrar su sesión. */
+    /**
+     * «Ir a comprar entradas» de los paneles: pasa a la cuenta personal del empleado, sin cerrar su sesión,
+     * y lleva a la cartelera (se olvida un horario elegido antes).
+     */
     public void irACuentaPersonal() {
+        estado.setFuncion(null);
+        cambioDeCuenta.aCuentaPersonal();
+    }
+
+    /** Desde «Horarios»: pasa a la cuenta personal y sigue con el horario ya elegido. */
+    public void irACuentaPersonalConHorario() {
         cambioDeCuenta.aCuentaPersonal();
     }
 

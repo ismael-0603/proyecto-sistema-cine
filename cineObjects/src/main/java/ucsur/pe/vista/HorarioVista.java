@@ -168,7 +168,7 @@ public class HorarioVista extends Pantalla {
     private void elegirFuncion(Funcion f) {
         estado().setFuncion(f);
         if (estado().empleadoEnPanel()) {
-            nav.irACuentaPersonal(); // el empleado compra con su cuenta personal
+            nav.irACuentaPersonalConHorario(); // el empleado compra con su cuenta personal
             return;
         }
         if (!estado().hayCliente()) {

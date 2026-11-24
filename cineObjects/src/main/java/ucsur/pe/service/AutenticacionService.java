@@ -151,7 +151,10 @@ public class AutenticacionService {
         Empleado empleado = exigirEmpleado(sesion);
         Cliente cliente = clientes.buscarPorDni(empleado.getDni())
                 .orElseThrow(() -> new ReglaNegocioException("No hay una cuenta personal con tu DNI"));
-        if (!cliente.verificarContrasena(contraPersonal)) { // también falla si la cuenta está desactivada
+        if (!cliente.isEstado()) {
+            throw new ReglaNegocioException("Tu cuenta personal está desactivada");
+        }
+        if (!cliente.verificarContrasena(contraPersonal)) {
             throw new ReglaNegocioException("La contraseña de tu cuenta personal no es correcta");
         }
         empleado.vincularCuentaPersonal(cliente);

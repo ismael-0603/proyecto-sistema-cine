@@ -88,13 +88,15 @@ final class CambioDeCuenta {
                         + "Tus nombres y DNI se toman de tu registro de empleado.", false);
         d.agregarContenido(campo("Correo personal", correo), campo("Contraseña (mínimo 8 caracteres)", contra),
                 campo("Confirmar contraseña", confirmar), mensaje);
-        d.botonSecundario("Cancelar", nav::cerrarModal);
-        d.botonPrincipal("Crear y continuar", () -> {
+        Runnable crear = () -> {
             Respuesta<Void> r = login().crearCuentaPersonal(sesion(), correo.getText(), contra.getText(),
                     confirmar.getText());
             if (r.ok()) entrarComoCliente();
             else error(mensaje, r.mensaje());
-        });
+        };
+        confirmar.setOnAction(e -> crear.run());
+        d.botonSecundario("Cancelar", nav::cerrarModal);
+        d.botonPrincipal("Crear y continuar", crear);
         correo.requestFocus();
     }
 
@@ -161,7 +163,7 @@ final class CambioDeCuenta {
         nav.estado().cerrarSesion();
         DialogoVista d = nav.dialogo();
         d.configurar("Sesión cerrada", motivo + ". Vuelve a iniciar sesión con tu correo y contraseña.", true);
-        d.botonPrincipal("Entendido", () -> nav.ir("cartelera"));
+        d.botonPrincipal("Entendido", nav::volverAlInicio); // también limpia los correos simulados
     }
 
     // ---------- Piezas de los diálogos ----------
