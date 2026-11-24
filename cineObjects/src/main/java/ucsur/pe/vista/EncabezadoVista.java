@@ -87,7 +87,7 @@ public class EncabezadoVista extends Pantalla {
 
     @FXML
     private void onComprar() {
-        nav.irACarteleraComoEmpleado();
+        nav.irACuentaPersonal();
     }
 
     /** Para «Promociones»: el botón queda marcado en rojo como pantalla actual. */
@@ -106,7 +106,10 @@ public class EncabezadoVista extends Pantalla {
         nav.ir("promociones");
     }
 
-    /** 11 · Menú de usuario por rol: cliente, personal de dulcería o administrador. */
+    /**
+     * 11 · Menú de usuario por rol: cliente, personal de dulcería o administrador. Un empleado que pasó a su
+     * cuenta personal ve el menú de cliente y, además, el regreso a sus paneles (con PIN).
+     */
     @FXML
     private void onSesion() {
         Sesion sesion = estado().getSesion();
@@ -116,7 +119,16 @@ public class EncabezadoVista extends Pantalla {
         }
         ContextMenu menu = new ContextMenu();
         menu.getStyleClass().add("menu-usuario");
-        switch (sesion.tipo()) {
+        if (sesion.esEmpleado() && sesion.enModoCliente()) {
+            menu.getItems().addAll(
+                    opcion("👤   Mi cuenta", false, () -> nav.ir("mi-cuenta")),
+                    opcion("☆   Mis puntos", false, () -> nav.ir("mi-cuenta")),
+                    opcion("▦   Panel de dulcería", true, () -> nav.irAPanel("panel-dulceria", "Dulcería")));
+            if (sesion.empleado().esAdministrador()) {
+                menu.getItems().add(opcion("⚙   Administración", true,
+                        () -> nav.irAPanel("admin-peliculas", "Administración")));
+            }
+        } else switch (sesion.tipo()) {
             case CLIENTE -> menu.getItems().addAll(
                     opcion("👤   Mi cuenta", false, () -> nav.ir("mi-cuenta")),
                     opcion("☆   Mis puntos", false, () -> nav.ir("mi-cuenta")));

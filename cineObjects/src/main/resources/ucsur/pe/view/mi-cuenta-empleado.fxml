@@ -73,6 +73,27 @@
                                 <VBox.margin><Insets top="8"/></VBox.margin>
                             </Button>
                             <Button fx:id="btnAdministracion" text="Ir a Administración" styleClass="btn-secundario" maxWidth="Infinity" onAction="#onAdministracion"/>
+                            <Separator>
+                                <VBox.margin><Insets top="14" bottom="14"/></VBox.margin>
+                            </Separator>
+                            <Label text="PIN de acceso" styleClass="tarjeta-titulo"/>
+                            <Label text="Se pide al volver a tu panel desde tu cuenta personal." styleClass="nota" wrapText="true"/>
+                            <HBox spacing="12">
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="PIN actual" styleClass="etiqueta-campo"/>
+                                    <PasswordField fx:id="txtPinActual"/>
+                                </VBox>
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="PIN nuevo" styleClass="etiqueta-campo"/>
+                                    <PasswordField fx:id="txtPinNuevo"/>
+                                </VBox>
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="Confirmar PIN" styleClass="etiqueta-campo"/>
+                                    <PasswordField fx:id="txtPinConfirmar"/>
+                                </VBox>
+                            </HBox>
+                            <Label fx:id="lblMensajePin" styleClass="mensaje" visible="false" managed="false"/>
+                            <Button text="Cambiar PIN" styleClass="btn-secundario" maxWidth="Infinity" onAction="#onCambiarPin"/>
                         </VBox>
                     </HBox>
                 </VBox>

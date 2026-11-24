@@ -4,10 +4,12 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import ucsur.pe.model.Empleado;
 
-/** 12.1 · Mi cuenta del empleado: sus datos, rol, sede, turno y los accesos que le da su rol. */
+/** 12.1 · Mi cuenta del empleado: sus datos, rol, sede, turno, los accesos que le da su rol y su PIN. */
 public class MiCuentaEmpleadoVista extends Pantalla {
 
     @FXML private Label lblSubtitulo;
@@ -21,6 +23,10 @@ public class MiCuentaEmpleadoVista extends Pantalla {
     @FXML private Label lblSede;
     @FXML private Label lblTurno;
     @FXML private Button btnAdministracion;
+    @FXML private PasswordField txtPinActual;
+    @FXML private PasswordField txtPinNuevo;
+    @FXML private PasswordField txtPinConfirmar;
+    @FXML private Label lblMensajePin;
 
     private Empleado empleado;
 
@@ -30,7 +36,7 @@ public class MiCuentaEmpleadoVista extends Pantalla {
 
     @FXML
     private void initialize() {
-        empleado = estado().getSesion() == null ? null : estado().getSesion().empleado();
+        empleado = estado().getSesion() == null ? null : estado().getSesion().empleadoEnPanel();
         if (empleado == null) {
             Platform.runLater(() -> nav.ir("iniciar-sesion"));
             return;
@@ -49,6 +55,20 @@ public class MiCuentaEmpleadoVista extends Pantalla {
         boolean admin = empleado.esAdministrador();
         btnAdministracion.setVisible(admin);
         btnAdministracion.setManaged(admin);
+        for (PasswordField campo : new PasswordField[] {txtPinActual, txtPinNuevo, txtPinConfirmar}) {
+            campo.setTextFormatter(new TextFormatter<String>(c -> c.getControlNewText().matches("\\d{0,4}") ? c : null));
+        }
+    }
+
+    @FXML
+    private void onCambiarPin() {
+        boolean ok = mostrar(lblMensajePin, app().login().cambiarPin(empleado, txtPinActual.getText(),
+                txtPinNuevo.getText(), txtPinConfirmar.getText()));
+        if (ok) {
+            txtPinActual.clear();
+            txtPinNuevo.clear();
+            txtPinConfirmar.clear();
+        }
     }
 
     @FXML

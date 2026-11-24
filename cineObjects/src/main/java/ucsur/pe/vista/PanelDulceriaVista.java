@@ -48,7 +48,7 @@ public class PanelDulceriaVista extends Pantalla {
     @FXML
     private void initialize() {
         Sesion sesion = estado().getSesion();
-        empleado = sesion == null ? null : sesion.empleado();
+        empleado = sesion == null ? null : sesion.empleadoEnPanel();
         if (empleado == null) {
             Platform.runLater(() -> nav.ir("iniciar-sesion"));
             return;

@@ -167,6 +167,10 @@ public class HorarioVista extends Pantalla {
     /** Con cliente ya identificado empieza la compra; si no, pregunta si inicia sesión o sigue como invitado. */
     private void elegirFuncion(Funcion f) {
         estado().setFuncion(f);
+        if (estado().empleadoEnPanel()) {
+            nav.irACuentaPersonal(); // el empleado compra con su cuenta personal
+            return;
+        }
         if (!estado().hayCliente()) {
             nav.ir("login-invitado");
             return;

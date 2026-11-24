@@ -4,9 +4,13 @@ import ucsur.pe.model.Cliente;
 import ucsur.pe.model.DateTime;
 import ucsur.pe.model.Empleado;
 import ucsur.pe.service.AutenticacionService;
+import ucsur.pe.service.CuentaPersonal;
 import ucsur.pe.service.Sesion;
 
-/** Acciones de la pantalla de inicio: entrar como invitado, registrarse, iniciar sesión y editar datos. */
+/**
+ * Acciones de la pantalla de inicio: entrar como invitado, registrarse, iniciar sesión y editar datos;
+ * y el paso del empleado entre su panel y su cuenta personal.
+ */
 public class LoginController extends ControllerBase {
     private final AutenticacionService servicio;
 
@@ -48,5 +52,32 @@ public class LoginController extends ControllerBase {
 
     public Respuesta<Void> actualizarDatos(Empleado empleado, String telefono, String correo) {
         return ejecutar("Datos actualizados", () -> servicio.actualizarDatos(empleado, telefono, correo));
+    }
+
+    // ---------- Cuenta personal y PIN del empleado ----------
+
+    public Respuesta<CuentaPersonal> consultarCuentaPersonal(Empleado empleado) {
+        return ejecutar("", () -> servicio.consultarCuentaPersonal(empleado));
+    }
+
+    public Respuesta<Void> pasarAModoCliente(Sesion sesion) {
+        return ejecutar("", () -> servicio.pasarAModoCliente(sesion));
+    }
+
+    public Respuesta<Void> vincularCuentaExistente(Sesion sesion, String contraPersonal) {
+        return ejecutar("Cuenta personal vinculada", () -> servicio.vincularCuentaExistente(sesion, contraPersonal));
+    }
+
+    public Respuesta<Void> crearCuentaPersonal(Sesion sesion, String correo, String contra, String confirmar) {
+        return ejecutar("Cuenta personal creada", () -> servicio.crearCuentaPersonal(sesion, correo, contra, confirmar));
+    }
+
+    /** Si falla 3 veces seguidas, sesion.cerradaPorSeguridad() queda en true. */
+    public Respuesta<Void> volverAModoEmpleado(Sesion sesion, String pin) {
+        return ejecutar("", () -> servicio.volverAModoEmpleado(sesion, pin));
+    }
+
+    public Respuesta<Void> cambiarPin(Empleado empleado, String actual, String nuevo, String confirmar) {
+        return ejecutar("PIN actualizado", () -> servicio.cambiarPin(empleado, actual, nuevo, confirmar));
     }
 }

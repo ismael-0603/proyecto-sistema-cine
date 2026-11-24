@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -129,10 +130,11 @@ public class PersonaMySqlDao implements PersonaDao {
     }
 
     @Override
-    public List<Empleado> listarEmpleados(Map<Integer, Rol> roles, Map<Integer, Sede> sedes) {
+    public List<Empleado> listarEmpleados(Map<Integer, Rol> roles, Map<Integer, Sede> sedes,
+                                          Map<Integer, Cliente> clientes) {
         String sql = """
                 SELECT id_empleado, dni, nombres, apellidos, fecha_nac, correo, telefono, contra, estado,
-                       turno, id_rol, id_sede
+                       turno, id_rol, id_sede, pin, id_cliente
                 FROM empleado
                 ORDER BY id_empleado
                 """;
@@ -146,9 +148,15 @@ public class PersonaMySqlDao implements PersonaDao {
                 if (rol == null || sede == null) {
                     throw new RepositoryException("El empleado #" + id + " apunta a un rol o sede que no existe.");
                 }
+                int idCliente = rs.getInt("id_cliente"); // 0 si es NULL (sin cuenta personal)
+                Cliente cuentaPersonal = idCliente == 0 ? null : clientes.get(idCliente);
+                if (idCliente != 0 && cuentaPersonal == null) {
+                    throw new RepositoryException("El empleado #" + id + " apunta a un cliente que no existe.");
+                }
                 Empleado e = Empleado.restaurar(id, rs.getString("dni"), rs.getString("nombres"), rs.getString("apellidos"),
                         Fechas.desdeDate(rs.getDate("fecha_nac")), rs.getString("correo"), rs.getString("telefono"),
-                        rs.getString("contra"), rs.getBoolean("estado"), rs.getString("turno"), rol, sede, reloj);
+                        rs.getString("contra"), rs.getBoolean("estado"), rs.getString("turno"), rol, sede,
+                        rs.getString("pin"), cuentaPersonal, reloj);
                 empleados.add(e);
             }
         } catch (SQLException e) {
@@ -161,8 +169,8 @@ public class PersonaMySqlDao implements PersonaDao {
     public void insertarEmpleado(Empleado empleado) {
         String sql = """
                 INSERT INTO empleado (dni, nombres, apellidos, fecha_nac, correo, telefono, contra, estado,
-                                      turno, id_rol, id_sede)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                      turno, id_rol, id_sede, pin, id_cliente)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             llenarEmpleado(ps, empleado);
@@ -180,12 +188,12 @@ public class PersonaMySqlDao implements PersonaDao {
         String sql = """
                 UPDATE empleado
                 SET dni = ?, nombres = ?, apellidos = ?, fecha_nac = ?, correo = ?, telefono = ?, contra = ?,
-                    estado = ?, turno = ?, id_rol = ?, id_sede = ?
+                    estado = ?, turno = ?, id_rol = ?, id_sede = ?, pin = ?, id_cliente = ?
                 WHERE id_empleado = ?
                 """;
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
             llenarEmpleado(ps, empleado);
-            ps.setInt(12, empleado.getIdEmpleado());
+            ps.setInt(14, empleado.getIdEmpleado());
             ps.executeUpdate();
         } catch (SQLIntegrityConstraintViolationException ex) {
             throw new RepositoryException("Ya existe un empleado con ese DNI o correo.", ex);
@@ -194,7 +202,7 @@ public class PersonaMySqlDao implements PersonaDao {
         }
     }
 
-    /** Los 11 datos del empleado en el orden del INSERT y del UPDATE (el id va después). */
+    /** Los 13 datos del empleado en el orden del INSERT y del UPDATE (el id va después). */
     private void llenarEmpleado(PreparedStatement ps, Empleado e) throws SQLException {
         ps.setString(1, e.getDni());
         ps.setString(2, e.getNombres());
@@ -207,5 +215,11 @@ public class PersonaMySqlDao implements PersonaDao {
         ps.setString(9, e.getTurno());
         ps.setInt(10, e.getRol().getIdRol());
         ps.setInt(11, e.getSede().getIdSede());
+        ps.setString(12, e.getPin());
+        if (e.tieneCuentaPersonal()) {
+            ps.setInt(13, e.getCuentaPersonal().getIdCliente());
+        } else {
+            ps.setNull(13, Types.INTEGER);
+        }
     }
 }

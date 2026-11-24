@@ -42,6 +42,6 @@ public class AdminMenuVista extends Pantalla {
 
     @FXML
     private void onComprar() {
-        nav.irACarteleraComoEmpleado();
+        nav.irACuentaPersonal();
     }
 }

@@ -637,6 +637,11 @@
 
 /* ===== VENTANAS SOBRE LA PANTALLA (sinopsis, avisos) ===== */
 .capa-modal { -fx-background-color: rgba(3, 19, 44, 0.62); }
+/* Transición al cambiar entre la cuenta personal y el panel del empleado */
+.capa-transicion { -fx-background-color: rgba(3, 19, 44, 0.92); }
+.capa-transicion .progress-indicator { -fx-progress-color: #e5a93c; -fx-pref-width: 64; -fx-pref-height: 64; }
+.transicion-texto { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 24px; -fx-text-fill: white; }
+.campo-pin { -fx-font-size: 26px; -fx-alignment: center; }
 .dialogo {
     -fx-background-color: white;
     -fx-background-radius: 20;

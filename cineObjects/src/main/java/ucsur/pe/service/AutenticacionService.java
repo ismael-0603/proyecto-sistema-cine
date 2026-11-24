@@ -15,13 +15,15 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Por qué existe: casos de uso "Registrar usuario", "Iniciar sesión" y "Recuperar contraseña" (RF-01, RF-27).
+ * Por qué existe: casos de uso "Registrar usuario", "Iniciar sesión" y "Recuperar contraseña" (RF-01, RF-27),
+ * y el paso del empleado entre su panel y su cuenta personal (con PIN).
  * Busca las cuentas en los repositorios y aplica las reglas que dependen de los datos guardados,
- * como que el correo de una cuenta registrada sea único.
+ * como que el correo y el DNI de una cuenta registrada sean únicos.
  */
 public class AutenticacionService {
     public static final int MINUTOS_VIGENCIA_CODIGO = 10; // el código de recuperación vence a los 10 minutos
     public static final int MAX_INTENTOS_CODIGO = 5;      // tras 5 códigos equivocados hay que pedir otro
+    public static final int MAX_INTENTOS_PIN = 3;         // tras 3 PIN equivocados seguidos se cierra la sesión
     /** Mismo mensaje exista o no la cuenta: así no se revela qué correos están registrados. */
     public static final String MENSAJE_CODIGO_ENVIADO =
             "Si el correo está registrado, te enviamos un código para cambiar tu contraseña";
@@ -71,6 +73,7 @@ public class AutenticacionService {
             throw new ReglaNegocioException("Las contraseñas no coinciden");
         }
         exigirCorreoLibre(correo, null);
+        exigirDniLibre(dni);
         Cliente cliente = new Cliente(0, dni, nombres, apellidos, fechaNac, correo, telefono, contra, reloj);
         clientes.guardar(cliente); // la base le genera el id (AUTO_INCREMENT)
         return cliente;
@@ -114,6 +117,96 @@ public class AutenticacionService {
         exigirCorreoLibre(correo, empleado);
         empleado.modificarDatos(telefono, correo);
         empleados.guardar(empleado);
+    }
+
+    // ---------- Cuenta personal del empleado ----------
+
+    /** Qué necesita el empleado para comprar con su cuenta personal (ver CuentaPersonal). */
+    public CuentaPersonal consultarCuentaPersonal(Empleado empleado) {
+        if (empleado.tieneCuentaPersonal()) {
+            return new CuentaPersonal(CuentaPersonal.Estado.VINCULADA, null);
+        }
+        return clientes.buscarPorDni(empleado.getDni())
+                .map(c -> new CuentaPersonal(CuentaPersonal.Estado.POR_CONFIRMAR, CuentaPersonal.enmascarar(c.getCorreo())))
+                .orElse(new CuentaPersonal(CuentaPersonal.Estado.NUEVA, null));
+    }
+
+    /** Pasa al modo cliente con la cuenta personal ya vinculada; la cuenta debe estar activa. */
+    public void pasarAModoCliente(Sesion sesion) {
+        Empleado empleado = exigirEmpleado(sesion);
+        if (!empleado.tieneCuentaPersonal()) {
+            throw new ReglaNegocioException("Primero vincula tu cuenta personal");
+        }
+        if (!empleado.getCuentaPersonal().isEstado()) {
+            throw new ReglaNegocioException("Tu cuenta personal está desactivada");
+        }
+        sesion.pasarAModoCliente();
+    }
+
+    /**
+     * Ya existe un cliente con el DNI del empleado: se vincula si escribe la contraseña de esa cuenta,
+     * y pasa al modo cliente.
+     */
+    public void vincularCuentaExistente(Sesion sesion, String contraPersonal) {
+        Empleado empleado = exigirEmpleado(sesion);
+        Cliente cliente = clientes.buscarPorDni(empleado.getDni())
+                .orElseThrow(() -> new ReglaNegocioException("No hay una cuenta personal con tu DNI"));
+        if (!cliente.verificarContrasena(contraPersonal)) { // también falla si la cuenta está desactivada
+            throw new ReglaNegocioException("La contraseña de tu cuenta personal no es correcta");
+        }
+        empleado.vincularCuentaPersonal(cliente);
+        empleados.guardar(empleado);
+        sesion.pasarAModoCliente();
+    }
+
+    /**
+     * Crea la cuenta personal del empleado con sus datos y el correo y la contraseña que elige
+     * (no los de trabajo), la vincula y pasa al modo cliente.
+     */
+    public void crearCuentaPersonal(Sesion sesion, String correoPersonal, String contra, String confirmarContra) {
+        Empleado empleado = exigirEmpleado(sesion);
+        Cliente cliente = registrarCliente(empleado.getDni(), empleado.getNombres(), empleado.getApellidos(),
+                empleado.getFechaNac(), correoPersonal, empleado.getTelefono(), contra, confirmarContra);
+        empleado.vincularCuentaPersonal(cliente);
+        empleados.guardar(empleado);
+        sesion.pasarAModoCliente();
+    }
+
+    /**
+     * Vuelve del modo cliente al panel si el PIN es correcto. Tras MAX_INTENTOS_PIN fallos seguidos
+     * la sesión queda cerrada por seguridad (Sesion.cerradaPorSeguridad) y la vista la cierra.
+     */
+    public void volverAModoEmpleado(Sesion sesion, String pin) {
+        Empleado empleado = exigirEmpleado(sesion);
+        if (sesion.cerradaPorSeguridad()) {
+            throw new ReglaNegocioException("La sesión se cerró por seguridad");
+        }
+        if (empleado.verificarPin(pin)) {
+            sesion.pasarAModoEmpleado();
+            return;
+        }
+        int fallidos = sesion.registrarPinFallido();
+        if (fallidos >= MAX_INTENTOS_PIN) {
+            sesion.cerrarPorSeguridad();
+            throw new ReglaNegocioException("Demasiados intentos con un PIN incorrecto; por seguridad se cerró la sesión");
+        }
+        throw new ReglaNegocioException("PIN incorrecto (te quedan " + (MAX_INTENTOS_PIN - fallidos) + " intentos)");
+    }
+
+    /** Cambia el PIN del empleado; el nuevo se escribe dos veces. */
+    public void cambiarPin(Empleado empleado, String pinActual, String pinNuevo, String confirmarPin) {
+        if (pinNuevo == null || !pinNuevo.equals(confirmarPin)) {
+            throw new ReglaNegocioException("Los PIN nuevos no coinciden");
+        }
+        empleado.cambiarPin(pinActual, pinNuevo);
+        empleados.guardar(empleado);
+    }
+
+    private static Empleado exigirEmpleado(Sesion sesion) {
+        if (sesion == null || !sesion.esEmpleado()) {
+            throw new ReglaNegocioException("Esta opción es solo para empleados");
+        }
+        return sesion.empleado();
     }
 
     // ---------- Recuperar contraseña («¿Olvidaste tu contraseña?», wireframe 4) ----------
@@ -192,6 +285,12 @@ public class AutenticacionService {
         if (correo == null) return Optional.empty();
         Optional<Persona> cliente = clientes.buscarPorCorreo(correo).map(c -> c);
         return cliente.isPresent() ? cliente : empleados.buscarPorCorreo(correo).map(e -> e);
+    }
+
+    private void exigirDniLibre(String dni) {
+        if (clientes.buscarPorDni(dni).isPresent()) {
+            throw new ReglaNegocioException("Ya existe una cuenta registrada con el DNI " + dni);
+        }
     }
 
     private void exigirCorreoLibre(String correo, Persona propietario) {

@@ -13,6 +13,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -34,7 +35,8 @@ import java.io.UncheckedIOException;
  * Por qué existe: el kiosco es una sola ventana que va cambiando de pantalla. El navegador carga cada FXML
  * (como App.start en MVCone, con setControllerFactory para pasarle a cada controller lo que necesita),
  * muestra las ventanas que aparecen encima (sinopsis, avisos) y coordina los pasos que cruzan pantallas:
- * empezar, cancelar o vencer una compra y el aviso de inactividad.
+ * empezar, cancelar o vencer una compra, el aviso de inactividad y el paso del empleado entre su panel
+ * y su cuenta personal.
  */
 public class Navegador {
 
@@ -50,10 +52,15 @@ public class Navegador {
 
     /** Correos simulados visibles a la vez; al llegar otro, se quita el más antiguo. */
     private static final int MAX_CORREOS_VISIBLES = 3;
+    /** Lo que dura la pantalla «Cambiando a tu cuenta personal…» / «Accediendo a…». */
+    private static final double SEGUNDOS_TRANSICION = 1.2;
 
     private final StackPane raiz = new StackPane();
     private final StackPane capaModal = new StackPane();
     private final VBox capaCorreos = new VBox(12);
+    private final VBox capaTransicion = new VBox(18);
+    private final Label lblTransicion = new Label();
+    private final CambioDeCuenta cambioDeCuenta = new CambioDeCuenta(this);
     private final PauseTransition inactividad = new PauseTransition(Duration.seconds(SEGUNDOS_INACTIVIDAD));
     private Timeline cuentaAviso;
 
@@ -71,7 +78,14 @@ public class Navegador {
         capaCorreos.setAlignment(Pos.BOTTOM_RIGHT);
         capaCorreos.setPadding(new Insets(24));
         capaCorreos.setPickOnBounds(false);
-        raiz.getChildren().addAll(new Region(), capaModal, capaCorreos);
+        // La transición entre cuentas va encima de todo y bloquea los clics mientras dura
+        ProgressIndicator carga = new ProgressIndicator();
+        lblTransicion.getStyleClass().add("transicion-texto");
+        capaTransicion.getChildren().addAll(carga, lblTransicion);
+        capaTransicion.setAlignment(Pos.CENTER);
+        capaTransicion.getStyleClass().add("capa-transicion");
+        capaTransicion.setVisible(false);
+        raiz.getChildren().addAll(new Region(), capaModal, capaCorreos, capaTransicion);
         raiz.getStyleClass().add("fondo");
 
         Scene escena = new Scene(raiz, 1440, 900);
@@ -120,6 +134,19 @@ public class Navegador {
     private void mostrarModal(Node contenido) {
         capaModal.getChildren().setAll(contenido);
         capaModal.setVisible(true);
+    }
+
+    /** Muestra un momento la capa de transición con el texto indicado y luego ejecuta {@code despues}. */
+    public void mostrarTransicion(String texto, Runnable despues) {
+        cerrarModal();
+        lblTransicion.setText(texto);
+        capaTransicion.setVisible(true);
+        PauseTransition pausa = new PauseTransition(Duration.seconds(SEGUNDOS_TRANSICION));
+        pausa.setOnFinished(e -> {
+            despues.run(); // la pantalla nueva se arma debajo y recién entonces se quita la capa
+            capaTransicion.setVisible(false);
+        });
+        pausa.play();
     }
 
     /** La impresora del kiosco se simula: muestra el ticket que se imprimiría. */
@@ -226,11 +253,17 @@ public class Navegador {
 
     /** Cancela la compra en curso (libera butacas y dulcería) y vuelve a la cartelera. */
     public void cancelarCompra() {
+        abandonarCompra();
+        ir("cartelera");
+    }
+
+    /** Cancela la compra en curso, si la hay, sin cambiar de pantalla. */
+    void abandonarCompra() {
         if (estado.hayCompra() && Compra.EN_PROCESO.equals(estado.getCompra().getEstado())) {
             app.compra().cancelar(estado.getCompra());
         }
         estado.terminarCompra();
-        ir("cartelera");
+        inactividad.stop();
     }
 
     /** «← Volver» desde Asientos: se abandona la compra y se vuelve a elegir horario. */
@@ -250,13 +283,14 @@ public class Navegador {
         ir("comprobante");
     }
 
-    /** «Ir a comprar entradas» de los paneles: la cartelera de la sede del empleado, sin cerrar su sesión. */
-    public void irACarteleraComoEmpleado() {
-        var sesion = estado.getSesion();
-        if (estado.getSede() == null && sesion != null && sesion.empleado() != null) {
-            estado.setSede(sesion.empleado().getSede());
-        }
-        ir(estado.getSede() == null ? "elegir-sede" : "cartelera");
+    /** «Ir a comprar entradas» de los paneles: pasa a la cuenta personal del empleado, sin cerrar su sesión. */
+    public void irACuentaPersonal() {
+        cambioDeCuenta.aCuentaPersonal();
+    }
+
+    /** Desde la cuenta personal, vuelve al panel del empleado (pide su PIN). */
+    public void irAPanel(String pantalla, String zona) {
+        cambioDeCuenta.aPanel(pantalla, zona);
     }
 
     /** Fin del recorrido: la siguiente persona empieza en la cartelera de esta sede, sin sesión. */

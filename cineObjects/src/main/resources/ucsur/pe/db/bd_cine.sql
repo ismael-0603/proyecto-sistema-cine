@@ -204,12 +204,17 @@ create table empleado (
     turno		VARCHAR(20),
     id_rol		INT			 NOT NULL,
     id_sede		INT			 NOT NULL,
-    
+    pin			CHAR(4)		 NOT NULL, -- se pide al volver al panel desde la cuenta personal
+    id_cliente	INT			 NULL,     -- cuenta personal (cliente) vinculada, con el mismo DNI
+
     CONSTRAINT pk_empleado		   PRIMARY KEY (id_empleado),
     CONSTRAINT uq_empleado_dni	   UNIQUE (dni),
     CONSTRAINT uq_empleado_correo  UNIQUE (correo),
+    CONSTRAINT uq_empleado_cliente UNIQUE (id_cliente),
+    CONSTRAINT ck_empleado_pin     CHECK (pin REGEXP '^[0-9]{4}$'),
     CONSTRAINT fk_empleado_rol     FOREIGN KEY (id_rol) REFERENCES rol (id_rol),
-    CONSTRAINT fk_empleado_sede    FOREIGN KEY (id_sede) REFERENCES sede (id_sede)
+    CONSTRAINT fk_empleado_sede    FOREIGN KEY (id_sede) REFERENCES sede (id_sede),
+    CONSTRAINT fk_empleado_cliente FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente)
 );
 
 create table sala (

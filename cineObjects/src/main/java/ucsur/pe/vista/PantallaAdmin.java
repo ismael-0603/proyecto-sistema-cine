@@ -23,7 +23,7 @@ public abstract class PantallaAdmin extends Pantalla {
     /** Prepara el marco; si no hay un administrador con sesión, manda a iniciar sesión y devuelve false. */
     protected boolean prepararAdmin(String seccion) {
         Sesion sesion = estado().getSesion();
-        admin = sesion == null ? null : sesion.empleado();
+        admin = sesion == null ? null : sesion.empleadoEnPanel();
         if (admin == null || !admin.esAdministrador()) {
             Platform.runLater(() -> nav.ir("iniciar-sesion"));
             return false;

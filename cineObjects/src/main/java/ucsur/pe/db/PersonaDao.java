@@ -18,8 +18,8 @@ public interface PersonaDao {
     void actualizarCliente(Cliente cliente);
 
     List<Rol> listarRoles();
-    /** Todos los empleados; su rol y su sede se toman de los mapas (id -> objeto). */
-    List<Empleado> listarEmpleados(Map<Integer, Rol> roles, Map<Integer, Sede> sedes);
+    /** Todos los empleados; su rol, su sede y su cuenta personal se toman de los mapas (id -> objeto). */
+    List<Empleado> listarEmpleados(Map<Integer, Rol> roles, Map<Integer, Sede> sedes, Map<Integer, Cliente> clientes);
     void insertarEmpleado(Empleado empleado);
     void actualizarEmpleado(Empleado empleado);
 }

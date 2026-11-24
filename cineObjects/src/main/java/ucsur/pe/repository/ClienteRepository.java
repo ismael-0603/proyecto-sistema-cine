@@ -25,4 +25,11 @@ public interface ClienteRepository {
                 .filter(c -> !c.esInvitado() && c.getCorreo() != null && c.getCorreo().equalsIgnoreCase(buscado))
                 .findFirst();
     }
+
+    /** Busca una cuenta registrada por su DNI (los invitados no tienen DNI). */
+    default Optional<Cliente> buscarPorDni(String dni) {
+        if (dni == null) return Optional.empty();
+        String buscado = dni.trim();
+        return listarTodos().stream().filter(c -> buscado.equals(c.getDni())).findFirst();
+    }
 }

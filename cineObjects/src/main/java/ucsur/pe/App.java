@@ -147,7 +147,7 @@ public class App extends Application {
 
         PersonaMySqlDao personaDao = new PersonaMySqlDao(conexion, reloj);
         ClienteJdbcRepository clientes = new ClienteJdbcRepository(personaDao);
-        EmpleadoJdbcRepository empleados = new EmpleadoJdbcRepository(personaDao, sedes);
+        EmpleadoJdbcRepository empleados = new EmpleadoJdbcRepository(personaDao, sedes, clientes);
 
         // Calculadora y gestor de puntos no guardan estado: las compras leídas de la BD calculan igual
         CalculadoraImporte calculadora = new CalculadoraImporte();

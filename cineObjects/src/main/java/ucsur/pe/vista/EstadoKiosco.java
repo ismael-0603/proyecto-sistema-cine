@@ -55,9 +55,12 @@ public class EstadoKiosco {
 
     // ---------- Cuenta ----------
 
-    /** El cliente que compra: el de la sesión iniciada o el invitado; null si aún no se identificó. */
+    /**
+     * El cliente que compra: el de la sesión (o la cuenta personal del empleado en modo cliente)
+     * o el invitado; null si aún no se identificó.
+     */
     public Cliente cliente() {
-        if (sesion != null && sesion.esCliente()) return sesion.cliente();
+        if (sesion != null && sesion.cliente() != null) return sesion.cliente();
         return invitado;
     }
 
@@ -82,7 +85,12 @@ public class EstadoKiosco {
 
     /** El cliente con sesión iniciada (no el invitado); null si no hay. */
     public Cliente clienteConSesion() {
-        return (sesion != null && sesion.esCliente()) ? sesion.cliente() : null;
+        return sesion != null ? sesion.cliente() : null;
+    }
+
+    /** Un empleado con sesión que está en su panel (todavía no pasó a su cuenta personal). */
+    public boolean empleadoEnPanel() {
+        return sesion != null && sesion.empleadoEnPanel() != null;
     }
 
     // ---------- Compra ----------

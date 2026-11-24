@@ -3,16 +3,20 @@ package ucsur.pe.model;
 /**
  * Por qué existe: es el personal de una sede. Según su rol puede preparar y entregar pedidos de dulcería;
  * esas acciones las coordina PedidoService con la cola de su sede, y el pedido recuerda quién lo preparó.
+ * Puede tener una cuenta personal (Cliente con su mismo DNI) para comprar entradas; el PIN protege
+ * el regreso a su panel desde esa cuenta.
  */
 public class Empleado extends Persona {
     private int idEmpleado;
     private String turno; // texto libre, máx. 20 caracteres
     private Rol rol;
     private Sede sede;
+    private String pin;              // 4 dígitos
+    private Cliente cuentaPersonal;  // null hasta que la vincula
 
     public Empleado(int idEmpleado, String dni, String nombres, String apellidos, DateTime fechaNac,
                     String correoElectronico, String telefono, String contra,
-                    String turno, Rol rol, Sede sede, Reloj reloj) {
+                    String turno, Rol rol, Sede sede, String pin, Reloj reloj) {
         super(dni, nombres, apellidos, fechaNac, correoElectronico, telefono, contra, reloj);
         exigirDatosCompletos(); // en la BD dni, nombres, apellidos, correo y contra del empleado son NOT NULL
         if (rol == null) throw new IllegalArgumentException("El rol es obligatorio");
@@ -24,18 +28,21 @@ public class Empleado extends Persona {
         this.turno = turno;
         this.rol = rol;
         this.sede = sede;
+        this.pin = validarPin(pin);
     }
 
     /**
      * Solo para la capa de base de datos (ucsur.pe.db): reconstruye un empleado guardado con su id
-     * y si su cuenta está activa, igual que Cliente.restaurar.
+     * con su estado y su cuenta personal (null si no tiene), igual que Cliente.restaurar.
      */
     public static Empleado restaurar(int idEmpleado, String dni, String nombres, String apellidos, DateTime fechaNac,
                                      String correo, String telefono, String contra, boolean estado,
-                                     String turno, Rol rol, Sede sede, Reloj reloj) {
+                                     String turno, Rol rol, Sede sede, String pin, Cliente cuentaPersonal,
+                                     Reloj reloj) {
         Empleado empleado = new Empleado(idEmpleado, dni, nombres, apellidos, fechaNac, correo, telefono, contra,
-                turno, rol, sede, reloj); // valida los datos, el rol y la sede
+                turno, rol, sede, pin, reloj); // valida los datos, el rol, la sede y el PIN
         if (!estado) empleado.desactivar();
+        if (cuentaPersonal != null) empleado.vincularCuentaPersonal(cuentaPersonal);
         return empleado;
     }
 
@@ -53,6 +60,42 @@ public class Empleado extends Persona {
     public boolean esAdministradorActivo() {
         return isEstado() && esAdministrador();
     }
+
+    // ---------- PIN ----------
+
+    public boolean verificarPin(String pin) {
+        return pin != null && this.pin.equals(pin.trim());
+    }
+
+    /** Cambia el PIN si el actual es correcto; el nuevo debe tener 4 dígitos. */
+    public void cambiarPin(String pinActual, String pinNuevo) {
+        if (!verificarPin(pinActual)) throw new IllegalArgumentException("El PIN actual no es correcto");
+        this.pin = validarPin(pinNuevo);
+    }
+
+    private static String validarPin(String pin) {
+        if (pin == null || !pin.trim().matches("\\d{4}")) {
+            throw new IllegalArgumentException("El PIN debe tener exactamente 4 dígitos");
+        }
+        return pin.trim();
+    }
+
+    /** Solo para la capa de base de datos (ucsur.pe.db), que necesita escribir la columna pin. */
+    public String getPin() { return pin; }
+
+    // ---------- Cuenta personal ----------
+
+    /** Enlaza su cuenta de cliente: debe ser una cuenta registrada (no invitada) con su mismo DNI. */
+    public void vincularCuentaPersonal(Cliente cliente) {
+        if (cuentaPersonal != null) throw new IllegalStateException("El empleado ya tiene una cuenta personal");
+        if (cliente == null || cliente.esInvitado() || !getDni().equals(cliente.getDni())) {
+            throw new IllegalArgumentException("La cuenta personal debe ser un cliente registrado con el mismo DNI");
+        }
+        this.cuentaPersonal = cliente;
+    }
+
+    public boolean tieneCuentaPersonal() { return cuentaPersonal != null; }
+    public Cliente getCuentaPersonal() { return cuentaPersonal; }
 
     public int getIdEmpleado() { return idEmpleado; }
     public String getTurno() { return turno; }
