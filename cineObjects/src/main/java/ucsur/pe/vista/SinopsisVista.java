@@ -3,6 +3,7 @@ package ucsur.pe.vista;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import ucsur.pe.model.Funcion;
 import ucsur.pe.model.Pelicula;
 import java.util.LinkedHashSet;
@@ -14,9 +15,12 @@ public class SinopsisVista extends Pantalla {
 
     /** Largo de la sinopsis antes de «ver más». */
     private static final int LARGO_RESUMEN = 220;
+    /** Alto máximo de la caja de la sinopsis; si el texto completo es más alto, se desplaza. */
+    private static final double ALTO_MAXIMO_SINOPSIS = 220;
 
     @FXML private Label lblTitulo;
     @FXML private Button btnTrailer;
+    @FXML private ScrollPane scrollSinopsis;
     @FXML private Label lblSinopsis;
     @FXML private Button btnVerMas;
     @FXML private Button btnVolver;
@@ -30,6 +34,16 @@ public class SinopsisVista extends Pantalla {
 
     public SinopsisVista(Navegador nav) {
         super(nav);
+    }
+
+    @FXML
+    private void initialize() {
+        // La caja mide lo que el texto, hasta ALTO_MAXIMO_SINOPSIS (desde ahí aparece la barra de desplazamiento)
+        lblSinopsis.heightProperty().addListener((o, a, alto) -> {
+            double visible = Math.min(alto.doubleValue(), ALTO_MAXIMO_SINOPSIS);
+            scrollSinopsis.setMinViewportHeight(visible);
+            scrollSinopsis.setPrefViewportHeight(visible);
+        });
     }
 
     public void mostrar(Pelicula p, List<Funcion> funciones) {
@@ -59,6 +73,7 @@ public class SinopsisVista extends Pantalla {
         btnVerMas.setText(completa ? "ver menos" : "ver más");
         btnVerMas.setVisible(larga);
         btnVerMas.setManaged(larga);
+        scrollSinopsis.setVvalue(0);
     }
 
     @FXML

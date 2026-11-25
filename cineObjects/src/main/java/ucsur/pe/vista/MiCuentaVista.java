@@ -9,11 +9,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import ucsur.pe.controller.Respuesta;
+import ucsur.pe.model.Persona;
 import ucsur.pe.model.Cliente;
 
 /** 12 · Mi cuenta del cliente: editar correo y teléfono, ver puntos, nivel de socio y beneficios. */
 public class MiCuentaVista extends Pantalla {
 
+    @FXML private Button btnVolver;
     @FXML private Label lblNombres;
     @FXML private Label lblApellidos;
     @FXML private Label lblDni;
@@ -27,6 +29,7 @@ public class MiCuentaVista extends Pantalla {
     @FXML private VBox beneficios;
 
     private Cliente cliente;
+    private ValidacionEnVivo validacion;
 
     public MiCuentaVista(Navegador nav) {
         super(nav);
@@ -44,6 +47,12 @@ public class MiCuentaVista extends Pantalla {
         lblDni.setText(cliente.getDni());
         txtCorreo.setText(cliente.getCorreo());
         txtTelefono.setText(cliente.getTelefono());
+        validacion = validacion(lblMensaje)
+                .campo(txtCorreo, () -> Persona.errorCorreo(txtCorreo.getText()))
+                .campo(txtTelefono, () -> Persona.errorTelefono(txtTelefono.getText()));
+        if (estado().getSede() == null && btnVolver != null) {
+            btnVolver.setText("← Volver");
+        }
         mostrarPuntos();
     }
 
@@ -89,14 +98,22 @@ public class MiCuentaVista extends Pantalla {
 
     @FXML
     private void onGuardar() {
+        if (!validacion.validarTodos()) return;
         Respuesta<Void> r = app().login().actualizarDatos(cliente, txtTelefono.getText(), txtCorreo.getText());
-        mostrar(lblMensaje, r);
+        if (!mostrar(lblMensaje, r) && r.mensaje() != null && r.mensaje().toLowerCase().contains("correo")) {
+            validacion.marcar(txtCorreo, r.mensaje()); // p. ej. el correo ya lo usa otra cuenta
+        }
     }
 
     @FXML
     private void onCerrarSesion() {
         estado().cerrarSesion();
         nav.ir("cartelera");
+    }
+
+    @FXML
+    private void onVolver() {
+        nav.ir(estado().getSede() == null ? "elegir-sede" : "cartelera");
     }
 
     @FXML

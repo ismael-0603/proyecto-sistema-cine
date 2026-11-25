@@ -16,14 +16,17 @@
     <center>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
             <VBox alignment="TOP_CENTER">
-                <padding><Insets top="70" left="24" right="24" bottom="40"/></padding>
-                <VBox spacing="16" maxWidth="1385">
-                    <Label text="Promociones vigentes" styleClass="titulo-claro"/>
-                    <HBox fx:id="filtros" spacing="12">
+                <padding><Insets top="28" left="24" right="24" bottom="40"/></padding>
+                <VBox spacing="16" maxWidth="1385" alignment="TOP_CENTER">
+                    <HBox maxWidth="Infinity" alignment="CENTER_LEFT">
+                        <Button fx:id="btnVolver" text="← Volver a la cartelera" styleClass="btn-secundario, btn-chico" onAction="#onVolver"/>
+                    </HBox>
+                    <Label text="Promociones vigentes" styleClass="titulo-claro" maxWidth="Infinity" alignment="CENTER" textAlignment="CENTER"/>
+                    <HBox fx:id="filtros" spacing="12" alignment="CENTER">
                         <VBox.margin><Insets bottom="10"/></VBox.margin>
                     </HBox>
-                    <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
-                    <FlowPane fx:id="promociones" hgap="25" vgap="21"/>
+                    <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" maxWidth="Infinity" alignment="CENTER" textAlignment="CENTER" visible="false" managed="false"/>
+                    <FlowPane fx:id="promociones" hgap="25" vgap="21" alignment="TOP_CENTER"/>
                 </VBox>
             </VBox>
         </ScrollPane>

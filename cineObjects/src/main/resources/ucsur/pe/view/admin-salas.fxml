@@ -11,7 +11,7 @@
     <top>
         <VBox>
             <padding><Insets top="10" left="24" right="24"/></padding>
-            <fx:include source="encabezado.fxml"/>
+            <fx:include fx:id="encabezado" source="encabezado.fxml"/>
         </VBox>
     </top>
     <left>
@@ -75,7 +75,6 @@
                         <GridPane fx:id="mapa" styleClass="mapa-mini" hgap="3" vgap="3" alignment="CENTER"/>
                         <HBox spacing="18" alignment="CENTER">
                             <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro"/><Label text="Estándar" styleClass="nota"/></HBox>
-                            <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro, preferencial"/><Label text="Preferencial" styleClass="nota"/></HBox>
                             <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro, accesible"/><Label text="Discapacidad" styleClass="nota"/></HBox>
                         </HBox>
                         <Label fx:id="lblMapaNota" styleClass="nota" wrapText="true"/>

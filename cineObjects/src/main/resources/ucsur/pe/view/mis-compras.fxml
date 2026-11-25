@@ -18,6 +18,9 @@
             <VBox alignment="TOP_CENTER">
                 <padding><Insets top="28" left="20" right="20" bottom="32"/></padding>
                 <VBox spacing="16" maxWidth="1380">
+                    <HBox>
+                        <Button fx:id="btnVolver" text="← Volver a la cartelera" styleClass="btn-secundario, btn-chico" onAction="#onCartelera"/>
+                    </HBox>
                     <Label text="Mi cuenta" styleClass="titulo-claro"/>
                     <HBox spacing="12">
                         <Button text="Mis datos y puntos" styleClass="pestana, btn-chico" onAction="#onMisDatos"/>

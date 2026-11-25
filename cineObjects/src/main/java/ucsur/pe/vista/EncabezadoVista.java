@@ -8,6 +8,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import ucsur.pe.service.Sesion;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 /**
@@ -27,9 +28,12 @@ public class EncabezadoVista extends Pantalla {
     @FXML private Label lblTituloPanel;
     @FXML private Label lblSubtituloPanel;
     @FXML private Button btnComprar;
+    @FXML private HBox logo;
 
     private Runnable accionVolver = () -> { };
     private Runnable accionMenuAdmin = () -> { };
+    /** Al tocar el logo se va a la cartelera; los paneles y el comprobante lo cambian. */
+    private Runnable accionLogo = () -> nav.ir("cartelera");
 
     public EncabezadoVista(Navegador nav) {
         super(nav);
@@ -39,6 +43,7 @@ public class EncabezadoVista extends Pantalla {
     private void initialize() {
         ocultar(btnVolver);
         ocultar(btnMenuAdmin);
+        logo.setOnMouseClicked(e -> accionLogo.run());
         if (estado().getSede() != null) {
             btnSede.setText("Sede: " + estado().getSede().getNombre() + " · Cambiar");
             btnSede.setGraphic(Iconos.crear(Iconos.UBICACION, 15, "icono-rojo"));
@@ -58,6 +63,13 @@ public class EncabezadoVista extends Pantalla {
         ocultar(btnSede);
         ocultar(btnMenuAdmin);
         ocultar(btnPerdiste);
+        logo.getStyleClass().remove("logo-enlace"); // sin sede no hay cartelera a la que ir
+        accionLogo = () -> { };
+    }
+
+    /** Cambia lo que hace el logo (p. ej. el comprobante vuelve al inicio cerrando la sesión). */
+    public void alTocarLogo(Runnable accion) {
+        accionLogo = accion;
     }
 
     /** Para login, registro y comprobante: solo un botón a la derecha («Volver», «Volver al inicio»). */
@@ -88,6 +100,7 @@ public class EncabezadoVista extends Pantalla {
         lblSubtituloPanel.setText(subtitulo);
         mostrarNodo(cajaTitulo);
         mostrarNodo(btnComprar);
+        accionLogo = this::onComprar; // el empleado pasa a su cuenta personal, igual que «Ir a comprar entradas»
     }
 
     /** Solo para Administración: muestra el botón táctil (☰) que oculta o despliega el menú lateral. */

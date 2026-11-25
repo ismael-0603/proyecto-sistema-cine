@@ -15,8 +15,8 @@
     </top>
     <center>
         <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED">
-            <VBox alignment="TOP_LEFT">
-                <padding><Insets top="18" left="20" right="20" bottom="20"/></padding>
+            <VBox alignment="TOP_CENTER">
+                <padding><Insets top="18" left="24" right="24" bottom="20"/></padding>
                 <VBox spacing="14" maxWidth="1680" VBox.vgrow="ALWAYS">
                     <HBox styleClass="barra-oscura">
                         <Label text="Buscar pedido" minWidth="-Infinity"/>
@@ -25,7 +25,7 @@
                     </HBox>
                     <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
                     <Label fx:id="lblStock" styleClass="aviso, nota" wrapText="true" maxWidth="Infinity" visible="false" managed="false"/>
-                    <HBox fx:id="columnas" spacing="12" VBox.vgrow="ALWAYS"/>
+                    <HBox fx:id="columnas" spacing="16" alignment="TOP_CENTER" VBox.vgrow="ALWAYS"/>
                 </VBox>
             </VBox>
         </ScrollPane>

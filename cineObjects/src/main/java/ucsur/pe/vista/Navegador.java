@@ -69,6 +69,8 @@ public class Navegador {
     private final CambioDeCuenta cambioDeCuenta = new CambioDeCuenta(this);
     private final PauseTransition inactividad = new PauseTransition(Duration.seconds(SEGUNDOS_INACTIVIDAD));
     private Timeline cuentaAviso;
+    private String pantallaActual;
+    private String pantallaAnterior;
 
     public Navegador(Stage stage, App app, HostServices host) {
         this.stage = stage;
@@ -111,7 +113,22 @@ public class Navegador {
     /** Cambia a la pantalla del archivo view/{nombre}.fxml al instante (sin opacidad intermedia que difumine texto). */
     public void ir(String nombre) {
         cerrarModal();
+        if (pantallaActual != null && !pantallaActual.equals(nombre)
+                && !esCambioPestanaCuenta(pantallaActual, nombre)) {
+            pantallaAnterior = pantallaActual;
+        }
+        pantallaActual = nombre;
         raiz.getChildren().set(0, cargar(nombre).raiz);
+    }
+
+    /** Última pantalla distinta antes de la actual (útil para «Volver» en Mi cuenta o Promociones). */
+    public String pantallaAnterior() {
+        return pantallaAnterior;
+    }
+
+    private static boolean esCambioPestanaCuenta(String de, String a) {
+        return ("mi-cuenta".equals(de) && "mis-compras".equals(a))
+                || ("mis-compras".equals(de) && "mi-cuenta".equals(a));
     }
 
     /** Muestra view/{nombre}.fxml encima de la pantalla actual y devuelve su controller para configurarlo. */

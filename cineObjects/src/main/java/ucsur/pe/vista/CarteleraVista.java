@@ -10,6 +10,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -22,6 +23,7 @@ import ucsur.pe.model.Funcion;
 import ucsur.pe.model.Genero;
 import ucsur.pe.model.Pelicula;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +42,10 @@ public class CarteleraVista extends Pantalla {
 
     private static final int COLUMNAS = 4;
     private static final double HUECO = 22;     // hgap del GridPane
+    private static final double MARGEN = 20;    // padding izquierdo + derecho (2 × 10) del GridPane
     private static final double BORDE = 4;      // borde izquierdo + derecho (2 × 2) de .tarjeta-pelicula
+    private static final double ALTO_TITULO = 54; // 2 líneas del título a 19px
+    private static final int MAX_GENEROS_TARJETA = 2;
 
     /** Una opción de los desplegables: lo que se ve y el valor que se filtra (null = sin filtro). */
     private record Opcion<T>(String texto, T valor) {
@@ -242,7 +247,7 @@ public class CarteleraVista extends Pantalla {
     /** Con el ancho disponible, cada tarjeta mide un cuarto (menos los huecos); se rehace si cambió. */
     private void ajustarAncho(double anchoVisible) {
         if (anchoVisible <= 0) return;
-        double nuevo = Math.floor((anchoVisible - HUECO * (COLUMNAS - 1)) / COLUMNAS);
+        double nuevo = Math.floor((anchoVisible - MARGEN - HUECO * (COLUMNAS - 1)) / COLUMNAS);
         if (anchoTarjeta < 0 || Math.abs(nuevo - anchoTarjeta) >= 2) {
             anchoTarjeta = nuevo;
             dibujar();
@@ -276,7 +281,7 @@ public class CarteleraVista extends Pantalla {
         portada.setPrefSize(anchoPoster, altoPoster);
         portada.setMinSize(anchoPoster, altoPoster);
         portada.setMaxSize(anchoPoster, altoPoster);
-        portada.setClip(Formato.clipSuperior(anchoPoster, altoPoster, 14));
+        portada.setClip(Formato.clipSuperior(anchoPoster, altoPoster, 20));
 
         if (pestana == Pestana.PREVENTA) {
             Label etiqueta = new Label("Preventa · " + estreno(p));
@@ -289,28 +294,36 @@ public class CarteleraVista extends Pantalla {
         Label titulo = new Label(p.getTitulo());
         titulo.getStyleClass().add("pelicula-titulo");
         titulo.setWrapText(true);
-        titulo.setMinHeight(58);
-        titulo.setPrefHeight(58);
-        titulo.setMaxHeight(58);
+        titulo.setMaxHeight(ALTO_TITULO); // mide lo que su texto, hasta 2 líneas (luego «…»)
         titulo.setAlignment(Pos.TOP_LEFT);
 
-        HBox datos = new HBox(4);
-        datos.setAlignment(Pos.CENTER_LEFT);
-        if (!p.getGeneros().isEmpty()) {
-            Label genero = new Label(p.getGeneros().get(0).getNombre());
+        // Hasta 2 géneros; si no caben junto a la duración, pasan a la línea siguiente
+        FlowPane generos = new FlowPane(4, 4);
+        generos.setPrefWrapLength(0);
+        generos.setMinWidth(0);
+        HBox.setHgrow(generos, Priority.ALWAYS);
+        // «Anime» va primero: es lo que más distingue a esas películas y así nunca queda fuera del límite
+        List<Genero> enTarjeta = p.getGeneros().stream()
+                .sorted(Comparator.comparing((Genero g) -> !"Anime".equalsIgnoreCase(g.getNombre())))
+                .limit(MAX_GENEROS_TARJETA).toList();
+        for (Genero g : enTarjeta) {
+            Label genero = new Label(g.getNombre());
             genero.getStyleClass().add("tag-genero");
             genero.setMinWidth(Region.USE_PREF_SIZE);
-            datos.getChildren().add(genero);
+            generos.getChildren().add(genero);
         }
-        Region espacio = new Region();
-        HBox.setHgrow(espacio, Priority.ALWAYS);
         Label detalle = new Label(pestana == Pestana.PROXIMAMENTE ? estreno(p) : Formato.duracion(p.getDuracion()));
         detalle.getStyleClass().add("nota-suave");
         detalle.setMinWidth(Region.USE_PREF_SIZE);
-        datos.getChildren().addAll(espacio, detalle);
+        HBox datos = new HBox(4, generos, detalle);
+        datos.setAlignment(Pos.CENTER_LEFT);
 
-        VBox cuerpo = new VBox(8, titulo, datos, boton(p));
+        // El relleno empuja géneros y botón al fondo: así los botones de una fila quedan alineados
+        Region relleno = new Region();
+        VBox.setVgrow(relleno, Priority.ALWAYS);
+        VBox cuerpo = new VBox(8, titulo, relleno, datos, boton(p));
         cuerpo.getStyleClass().add("tarjeta-pelicula-cuerpo");
+        VBox.setVgrow(cuerpo, Priority.ALWAYS);
 
         VBox tarjeta = new VBox(portada, cuerpo);
         tarjeta.getStyleClass().add("tarjeta-pelicula");

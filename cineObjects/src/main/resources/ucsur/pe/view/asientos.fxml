@@ -12,10 +12,10 @@
         <fx:include fx:id="encabezado" source="encabezado-compra.fxml"/>
     </top>
     <center>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
-            <HBox alignment="TOP_CENTER">
-                <padding><Insets top="30" left="24" right="24" bottom="24"/></padding>
-                <HBox spacing="22" maxWidth="1400">
+        <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER">
+            <VBox alignment="CENTER">
+                <padding><Insets top="24" left="24" right="24" bottom="24"/></padding>
+                <HBox alignment="TOP_CENTER" spacing="22" maxWidth="1400" maxHeight="-Infinity">
                     <!-- Mapa de la sala -->
                     <VBox spacing="8" HBox.hgrow="ALWAYS">
                         <VBox styleClass="tarjeta" spacing="14" alignment="TOP_CENTER">
@@ -31,44 +31,49 @@
                             </VBox>
                             <GridPane fx:id="mapa" hgap="6" vgap="8" alignment="CENTER"/>
                             <HBox styleClass="sugerencia" spacing="14" maxWidth="Infinity">
-                                <VBox spacing="2" HBox.hgrow="ALWAYS">
-                                    <Label fx:id="lblSugerencia" styleClass="etiqueta"/>
-                                    <Label text="Elige el tamaño del grupo, o toca las butacas libres del mapa a tu gusto." styleClass="nota"/>
+                                <!-- El texto pasa a otra línea si no cabe (el mapa se angosta cuando hay columna de beneficios) -->
+                                <VBox spacing="2" HBox.hgrow="ALWAYS" minWidth="0" alignment="CENTER_LEFT">
+                                    <Label fx:id="lblSugerencia" styleClass="etiqueta" wrapText="true" minHeight="-Infinity"/>
+                                    <Label text="Elige el tamaño del grupo, o toca las butacas libres del mapa a tu gusto." styleClass="nota" wrapText="true" minHeight="-Infinity"/>
                                 </VBox>
-                                <HBox styleClass="contador" alignment="CENTER">
+                                <HBox styleClass="contador" alignment="CENTER" minWidth="-Infinity">
                                     <Button fx:id="btnGrupoMenos" text="−" styleClass="contador-menos" onAction="#onGrupoMenos"/>
                                     <Label fx:id="lblGrupo" styleClass="contador-valor"/>
                                     <Button fx:id="btnGrupoMas" text="+" styleClass="contador-mas" onAction="#onGrupoMas"/>
                                 </HBox>
-                                <Button fx:id="btnSugerencia" text="Usar sugerencia" styleClass="btn-primario" onAction="#onUsarSugerencia"/>
+                                <Button fx:id="btnSugerencia" text="Usar sugerencia" styleClass="btn-primario" minWidth="-Infinity" onAction="#onUsarSugerencia"/>
                             </HBox>
                             <HBox spacing="18" alignment="CENTER">
                                 <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro"/><Label text="Libre" styleClass="nota"/></HBox>
                                 <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro, ocupada"/><Label text="Ocupada" styleClass="nota"/></HBox>
                                 <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro, elegida"/><Label text="Elegida" styleClass="nota"/></HBox>
                                 <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro, sugerida"/><Label text="Sugerida" styleClass="nota"/></HBox>
-                                <HBox spacing="6" alignment="CENTER"><Label styleClass="leyenda-cuadro, preferencial"/><Label text="Preferencial" styleClass="nota"/></HBox>
                                 <HBox spacing="6" alignment="CENTER"><Label text="D" styleClass="leyenda-cuadro"/><Label text="Discapacidad" styleClass="nota"/></HBox>
                             </HBox>
-                            <Separator/>
-                            <VBox spacing="8" maxWidth="Infinity">
-                                <Label text="Los pasillos separan los bloques de la sala. Las butacas con D solo se sugieren si marcas «Necesito butaca accesible»."
-                                       styleClass="nota" wrapText="true"/>
-                                <CheckBox fx:id="chkAccesible" text="Necesito butaca accesible"/>
-                            </VBox>
                         </VBox>
                         <Label fx:id="lblMensajeMapa" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
                     </VBox>
 
                     <!-- Entradas y resumen -->
-                    <VBox spacing="8" minWidth="380" prefWidth="420" maxWidth="420">
+                    <!-- Con beneficios de socio el panel se ensancha a dos columnas (ver AsientosVista.cargarTipos) -->
+                    <VBox fx:id="panelEntradas" spacing="8" minWidth="380" prefWidth="420" maxWidth="420">
                         <VBox styleClass="tarjeta" spacing="12">
                             <Label text="1. Tus butacas" styleClass="etiqueta-fuerte"/>
                             <HBox><Label text="Butacas" styleClass="etiqueta"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="lblButacas" styleClass="etiqueta"/></HBox>
                             <Label fx:id="lblGuia" text="Toca butacas en el mapa para empezar." styleClass="nota" wrapText="true"/>
                             <Separator/>
                             <Label text="2. Tipo de entrada" styleClass="etiqueta-fuerte"/>
-                            <VBox fx:id="tipos" spacing="14"/>
+                            <HBox spacing="22">
+                                <VBox fx:id="tipos" spacing="14" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                                <Separator fx:id="sepBeneficios" orientation="VERTICAL" visible="false" managed="false"/>
+                                <VBox fx:id="beneficios" spacing="14" HBox.hgrow="ALWAYS" maxWidth="Infinity" visible="false" managed="false">
+                                    <VBox spacing="2">
+                                        <Label text="Beneficios Socio" styleClass="etiqueta-fuerte"/>
+                                        <Label fx:id="lblPuntos" styleClass="nota-suave" wrapText="true"/>
+                                    </VBox>
+                                </VBox>
+                            </HBox>
+                            <Label fx:id="lblAvisoPuntos" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
                             <Label fx:id="lblSocio" styleClass="nota" wrapText="true"/>
                             <HBox><Label text="Entradas" styleClass="etiqueta"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="lblEntradas" styleClass="etiqueta"/></HBox>
                             <Separator/>
@@ -78,7 +83,7 @@
                                styleClass="nota-clara" wrapText="true"/>
                     </VBox>
                 </HBox>
-            </HBox>
+            </VBox>
         </ScrollPane>
     </center>
     <bottom>

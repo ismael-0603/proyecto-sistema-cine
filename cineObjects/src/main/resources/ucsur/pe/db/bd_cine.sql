@@ -61,6 +61,7 @@ CREATE TABLE tipo_entrada (
     puntos_por_entrada INT          NOT NULL DEFAULT 0, -- puntos base que gana el cliente por entrada (sin multiplicador de nivel)
     requiere_socio     BOOLEAN      NOT NULL DEFAULT FALSE,
     puntos_canje       INT          NOT NULL DEFAULT 0,
+    solo_cumpleanos    BOOLEAN      NOT NULL DEFAULT FALSE, -- solo se vende el día del cumpleaños del cliente
     estado             BOOLEAN      NOT NULL DEFAULT TRUE,
 
     CONSTRAINT pk_tipo_entrada             PRIMARY KEY (id_tipo_entrada),
@@ -68,7 +69,8 @@ CREATE TABLE tipo_entrada (
     CONSTRAINT ck_tipo_entrada_tarifa      CHECK (tarifa >= 0),
     CONSTRAINT ck_tipo_entrada_puntos      CHECK (puntos_por_entrada >= 0),
     CONSTRAINT ck_tipo_entrada_canje       CHECK (puntos_canje >= 0),
-    CONSTRAINT ck_tipo_entrada_canje_socio CHECK (puntos_canje = 0 OR requiere_socio = TRUE)
+    CONSTRAINT ck_tipo_entrada_canje_socio CHECK (puntos_canje = 0 OR requiere_socio = TRUE),
+    CONSTRAINT ck_tipo_entrada_cumple      CHECK (solo_cumpleanos = FALSE OR requiere_socio = TRUE)
 );
 
 CREATE TABLE promocion (

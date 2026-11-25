@@ -25,9 +25,12 @@
         </VBox>
     </StackPane>
 
-    <VBox spacing="4">
-        <Label fx:id="lblSinopsis" styleClass="etiqueta" wrapText="true"/>
-        <Button fx:id="btnVerMas" styleClass="btn-link, btn-link-rojo" onAction="#onVerMas"/>
+    <!-- La sinopsis completa (hasta 1000 caracteres) se desplaza dentro de su caja: la ventana no crece -->
+    <VBox spacing="4" minHeight="-Infinity">
+        <ScrollPane fx:id="scrollSinopsis" fitToWidth="true" hbarPolicy="NEVER" styleClass="scroll-sinopsis">
+            <Label fx:id="lblSinopsis" styleClass="etiqueta" wrapText="true" minHeight="-Infinity"/>
+        </ScrollPane>
+        <Button fx:id="btnVerMas" styleClass="btn-link, btn-link-rojo" minHeight="-Infinity" onAction="#onVerMas"/>
     </VBox>
 
     <GridPane hgap="24" vgap="14">

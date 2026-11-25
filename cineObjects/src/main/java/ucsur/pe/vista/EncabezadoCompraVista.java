@@ -23,6 +23,7 @@ public class EncabezadoCompraVista extends Pantalla {
     @FXML private Label lblTiempo;
     @FXML private HBox pasos;
     @FXML private Label num1, num2, num3, txt1, txt2, txt3;
+    @FXML private HBox logo;
 
     private BooleanBinding urgente; // se guarda para que el enlace viva mientras viva la pantalla
 
@@ -32,6 +33,7 @@ public class EncabezadoCompraVista extends Pantalla {
 
     @FXML
     private void initialize() {
+        logo.setOnMouseClicked(e -> onLogo());
         Funcion f = estado().getFuncion();
         if (f != null) {
             lblTitulo.setText(f.getPelicula().getTitulo());
@@ -86,6 +88,19 @@ public class EncabezadoCompraVista extends Pantalla {
             nav.ir("horario");
             return;
         }
+        confirmarCancelacion();
+    }
+
+    /** Logo: lleva a la cartelera; con una compra en curso primero pide la misma confirmación que ✕. */
+    private void onLogo() {
+        if (!estado().cuentaActiva()) {
+            nav.cancelarCompra(); // aún no empezó la cuenta regresiva: no hay butacas que liberar
+            return;
+        }
+        confirmarCancelacion();
+    }
+
+    private void confirmarCancelacion() {
         List<Entrada> entradas = estado().getCompra().getEntradas();
         List<Butaca> butacas = entradas.isEmpty() ? estado().getButacas()
                 : entradas.stream().map(Entrada::getButaca).toList();

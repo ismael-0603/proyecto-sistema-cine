@@ -11,10 +11,10 @@
         <fx:include fx:id="encabezado" source="encabezado-compra.fxml"/>
     </top>
     <center>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
-            <HBox alignment="TOP_CENTER">
-                <padding><Insets top="30" left="24" right="24" bottom="24"/></padding>
-                <HBox spacing="36" maxWidth="1400">
+        <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER">
+            <VBox alignment="CENTER">
+                <padding><Insets top="24" left="24" right="24" bottom="24"/></padding>
+                <HBox alignment="CENTER" spacing="36" maxWidth="1400" maxHeight="-Infinity">
                     <VBox styleClass="tarjeta" spacing="4" HBox.hgrow="ALWAYS" minWidth="560" maxWidth="800">
                         <Label text="Resumen de la compra" styleClass="tarjeta-titulo">
                             <VBox.margin><Insets bottom="10"/></VBox.margin>
@@ -52,7 +52,7 @@
                                styleClass="nota" wrapText="true"/>
                     </VBox>
                 </HBox>
-            </HBox>
+            </VBox>
         </ScrollPane>
     </center>
     <bottom>

@@ -18,6 +18,9 @@
             <VBox alignment="TOP_CENTER">
                 <padding><Insets top="24" left="24" right="24" bottom="32"/></padding>
                 <VBox spacing="10" maxWidth="1380">
+                    <HBox>
+                        <Button fx:id="btnVolver" text="← Volver" styleClass="btn-secundario, btn-chico" onAction="#onVolver"/>
+                    </HBox>
                     <Label text="Mi cuenta" styleClass="titulo-claro"/>
                     <Label fx:id="lblSubtitulo" styleClass="nota-clara"/>
                     <HBox spacing="24">

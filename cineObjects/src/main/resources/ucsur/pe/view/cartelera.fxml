@@ -33,7 +33,7 @@
                     <ComboBox fx:id="cmbFormato" styleClass="combo-oscuro" maxWidth="Infinity"/>
                     <Label text="Clasificación" styleClass="filtro-etiqueta"/>
                     <ComboBox fx:id="cmbClasificacion" styleClass="combo-oscuro" maxWidth="Infinity"/>
-                    <Button text="Limpiar filtros" styleClass="btn-link, btn-link-claro" onAction="#onLimpiar">
+                    <Button text="Limpiar filtros" styleClass="btn-link, btn-link-claro" maxWidth="Infinity" alignment="CENTER" onAction="#onLimpiar">
                         <VBox.margin><Insets top="8"/></VBox.margin>
                     </Button>
                 </VBox>
@@ -47,10 +47,11 @@
                         <Region HBox.hgrow="ALWAYS"/>
                         <Label fx:id="lblCantidad" styleClass="contador-texto"/>
                     </HBox>
-                    <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false" wrapText="true"/>
+                    <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" maxWidth="Infinity" alignment="CENTER" textAlignment="CENTER" visible="false" managed="false" wrapText="true"/>
                     <ScrollPane fx:id="scroll" fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
                         <GridPane fx:id="peliculas" hgap="22" vgap="20">
-                            <padding><Insets top="4" left="4" right="4" bottom="40"/></padding>
+                            <!-- Margen para que la tarjeta agrandada al pasar el mouse (y su brillo) no se recorte -->
+                            <padding><Insets top="18" left="10" right="10" bottom="40"/></padding>
                             <columnConstraints>
                                 <ColumnConstraints percentWidth="25"/><ColumnConstraints percentWidth="25"/>
                                 <ColumnConstraints percentWidth="25"/><ColumnConstraints percentWidth="25"/>

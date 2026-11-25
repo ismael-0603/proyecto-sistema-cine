@@ -7,7 +7,7 @@
 <!-- Encabezado de las pantallas del cliente (sede, cartelera, horarios, login, comprobante) -->
 <HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="ucsur.pe.vista.EncabezadoVista" styleClass="encabezado">
-    <fx:include source="logo.fxml"/>
+    <fx:include fx:id="logo" source="logo.fxml"/>
     <Button fx:id="btnSede" styleClass="btn-sede, btn-pastilla" onAction="#onCambiarSede">
         <HBox.margin><Insets left="14"/></HBox.margin>
     </Button>

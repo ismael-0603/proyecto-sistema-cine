@@ -18,6 +18,9 @@
             <VBox alignment="TOP_CENTER">
                 <padding><Insets top="24" left="24" right="24" bottom="32"/></padding>
                 <VBox spacing="16" maxWidth="1380">
+                    <HBox>
+                        <Button fx:id="btnVolver" text="← Volver a la cartelera" styleClass="btn-secundario, btn-chico" onAction="#onVolver"/>
+                    </HBox>
                     <Label text="Mi cuenta" styleClass="titulo-claro"/>
                     <HBox spacing="12">
                         <Button text="Mis datos y puntos" styleClass="pestana, activo, btn-chico"/>
@@ -58,16 +61,16 @@
                         <VBox styleClass="tarjeta" spacing="10" HBox.hgrow="ALWAYS" maxWidth="Infinity">
                             <padding><Insets top="30" left="38" right="38" bottom="30"/></padding>
                             <Label text="Mis puntos" styleClass="tarjeta-titulo"/>
-                            <Label fx:id="lblPuntos" styleClass="puntos-grande">
+                            <Label fx:id="lblPuntos" styleClass="puntos-grande" maxWidth="Infinity" alignment="CENTER">
                                 <VBox.margin><Insets top="10"/></VBox.margin>
                             </Label>
-                            <Label text="Puntos disponibles para canjear" styleClass="nota"/>
+                            <Label text="Puntos disponibles para canjear" styleClass="nota" maxWidth="Infinity" alignment="CENTER"/>
                             <Separator>
                                 <VBox.margin><Insets top="8" bottom="8"/></VBox.margin>
                             </Separator>
-                            <Label text="Nivel de socio" styleClass="etiqueta-fuerte"/>
+                            <Label text="Nivel de socio" styleClass="etiqueta-fuerte" maxWidth="Infinity" alignment="CENTER"/>
                             <HBox fx:id="niveles" spacing="10" alignment="CENTER"/>
-                            <Label fx:id="lblVisitas" styleClass="nota">
+                            <Label fx:id="lblVisitas" styleClass="nota" maxWidth="Infinity" alignment="CENTER">
                                 <VBox.margin><Insets top="8"/></VBox.margin>
                             </Label>
                             <ProgressBar fx:id="barraVisitas" maxWidth="Infinity"/>

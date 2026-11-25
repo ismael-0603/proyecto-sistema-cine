@@ -14,15 +14,15 @@
         </VBox>
     </top>
     <center>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
-            <VBox alignment="TOP_CENTER">
-                <padding><Insets top="28" left="24" right="24" bottom="32"/></padding>
-                <VBox spacing="10" maxWidth="1290" alignment="TOP_CENTER">
-                    <HBox>
+        <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER">
+            <VBox alignment="CENTER">
+                <padding><Insets top="24" left="24" right="24" bottom="32"/></padding>
+                <VBox spacing="10" maxWidth="1290" maxHeight="-Infinity" alignment="TOP_CENTER">
+                    <HBox maxWidth="Infinity" alignment="CENTER_LEFT">
                         <Button text="← Volver a la cartelera" styleClass="btn-secundario, btn-chico" onAction="#onVolver"/>
                     </HBox>
-                    <Label text="Recupera tus entradas" styleClass="titulo-claro"/>
-                    <Label text="Usa el código de tu comprobante o el correo con el que compraste." styleClass="subtitulo-claro"/>
+                    <Label text="Recupera tus entradas" styleClass="titulo-claro" maxWidth="Infinity" alignment="CENTER" textAlignment="CENTER"/>
+                    <Label text="Usa el código de tu comprobante o el correo con el que compraste." styleClass="subtitulo-claro" maxWidth="Infinity" alignment="CENTER" textAlignment="CENTER"/>
                     <HBox spacing="32" alignment="TOP_CENTER">
                         <VBox.margin><Insets top="18"/></VBox.margin>
                         <!-- Con el código -->

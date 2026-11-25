@@ -155,7 +155,7 @@ public class DulceriaVista extends Pantalla {
         portada.setPrefSize(ANCHO_IMAGEN, ALTO_IMAGEN);
         portada.setMinSize(ANCHO_IMAGEN, ALTO_IMAGEN);
         portada.setMaxSize(ANCHO_IMAGEN, ALTO_IMAGEN);
-        portada.setClip(Formato.clipSuperior(ANCHO_IMAGEN, ALTO_IMAGEN, 14));
+        portada.setClip(Formato.clipSuperior(ANCHO_IMAGEN, ALTO_IMAGEN, 20));
 
         Label badge = null;
         if (agotado) {

@@ -41,7 +41,7 @@ public class CatalogoMySqlDao implements CatalogoDao {
     public List<TipoEntrada> listarTiposEntrada() {
         String sql = """
                 SELECT id_tipo_entrada, nombre, descripcion, tarifa, puntos_por_entrada,
-                       requiere_socio, puntos_canje, estado
+                       requiere_socio, puntos_canje, estado, solo_cumpleanos
                 FROM tipo_entrada
                 ORDER BY id_tipo_entrada
                 """;
@@ -51,7 +51,8 @@ public class CatalogoMySqlDao implements CatalogoDao {
             while (rs.next()) {
                 tipos.add(new TipoEntrada(rs.getInt("id_tipo_entrada"), rs.getString("nombre"),
                         rs.getString("descripcion"), Dinero.leer(rs, "tarifa"), rs.getInt("puntos_por_entrada"),
-                        rs.getBoolean("requiere_socio"), rs.getBoolean("estado"), rs.getInt("puntos_canje")));
+                        rs.getBoolean("requiere_socio"), rs.getBoolean("estado"), rs.getInt("puntos_canje"),
+                        rs.getBoolean("solo_cumpleanos")));
             }
         } catch (SQLException e) {
             throw new RepositoryException("No se pudieron cargar los tipos de entrada.", e);
@@ -63,8 +64,8 @@ public class CatalogoMySqlDao implements CatalogoDao {
     public void insertarTipoEntrada(TipoEntrada tipo) {
         String sql = """
                 INSERT INTO tipo_entrada (nombre, descripcion, tarifa, puntos_por_entrada,
-                                          requiere_socio, puntos_canje, estado)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                                          requiere_socio, puntos_canje, estado, solo_cumpleanos)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         escribirTipoEntrada(sql, tipo, true, "No se pudo registrar el tipo de entrada " + tipo.getNombre() + ".");
     }
@@ -74,7 +75,7 @@ public class CatalogoMySqlDao implements CatalogoDao {
         String sql = """
                 UPDATE tipo_entrada
                 SET nombre = ?, descripcion = ?, tarifa = ?, puntos_por_entrada = ?,
-                    requiere_socio = ?, puntos_canje = ?, estado = ?
+                    requiere_socio = ?, puntos_canje = ?, estado = ?, solo_cumpleanos = ?
                 WHERE id_tipo_entrada = ?
                 """;
         escribirTipoEntrada(sql, tipo, false, "No se pudo actualizar el tipo de entrada " + tipo.getNombre() + ".");
@@ -93,7 +94,8 @@ public class CatalogoMySqlDao implements CatalogoDao {
             ps.setBoolean(5, tipo.isRequiereSocio());
             ps.setInt(6, tipo.getPuntosCanje());
             ps.setBoolean(7, tipo.isEstado());
-            if (!nuevo) ps.setInt(8, tipo.getIdTipoEntrada());
+            ps.setBoolean(8, tipo.isSoloCumpleanos());
+            if (!nuevo) ps.setInt(9, tipo.getIdTipoEntrada());
             ps.executeUpdate();
             if (nuevo) tipo.asignarId(Claves.generada(ps));
         } catch (SQLException e) {

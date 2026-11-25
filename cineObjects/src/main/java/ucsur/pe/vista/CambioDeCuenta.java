@@ -9,6 +9,7 @@ import javafx.scene.layout.VBox;
 import ucsur.pe.controller.LoginController;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Compra;
+import ucsur.pe.model.Persona;
 import ucsur.pe.service.CuentaPersonal;
 import ucsur.pe.service.Sesion;
 
@@ -88,11 +89,23 @@ final class CambioDeCuenta {
                         + "Tus nombres y DNI se toman de tu registro de empleado.", false);
         d.agregarContenido(campo("Correo personal", correo), campo("Contraseña (mínimo 8 caracteres)", contra),
                 campo("Confirmar contraseña", confirmar), mensaje);
+        // Validación en vivo con las reglas de Persona, como en «Crear cuenta»
+        ValidacionEnVivo validacion = new ValidacionEnVivo(mensaje)
+                .campo(correo, () -> Persona.errorCorreo(correo.getText()))
+                .campo(contra, () -> Persona.errorContrasena(contra.getText()))
+                .campo(confirmar, () -> confirmar.getText().isEmpty() ? "Confirma tu contraseña"
+                        : confirmar.getText().equals(contra.getText()) ? null : "Las contraseñas no coinciden")
+                .relacionar(contra, confirmar);
         Runnable crear = () -> {
+            if (!validacion.validarTodos()) return;
             Respuesta<Void> r = login().crearCuentaPersonal(sesion(), correo.getText(), contra.getText(),
                     confirmar.getText());
-            if (r.ok()) entrarComoCliente();
-            else error(mensaje, r.mensaje());
+            if (r.ok()) {
+                entrarComoCliente();
+                return;
+            }
+            error(mensaje, r.mensaje());
+            if (r.mensaje() != null && r.mensaje().toLowerCase().contains("correo")) validacion.marcar(correo, r.mensaje());
         };
         confirmar.setOnAction(e -> crear.run());
         d.botonSecundario("Cancelar", nav::cerrarModal);

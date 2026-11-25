@@ -17,24 +17,39 @@
     </top>
     <center>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
-            <VBox alignment="TOP_CENTER" spacing="10">
-                <padding><Insets top="44" left="24" right="24" bottom="40"/></padding>
-                <Label text="¿En qué sede quieres comprar?" styleClass="titulo-claro"/>
-                <Label text="La cartelera, los horarios y las butacas son los de la sede que elijas."
-                       styleClass="subtitulo-claro"/>
-                <StackPane alignment="CENTER_LEFT" maxWidth="695">
-                    <VBox.margin><Insets top="18" bottom="24"/></VBox.margin>
-                    <TextField fx:id="txtBuscar" promptText="Buscar por nombre o distrito" styleClass="campo-con-icono-izq"/>
+            <VBox alignment="TOP_CENTER" spacing="12">
+                <padding><Insets top="28" left="24" right="24" bottom="40"/></padding>
+
+                <HBox fx:id="barraVolver" alignment="CENTER_LEFT" maxWidth="1364" visible="false" managed="false">
+                    <Button text="← Volver a la cartelera" styleClass="btn-secundario, btn-chico" onAction="#onVolver"/>
+                </HBox>
+                <Label text="¿En qué sede quieres comprar?" styleClass="titulo-claro" maxWidth="Infinity" alignment="CENTER" textAlignment="CENTER"/>
+                <Label text="La cartelera, los horarios, los formatos de sala y las butacas son los de la sede que elijas."
+                       styleClass="texto-claro" wrapText="true" maxWidth="760" alignment="CENTER" textAlignment="CENTER"/>
+
+                <StackPane alignment="CENTER_LEFT" maxWidth="660">
+                    <VBox.margin><Insets top="8"/></VBox.margin>
+                    <TextField fx:id="txtBuscar" promptText="Buscar por nombre, distrito o dirección"
+                               styleClass="campo-oscuro, campo-con-iconos"/>
                     <StackPane minWidth="18" minHeight="18" prefWidth="18" prefHeight="18" maxWidth="18" maxHeight="18" mouseTransparent="true">
                         <StackPane.margin><Insets left="16"/></StackPane.margin>
                         <Group>
                             <SVGPath content="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
-                                     styleClass="icono-svg, icono-suave" scaleX="0.78" scaleY="0.78"/>
+                                     styleClass="icono-claro" scaleX="0.78" scaleY="0.78"/>
                         </Group>
                     </StackPane>
+                    <Button fx:id="btnLimpiar" text="✕" styleClass="sede-limpiar" StackPane.alignment="CENTER_RIGHT"
+                            visible="false" managed="false" onAction="#onLimpiar">
+                        <StackPane.margin><Insets right="10"/></StackPane.margin>
+                    </Button>
                 </StackPane>
-                <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
-                <FlowPane fx:id="sedes" hgap="24" vgap="22" alignment="TOP_CENTER" maxWidth="1385" prefWrapLength="1385"/>
+
+                <HBox fx:id="filtros" alignment="CENTER" spacing="10">
+                    <VBox.margin><Insets top="2" bottom="10"/></VBox.margin>
+                </HBox>
+
+                <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" maxWidth="Infinity" alignment="CENTER" textAlignment="CENTER" visible="false" managed="false"/>
+                <FlowPane fx:id="sedes" hgap="24" vgap="24" alignment="TOP_CENTER" maxWidth="1364" prefWrapLength="1364"/>
             </VBox>
         </ScrollPane>
     </center>

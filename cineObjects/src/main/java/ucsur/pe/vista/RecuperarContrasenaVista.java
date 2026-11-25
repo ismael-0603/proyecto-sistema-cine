@@ -8,6 +8,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
 import ucsur.pe.controller.Respuesta;
+import ucsur.pe.model.Persona;
 
 /**
  * 4.1 · Recuperar contraseña, desde «¿Olvidaste tu contraseña?» de la pantalla 4. En dos pasos:
@@ -29,6 +30,10 @@ public class RecuperarContrasenaVista extends Pantalla {
     @FXML private TextField txtConfirmarVisible;
     @FXML private ToggleButton btnVer;
     @FXML private Label lblMensaje;
+
+    // Paso 1 (correo) y paso 2 (contraseña nueva) se validan por separado: el paso 2 está oculto al inicio
+    private ValidacionEnVivo validacionCorreo;
+    private ValidacionEnVivo validacionClave;
 
     public RecuperarContrasenaVista(Navegador nav) {
         super(nav);
@@ -54,6 +59,13 @@ public class RecuperarContrasenaVista extends Pantalla {
             if (limpio.length() > 6) limpio = limpio.substring(0, 6);
             if (!limpio.equals(ahora)) txtCodigo.setText(limpio);
         });
+        // El código se sigue revisando al pulsar «Cambiar contraseña» (lo verifica el servicio)
+        validacionCorreo = validacion(lblMensaje)
+                .campo(txtCorreo, () -> Persona.errorCorreo(txtCorreo.getText()));
+        validacionClave = validacion(lblMensaje)
+                .campo(txtNueva, () -> Persona.errorContrasena(txtNueva.getText()), txtNuevaVisible)
+                .campo(txtConfirmar, this::errorConfirmar, txtConfirmarVisible)
+                .relacionar(txtNueva, txtConfirmar);
         // Si en el login ya había escrito su correo, se trae
         String correo = estado().getCorreoLogin();
         if (correo != null) txtCorreo.setText(correo);
@@ -62,6 +74,7 @@ public class RecuperarContrasenaVista extends Pantalla {
     /** «Enviar código» y «Reenviar código»: el mensaje es el mismo exista o no la cuenta. */
     @FXML
     private void onEnviar() {
+        if (!validacionCorreo.validarTodos()) return;
         Respuesta<Void> r = app().login().solicitarRecuperacion(txtCorreo.getText());
         if (!mostrar(lblMensaje, r)) return;
         mostrarPasoCodigo(true);
@@ -70,9 +83,13 @@ public class RecuperarContrasenaVista extends Pantalla {
 
     @FXML
     private void onCambiar() {
+        if (!validacionClave.validarTodos()) return;
         Respuesta<Void> r = app().login().restablecerContrasena(txtCorreo.getText(), txtCodigo.getText(),
                 txtNueva.getText(), txtConfirmar.getText());
-        if (!mostrar(lblMensaje, r)) return;
+        if (!mostrar(lblMensaje, r)) {
+            if (r.mensaje() != null && r.mensaje().toLowerCase().contains("código")) validacionClave.marcar(txtCodigo, r.mensaje());
+            return;
+        }
         DialogoVista d = nav.dialogo();
         d.configurar("Contraseña cambiada", "Ya puedes iniciar sesión con tu nueva contraseña.", false);
         d.botonPrincipal("Iniciar sesión", this::volverAlLogin);
@@ -99,7 +116,14 @@ public class RecuperarContrasenaVista extends Pantalla {
             txtCodigo.clear();
             txtNueva.clear();
             txtConfirmar.clear();
+            validacionClave.limpiar(); // sin rojo tras vaciar los campos
         }
+    }
+
+    private String errorConfirmar() {
+        String confirmar = txtConfirmar.getText();
+        if (confirmar == null || confirmar.isEmpty()) return "Confirma tu contraseña";
+        return confirmar.equals(txtNueva.getText()) ? null : "Las contraseñas no coinciden";
     }
 
     /** Al login, con el correo ya escrito. */

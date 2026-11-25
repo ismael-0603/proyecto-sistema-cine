@@ -6,7 +6,7 @@
 
 <!-- Logo oficial de Cineplanet (vectorial SVGPath; Group externo preserva el tamaño escalado en el HBox) -->
 <HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      alignment="CENTER_LEFT" minWidth="-Infinity">
+      alignment="CENTER_LEFT" minWidth="-Infinity" maxWidth="-Infinity" styleClass="logo-enlace">
     <Group>
         <Group scaleX="0.35" scaleY="0.35">
             <SVGPath fill="#004b8f" fillRule="EVEN_ODD"

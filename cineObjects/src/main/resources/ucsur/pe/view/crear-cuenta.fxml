@@ -14,9 +14,9 @@
         </VBox>
     </top>
     <center>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+        <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER">
             <StackPane>
-                <padding><Insets top="40" left="24" right="24" bottom="40"/></padding>
+                <padding><Insets top="24" left="24" right="24" bottom="28"/></padding>
                 <VBox styleClass="tarjeta" spacing="10" maxWidth="860" maxHeight="-Infinity">
                     <padding><Insets top="34" left="44" right="44" bottom="34"/></padding>
                     <Label text="Crear cuenta" styleClass="titulo"/>
@@ -31,7 +31,7 @@
                         <Label text="DNI" styleClass="etiqueta-campo" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
                         <TextField fx:id="txtDni" promptText="8 dígitos" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
                         <Label text="Fecha de nacimiento" styleClass="etiqueta-campo" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                        <TextField fx:id="txtFechaNac" promptText="dd / mm / aaaa" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                        <TextField fx:id="txtFechaNac" promptText="dd/mm/aaaa" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
                         <Label text="Nombres" styleClass="etiqueta-campo" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
                         <TextField fx:id="txtNombres" promptText="Tus nombres" GridPane.rowIndex="3" GridPane.columnIndex="0"/>

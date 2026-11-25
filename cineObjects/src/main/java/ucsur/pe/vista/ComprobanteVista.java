@@ -38,6 +38,7 @@ public class ComprobanteVista extends Pantalla {
     @FXML
     private void initialize() {
         encabezadoController.soloVolver("Volver al inicio", nav::volverAlInicio);
+        encabezadoController.alTocarLogo(nav::volverAlInicio); // la compra terminó: la siguiente persona empieza sin sesión
         btnEnviar.setGraphic(Iconos.crear(Iconos.CORREO, 16));
         btnEnviar.setGraphicTextGap(8);
         btnImprimir.setGraphic(Iconos.crear(Iconos.TICKET, 16));

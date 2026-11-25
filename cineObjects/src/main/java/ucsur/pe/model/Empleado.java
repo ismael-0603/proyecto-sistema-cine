@@ -73,10 +73,15 @@ public class Empleado extends Persona {
         this.pin = validarPin(pinNuevo);
     }
 
+    /** Regla del PIN para las pantallas: el motivo del error o null si son exactamente 4 dígitos. */
+    public static String errorPin(String pin) {
+        if (pin == null || !pin.trim().matches("\\d{4}")) return "El PIN debe tener exactamente 4 dígitos";
+        return null;
+    }
+
     private static String validarPin(String pin) {
-        if (pin == null || !pin.trim().matches("\\d{4}")) {
-            throw new IllegalArgumentException("El PIN debe tener exactamente 4 dígitos");
-        }
+        String error = errorPin(pin);
+        if (error != null) throw new IllegalArgumentException(error);
         return pin.trim();
     }
 

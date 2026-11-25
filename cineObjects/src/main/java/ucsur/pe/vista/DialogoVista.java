@@ -1,10 +1,12 @@
 package ucsur.pe.vista;
 
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 
 /**
  * Aviso que aparece encima de la pantalla (wireframes 8.3 Cancelar compra, 8.4 Tiempo agotado,
@@ -12,6 +14,7 @@ import javafx.scene.layout.VBox;
  */
 public class DialogoVista extends Pantalla {
 
+    @FXML private VBox raiz;
     @FXML private Label lblTitulo;
     @FXML private Label lblTexto;
     @FXML private VBox contenido;
@@ -35,6 +38,13 @@ public class DialogoVista extends Pantalla {
         lblTitulo.setText(titulo);
         lblTexto.setText(texto);
         if (peligro) lblTitulo.getStyleClass().add("peligro");
+    }
+
+    /** Título, texto y botones centrados (avisos breves, como el del espacio para silla de ruedas). */
+    public void centrar() {
+        raiz.setAlignment(Pos.TOP_CENTER);
+        lblTitulo.setTextAlignment(TextAlignment.CENTER);
+        lblTexto.setTextAlignment(TextAlignment.CENTER);
     }
 
     public void agregarContenido(Node... nodos) {

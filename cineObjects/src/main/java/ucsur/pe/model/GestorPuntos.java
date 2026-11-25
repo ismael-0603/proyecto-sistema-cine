@@ -52,7 +52,7 @@ public class GestorPuntos {
             TipoEntrada t = e.getTipoEntrada();
             if (t != null && !t.validarElegibilidad(cliente)) {
                 return "El cliente no puede usar la entrada '" + t.getNombre()
-                        + "' (es exclusiva para socios o está inactiva)";
+                        + "' (es exclusiva para socios, solo vale el día de su cumpleaños o está inactiva)";
             }
         }
         int requeridos = calcularPuntosRequeridos(entradasValidas);

@@ -232,6 +232,13 @@ public final class Formato {
         return poster(pelicula.getTitulo(), pelicula.getPoster(), ancho, alto);
     }
 
+    /** Póster con radio de esquina personalizado (en píxeles) para esquinas más redondeadas. */
+    public static Node poster(Pelicula pelicula, double ancho, double alto, double radioEsquina) {
+        Image imagen = cargarImagen(pelicula.getPoster());
+        if (imagen != null && !imagen.isError()) return marcoRecortado(imagen, ancho, alto, radioEsquina * 2);
+        return posterReemplazo(pelicula.getTitulo(), ancho, alto);
+    }
+
     /** Igual que el anterior, con el título y la ruta sueltos (vista previa del formulario de película). */
     public static Node poster(String tituloPelicula, String ruta, double ancho, double alto) {
         Image imagen = cargarImagen(ruta);

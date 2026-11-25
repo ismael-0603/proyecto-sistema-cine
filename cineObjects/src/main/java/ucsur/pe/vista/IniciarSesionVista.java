@@ -6,6 +6,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import ucsur.pe.controller.Respuesta;
+import ucsur.pe.model.Persona;
 import ucsur.pe.model.Compra;
 import ucsur.pe.service.Sesion;
 
@@ -18,6 +19,8 @@ public class IniciarSesionVista extends Pantalla {
     @FXML private TextField txtContraVisible;
     @FXML private ToggleButton btnVer;
     @FXML private Label lblMensaje;
+
+    private ValidacionEnVivo validacion;
 
     public IniciarSesionVista(Navegador nav) {
         super(nav);
@@ -34,6 +37,10 @@ public class IniciarSesionVista extends Pantalla {
         btnVer.setGraphic(Iconos.crear(Iconos.OJO, 18, "icono-suave"));
         btnVer.selectedProperty().addListener((o, antes, visible) ->
                 btnVer.setGraphic(Iconos.crear(visible ? Iconos.OJO_OCULTO : Iconos.OJO, 18, "icono-suave")));
+        // La contraseña solo se exige escrita: si es corta, el login responde «Correo o contraseña incorrectos»
+        validacion = validacion(lblMensaje)
+                .campo(txtCorreo, () -> Persona.errorCorreo(txtCorreo.getText()))
+                .campo(txtContra, () -> txtContra.getText().isEmpty() ? "Escribe tu contraseña" : null, txtContraVisible);
         // Al volver de «Recuperar contraseña» el correo ya viene escrito
         String correo = estado().getCorreoLogin();
         if (correo != null) {
@@ -44,6 +51,7 @@ public class IniciarSesionVista extends Pantalla {
 
     @FXML
     private void onIniciar() {
+        if (!validacion.validarTodos()) return;
         Respuesta<Sesion> r = app().login().iniciarSesion(txtCorreo.getText(), txtContra.getText());
         if (!mostrar(lblMensaje, r)) return;
         Sesion sesion = r.dato();

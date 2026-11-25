@@ -30,6 +30,7 @@ public class MisComprasVista extends Pantalla {
     // Ancho de cada columna: fecha, película, sede · sala, total, estado (acciones ocupa el resto)
     private static final double[] ANCHOS = {100, 180, 170, 85, 108};
 
+    @FXML private Button btnVolver;
     @FXML private HBox cabecera;
     @FXML private VBox tabla;
     @FXML private VBox filas;
@@ -55,6 +56,9 @@ public class MisComprasVista extends Pantalla {
         if (cliente == null) {
             Platform.runLater(() -> nav.ir("iniciar-sesion"));
             return;
+        }
+        if (estado().getSede() == null && btnVolver != null) {
+            btnVolver.setText("← Volver");
         }
         String[] titulos = {"Fecha", "Película", "Sede · Sala", "Total", "Estado", "Acciones"};
         for (int i = 0; i < titulos.length; i++) cabecera.getChildren().add(celda(new Label(titulos[i]), i));

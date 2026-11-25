@@ -9,7 +9,7 @@
       fx:controller="ucsur.pe.vista.EncabezadoCompraVista" spacing="10">
     <HBox styleClass="encabezado" spacing="20">
         <VBox.margin><Insets top="10" left="24" right="24"/></VBox.margin>
-        <fx:include source="logo.fxml"/>
+        <fx:include fx:id="logo" source="logo.fxml"/>
         <VBox alignment="CENTER_LEFT" spacing="2">
             <HBox.margin><Insets left="10"/></HBox.margin>
             <Label fx:id="lblTitulo" styleClass="encabezado-titulo"/>

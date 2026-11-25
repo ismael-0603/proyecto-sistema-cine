@@ -3,8 +3,8 @@ package ucsur.pe.vista;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -33,6 +33,9 @@ import javafx.application.Platform;
  */
 public class AsientosVista extends Pantalla {
 
+    /** Tarifa con descuento por discapacidad: al elegirla se recuerda presentar DNI y carné CONADIS. */
+    private static final String TIPO_CONADIS = "Conadis";
+
     @FXML private EncabezadoCompraVista encabezadoController;
     @FXML private GridPane mapa;
     @FXML private Label lblSugerencia;
@@ -40,10 +43,14 @@ public class AsientosVista extends Pantalla {
     @FXML private Label lblGrupo;
     @FXML private Button btnGrupoMenos;
     @FXML private Button btnGrupoMas;
-    @FXML private CheckBox chkAccesible;
     @FXML private Label lblMensajeMapa;
     @FXML private Label lblGuia;
+    @FXML private VBox panelEntradas;
     @FXML private VBox tipos;
+    @FXML private Separator sepBeneficios;
+    @FXML private VBox beneficios;
+    @FXML private Label lblPuntos;
+    @FXML private Label lblAvisoPuntos;
     @FXML private Label lblSocio;
     @FXML private Label lblButacas;
     @FXML private Label lblEntradas;
@@ -79,7 +86,6 @@ public class AsientosVista extends Pantalla {
         }
         volverAElegir();
         cargarTipos();
-        chkAccesible.selectedProperty().addListener((o, a, b) -> recargarMapa());
         recargarMapa();
     }
 
@@ -98,49 +104,100 @@ public class AsientosVista extends Pantalla {
             mostrarError(lblMensaje, r.mensaje());
             return;
         }
+        // Las tarifas exclusivas de socio (Socio, canjes con puntos, Cumpleañero) van en su propia columna
+        boolean hayBeneficios = false;
         for (TipoEntrada t : r.dato()) {
             boolean base = tipoBase == null;
             if (base) tipoBase = t;
             cantidades.put(t, base ? 0 : Math.max(0, estado().getCantidades().getOrDefault(t, 0)));
-            Label nombre = new Label(t.getNombre());
-            nombre.getStyleClass().add("etiqueta");
-            Label precio = new Label(Formato.dinero(funcion.precioEntrada(t)));
-            precio.getStyleClass().add("nota");
-            VBox info = new VBox(1, nombre, precio);
-            if (base) {
-                Label automatico = new Label("Automático (resto de tus butacas)");
-                automatico.getStyleClass().add("nota");
-                info.getChildren().add(automatico);
-            }
-            Region espacio = new Region();
-            HBox.setHgrow(espacio, Priority.ALWAYS);
-
-            Label valor = new Label("0");
-            valor.getStyleClass().add("contador-valor");
-            valores.put(t, valor);
-            HBox fila;
-            if (base) {
-                fila = new HBox(info, espacio, valor);
+            if (t.isRequiereSocio()) {
+                beneficios.getChildren().add(filaTipo(t, false));
+                hayBeneficios = true;
             } else {
-                Button menos = new Button("−");
-                menos.getStyleClass().add("contador-menos");
-                Button mas = new Button("+");
-                mas.getStyleClass().add("contador-mas");
-                menos.setOnAction(e -> cambiarCantidad(t, -1));
-                mas.setOnAction(e -> cambiarCantidad(t, +1));
-                botonesMenos.put(t, menos);
-                botonesMas.put(t, mas);
-                HBox contador = new HBox(menos, valor, mas);
-                contador.getStyleClass().add("contador");
-                fila = new HBox(info, espacio, contador);
+                tipos.getChildren().add(filaTipo(t, base));
             }
-            fila.setAlignment(Pos.CENTER_LEFT);
-            tipos.getChildren().add(fila);
         }
+        if (hayBeneficios) mostrarColumnaBeneficios();
         ajustarTipos();
         boolean socio = estado().cliente() != null && estado().cliente().esSocio();
         lblSocio.setText(socio ? "" : "Socio (usa puntos): inicia sesión con tu cuenta de socio para verlo.");
         lblSocio.setManaged(!socio);
+    }
+
+    /** Nombre, precio (y lo que cuesta en puntos, si es un canje) y el contador de un tipo de entrada. */
+    private HBox filaTipo(TipoEntrada t, boolean base) {
+        Label nombre = new Label(t.getNombre());
+        nombre.getStyleClass().add("etiqueta");
+        nombre.setWrapText(true);
+        Label precio = new Label(Formato.dinero(funcion.precioEntrada(t)));
+        precio.getStyleClass().add("nota");
+        VBox info = new VBox(1, nombre, precio);
+        info.setMinWidth(0);
+        HBox.setHgrow(info, Priority.ALWAYS);
+        if (t.getPuntosCanje() > 0) {
+            Label puntos = new Label("Cuesta " + t.getPuntosCanje() + " puntos");
+            puntos.getStyleClass().add("nota-puntos");
+            info.getChildren().add(puntos);
+        }
+        if (base) {
+            Label automatico = new Label("Automático (resto de tus butacas)");
+            automatico.getStyleClass().add("nota");
+            automatico.setWrapText(true);
+            info.getChildren().add(automatico);
+        }
+        Label valor = new Label("0");
+        valor.getStyleClass().add("contador-valor");
+        valores.put(t, valor);
+        HBox fila;
+        if (base) {
+            fila = new HBox(8, info, valor);
+        } else {
+            Button menos = new Button("−");
+            menos.getStyleClass().add("contador-menos");
+            Button mas = new Button("+");
+            mas.getStyleClass().add("contador-mas");
+            menos.setOnAction(e -> cambiarCantidad(t, -1));
+            mas.setOnAction(e -> cambiarCantidad(t, +1));
+            botonesMenos.put(t, menos);
+            botonesMas.put(t, mas);
+            HBox contador = new HBox(menos, valor, mas);
+            contador.getStyleClass().add("contador");
+            contador.setMinWidth(Region.USE_PREF_SIZE);
+            fila = new HBox(8, info, contador);
+        }
+        fila.setAlignment(Pos.CENTER_LEFT);
+        return fila;
+    }
+
+    /** Socio: el panel se ensancha y las tarifas quedan en dos columnas, «Entradas» y «Beneficios Socio». */
+    private void mostrarColumnaBeneficios() {
+        Label titulo = new Label("Entradas");
+        titulo.getStyleClass().add("etiqueta-fuerte");
+        tipos.getChildren().add(0, titulo);
+        beneficios.setVisible(true);
+        beneficios.setManaged(true);
+        sepBeneficios.setVisible(true);
+        sepBeneficios.setManaged(true);
+        panelEntradas.setMinWidth(640);
+        panelEntradas.setPrefWidth(720);
+        panelEntradas.setMaxWidth(720);
+    }
+
+    /** Puntos que cuestan las entradas de canje elegidas hasta ahora. */
+    private int puntosUsados() {
+        int total = 0;
+        for (var e : cantidades.entrySet()) total += e.getValue() * e.getKey().getPuntosCanje();
+        return total;
+    }
+
+    private int saldoPuntos() {
+        return estado().cliente() == null ? 0 : estado().cliente().consultarPuntos();
+    }
+
+    /** «Tienes X puntos» y, si ya eligió canjes, cuántos usará. */
+    private void actualizarPuntos() {
+        int usados = puntosUsados();
+        lblPuntos.setText("Tienes " + saldoPuntos() + " puntos" + (usados > 0 ? " · usarás " + usados : ""));
     }
 
     /** Suma de las entradas que no son del tipo base. */
@@ -172,13 +229,36 @@ public class AsientosVista extends Pantalla {
         for (var e : valores.entrySet()) e.getValue().setText(String.valueOf(cantidades.get(e.getKey())));
         for (var e : botonesMas.entrySet()) e.getValue().setDisable(!libre);
         for (var e : botonesMenos.entrySet()) e.getValue().setDisable(cantidades.get(e.getKey()) == 0);
+        actualizarPuntos();
     }
 
     /** Pasa una butaca del tipo base a este tipo (+) o la devuelve al tipo base (−). */
     private void cambiarCantidad(TipoEntrada tipo, int cambio) {
         if (cambio > 0 && totalOtrosTipos() >= elegidas.size()) return;
+        if (cambio > 0 && tipo.getPuntosCanje() > 0 && puntosUsados() + tipo.getPuntosCanje() > saldoPuntos()) {
+            mostrarError(lblAvisoPuntos, "Puntos insuficientes: «" + tipo.getNombre() + "» cuesta "
+                    + tipo.getPuntosCanje() + " puntos y te quedan " + (saldoPuntos() - puntosUsados()) + ".");
+            return;
+        }
+        // La primera entrada Conadis recuerda las condiciones del descuento; se suma al aceptar
+        if (cambio > 0 && cantidades.get(tipo) == 0 && TIPO_CONADIS.equalsIgnoreCase(tipo.getNombre())) {
+            DialogoVista d = nav.dialogo();
+            d.configurar("Recuerda", "* Descuento solo para personas con discapacidad.\n"
+                    + "* Se debe presentar DNI y carné CONADIS en la taquilla antes de ingresar a la sala.", false);
+            d.centrar();
+            d.botonPrincipal("Aceptar", () -> {
+                nav.cerrarModal();
+                aplicarCambio(tipo, cambio);
+            });
+            return;
+        }
+        aplicarCambio(tipo, cambio);
+    }
+
+    private void aplicarCambio(TipoEntrada tipo, int cambio) {
         cantidades.put(tipo, Math.max(0, cantidades.get(tipo) + cambio));
         limpiar(lblMensaje);
+        limpiar(lblAvisoPuntos);
         ajustarTipos();
         actualizarResumen();
     }
@@ -204,7 +284,7 @@ public class AsientosVista extends Pantalla {
 
     /** Pide al servicio el mapa con las butacas libres y la sugerencia para el grupo elegido. */
     private void recargarMapa() {
-        Respuesta<MapaButacas> r = app().compra().consultarMapa(compra, funcion, grupoSugerencia, chkAccesible.isSelected());
+        Respuesta<MapaButacas> r = app().compra().consultarMapa(compra, funcion, grupoSugerencia, false);
         if (!r.ok()) {
             mostrarError(lblMensajeMapa, r.mensaje());
             return;
@@ -283,7 +363,7 @@ public class AsientosVista extends Pantalla {
     }
 
     private void aplicarEstadoButaca(Butaca b, Button boton) {
-        boton.getStyleClass().removeAll("elegida", "ocupada", "sugerida", "preferencial");
+        boton.getStyleClass().removeAll("elegida", "ocupada", "sugerida");
         boolean elegida = elegidas.contains(b);
         if (elegida) {
             boton.setText(b.esAccesible() ? "D" : String.valueOf(b.getNumero()));
@@ -295,19 +375,38 @@ public class AsientosVista extends Pantalla {
             boton.setOnAction(null); // ocupada: no se puede tocar
         } else {
             boton.setText(b.esAccesible() ? "D" : String.valueOf(b.getNumero()));
+            // Las butacas de mejor ubicación ya se ven como «Sugerida»: no llevan un color aparte
             if (elegidas.isEmpty() && mapaActual.esSugerida(b)) {
                 boton.getStyleClass().add("sugerida");
-            } else if (Butaca.PREFERENCIAL.equals(b.getTipo())) {
-                boton.getStyleClass().add("preferencial");
             }
             boton.setOnAction(e -> tocarButaca(b));
         }
     }
 
-    /** Elige o suelta una butaca; cada butaca elegida es una entrada. */
+    /**
+     * Elige o suelta una butaca; cada butaca elegida es una entrada. El espacio para silla de ruedas («D») no
+     * tiene butaca física: antes de elegirlo se avisa y solo se marca si el cliente acepta.
+     */
     private void tocarButaca(Butaca b) {
+        if (!elegidas.contains(b) && b.esAccesible()) {
+            DialogoVista d = nav.dialogo();
+            d.configurar("Importante", "Recuerda que el espacio para silla de ruedas que elegiste no cuenta con "
+                    + "una butaca física en la sala: es un espacio libre para ubicar la silla.", false);
+            d.centrar();
+            d.botonSecundario("Cancelar", nav::cerrarModal);
+            d.botonPrincipal("Aceptar", () -> {
+                nav.cerrarModal();
+                alternarButaca(b);
+            });
+            return;
+        }
+        alternarButaca(b);
+    }
+
+    private void alternarButaca(Butaca b) {
         if (!elegidas.remove(b)) elegidas.add(b);
         limpiar(lblMensaje);
+        limpiar(lblAvisoPuntos);
         ajustarTipos();
         dibujarMapa();
         actualizarResumen();

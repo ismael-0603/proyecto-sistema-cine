@@ -5,6 +5,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import ucsur.pe.controller.Respuesta;
+import ucsur.pe.model.Persona;
 import ucsur.pe.model.DetalleCompra;
 
 /** 24 · Recuperar entradas: con el código del comprobante y el correo, o reenviándolas al correo. */
@@ -18,12 +19,26 @@ public class RecuperarVista extends Pantalla {
     @FXML private Label lblEnviado;
     @FXML private Label lblMensajeCorreo;
 
+    // Dos formularios en la misma pantalla: cada uno con su mensaje
+    private ValidacionEnVivo validacionCodigo;
+    private ValidacionEnVivo validacionCorreo;
+
     public RecuperarVista(Navegador nav) {
         super(nav);
     }
 
     @FXML
+    private void initialize() {
+        // El código del comprobante se sigue revisando al pulsar «Ver entradas»
+        validacionCodigo = validacion(lblMensajeCodigo)
+                .campo(txtCorreoCodigo, () -> Persona.errorCorreo(txtCorreoCodigo.getText()));
+        validacionCorreo = validacion(lblMensajeCorreo)
+                .campo(txtCorreo, () -> Persona.errorCorreo(txtCorreo.getText()));
+    }
+
+    @FXML
     private void onVerEntradas() {
+        if (!validacionCodigo.validarTodos()) return;
         String correo = txtCorreoCodigo.getText();
         Respuesta<DetalleCompra> r = app().emision().recuperarPorCodigo(txtCodigo.getText(), correo);
         if (!r.ok()) {
@@ -36,6 +51,11 @@ public class RecuperarVista extends Pantalla {
 
     @FXML
     private void onEnviarCorreo() {
+        if (!validacionCorreo.validarTodos()) {
+            cajaEnviado.setVisible(false);
+            cajaEnviado.setManaged(false);
+            return;
+        }
         Respuesta<Integer> r = app().emision().recuperarPorCorreo(txtCorreo.getText());
         if (!r.ok()) {
             cajaEnviado.setVisible(false);

@@ -37,7 +37,6 @@ public abstract class PantallaAdmin extends Pantalla {
             menuController.aplicarVisibilidad(!nuevoOculto);
             encabezadoController.actualizarBotonMenu(nuevoOculto);
         };
-        menuController.configurarColapso(alternar);
         menuController.aplicarVisibilidad(!estado().isMenuAdminOculto());
         encabezadoController.configurarMenuLateral(estado().isMenuAdminOculto(), alternar);
         return true;

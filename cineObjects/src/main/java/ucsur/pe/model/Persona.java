@@ -87,14 +87,65 @@ public abstract class Persona implements Activable {
         }
     }
 
-    /** Acepta un DNI nulo para invitados; si existe, debe contener exactamente ocho dígitos (y no ser 00000000). */
-    private static String validarDni(String dni) {
-        if (dni == null) return null;
-        String d = dni.trim(); // "12345678 " (espacio al copiar) también vale
-        if (!esDniValido(d)) {
-            throw new IllegalArgumentException("El DNI debe tener exactamente 8 dígitos");
+    // ---------- Reglas públicas: devuelven el motivo del error o null si el dato es válido ----------
+    // Las pantallas las usan para marcar en rojo un campo mientras se escribe, con el mismo texto que
+    // lanzaría el modelo. Los obligatorios rechazan null y vacío; el teléfono es opcional.
+
+    /** DNI peruano: 8 dígitos (se ignoran espacios al inicio y al final) y no 00000000. */
+    public static String errorDni(String dni) {
+        if (dni == null || !esDniValido(dni.trim())) return "El DNI debe tener exactamente 8 dígitos";
+        return null;
+    }
+
+    public static String errorNombres(String nombres) {
+        return errorNombre(nombres, "Los nombres", 80);
+    }
+
+    public static String errorApellidos(String apellidos) {
+        return errorNombre(apellidos, "Los apellidos", 80);
+    }
+
+    /** Solo letras, espacios, apóstrofo o guion (con al menos una letra); no vacío ni más largo que el máximo. */
+    private static String errorNombre(String texto, String campo, int max) {
+        String t = texto == null ? "" : texto.trim();
+        if (t.isEmpty() || t.length() > max) return campo + " no pueden estar vacíos ni superar " + max + " caracteres";
+        if (!t.matches(REGEX_NOMBRE)) return campo + " solo pueden tener letras, espacios, apóstrofo o guion";
+        return null;
+    }
+
+    /** Ni futura ni con una edad fuera de EDAD_MIN..EDAD_MAX años cumplidos a la fecha 'hoy'. */
+    public static String errorFechaNacimiento(DateTime fecha, DateTime hoy) {
+        if (fecha == null) return "La fecha de nacimiento es obligatoria";
+        if (fecha.esDespuesDe(hoy)) return "La fecha de nacimiento no puede ser futura";
+        int edad = edadEn(fecha, hoy);
+        if (edad < EDAD_MIN) return "Debes tener al menos " + EDAD_MIN + " años";
+        if (edad > EDAD_MAX) return "Revisa la fecha de nacimiento: la edad no puede superar " + EDAD_MAX + " años";
+        return null;
+    }
+
+    /** Formato usuario@dominio.tld y hasta 100 caracteres. */
+    public static String errorCorreo(String correo) {
+        String c = correo == null ? "" : correo.trim();
+        if (c.isEmpty()) return "El correo es obligatorio";
+        if (c.length() > 100 || !c.matches(REGEX_CORREO)) return "Correo inválido";
+        return null;
+    }
+
+    /** Opcional: vacío es válido; si se escribe, celular de Perú de 9 dígitos que empieza con 9. */
+    public static String errorTelefono(String telefono) {
+        if (telefono == null || telefono.isBlank()) return null;
+        if (!telefono.trim().matches("9\\d{8}")) return "El celular debe tener 9 dígitos y empezar con 9";
+        return null;
+    }
+
+    /** Entre MIN_CONTRA y 255 caracteres y no solo espacios. */
+    public static String errorContrasena(String contra) {
+        if (contra == null) return "La contraseña es obligatoria";
+        if (contra.length() < MIN_CONTRA || contra.length() > 255) {
+            return "La contraseña debe tener entre " + MIN_CONTRA + " y 255 caracteres";
         }
-        return d;
+        if (contra.isBlank()) return "La contraseña no puede estar formada solo por espacios";
+        return null;
     }
 
     /** Formato de DNI peruano: 8 dígitos y no todos ceros. Lo usa también la pantalla de pago. */
@@ -102,33 +153,28 @@ public abstract class Persona implements Activable {
         return dni != null && dni.matches("\\d{8}") && !dni.equals("00000000");
     }
 
-    /** Recorta espacios; rechaza vacíos, textos que superen el máximo o que no sean un nombre (solo letras). */
-    private static String validarNombre(String texto, String campo, int max) {
-        if (texto == null) return null;
-        String t = texto.trim();
-        if (t.isEmpty() || t.length() > max) {
-            throw new IllegalArgumentException(campo + " no pueden estar vacíos ni superar " + max + " caracteres");
-        }
-        if (!t.matches(REGEX_NOMBRE)) {
-            throw new IllegalArgumentException(campo + " solo pueden tener letras, espacios, apóstrofo o guion");
-        }
-        return t;
+    /** Lanza el motivo como IllegalArgumentException si hay error. */
+    private static void exigir(String error) {
+        if (error != null) throw new IllegalArgumentException(error);
     }
 
-    /** Rechaza fechas futuras y edades fuera de EDAD_MIN..EDAD_MAX (cumplidos a la fecha de hoy). */
+    // ---------- Validaciones del constructor: null se acepta (cuentas invitadas) ----------
+
+    private static String validarDni(String dni) {
+        if (dni == null) return null;
+        exigir(errorDni(dni));
+        return dni.trim(); // "12345678 " (espacio al copiar) también vale
+    }
+
+    private static String validarNombre(String texto, String campo, int max) {
+        if (texto == null) return null;
+        exigir(errorNombre(texto, campo, max));
+        return texto.trim();
+    }
+
     private DateTime validarFechaNac(DateTime fecha) {
         if (fecha == null) return null;
-        DateTime hoy = reloj.ahora();
-        if (fecha.esDespuesDe(hoy)) {
-            throw new IllegalArgumentException("La fecha de nacimiento no puede ser futura");
-        }
-        int edad = edadEn(fecha, hoy);
-        if (edad < EDAD_MIN) {
-            throw new IllegalArgumentException("Debes tener al menos " + EDAD_MIN + " años");
-        }
-        if (edad > EDAD_MAX) {
-            throw new IllegalArgumentException("Revisa la fecha de nacimiento: la edad no puede superar " + EDAD_MAX + " años");
-        }
+        exigir(errorFechaNacimiento(fecha, reloj.ahora()));
         return fecha;
     }
 
@@ -140,14 +186,23 @@ public abstract class Persona implements Activable {
         return faltaCumple ? edad - 1 : edad;
     }
 
+    /**
+     * Si hoy es su cumpleaños (mismo día y mes). Quien nació un 29 de febrero lo celebra el 28 en los años
+     * que no son bisiestos. Sin fecha de nacimiento (cuenta invitada), nunca.
+     */
+    public boolean esCumpleanos() {
+        if (fechaNac == null) return false;
+        DateTime hoy = reloj.ahora();
+        int dia = fechaNac.getDia();
+        if (fechaNac.getMes() == 2 && dia == 29 && !DateTime.esBisiesto(hoy.getAnio())) dia = 28;
+        return hoy.getMes() == fechaNac.getMes() && hoy.getDia() == dia;
+    }
+
     /** Acepta un correo nulo cuando el tipo de persona lo permite; valida formato y longitud si se informa. */
     private static String validarCorreo(String correo) {
         if (correo == null) return null;
-        String c = correo.trim();
-        if (c.length() > 100 || !c.matches(REGEX_CORREO)) {
-            throw new IllegalArgumentException("Correo inválido");
-        }
-        return c;
+        exigir(errorCorreo(correo));
+        return correo.trim();
     }
 
     /**
@@ -164,23 +219,14 @@ public abstract class Persona implements Activable {
      * Si se informa, debe ser un celular de Perú: 9 dígitos que empiezan con 9.
      */
     private static String validarTelefono(String telefono) {
-        if (telefono == null || telefono.isBlank()) return null;
-        String t = telefono.trim();
-        if (!t.matches("9\\d{8}")) {
-            throw new IllegalArgumentException("El celular debe tener 9 dígitos y empezar con 9");
-        }
-        return t;
+        exigir(errorTelefono(telefono));
+        return telefono == null || telefono.isBlank() ? null : telefono.trim();
     }
 
     /** Permite contraseña nula para invitados; si se informa, 8 a 255 caracteres y no solo espacios. */
     private static String validarContra(String contra) {
         if (contra == null) return null;
-        if (contra.length() < MIN_CONTRA || contra.length() > 255) {
-            throw new IllegalArgumentException("La contraseña debe tener entre " + MIN_CONTRA + " y 255 caracteres");
-        }
-        if (contra.isBlank()) {
-            throw new IllegalArgumentException("La contraseña no puede estar formada solo por espacios");
-        }
+        exigir(errorContrasena(contra));
         return contra;
     }
 

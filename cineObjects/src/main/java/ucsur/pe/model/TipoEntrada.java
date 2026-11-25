@@ -16,10 +16,13 @@ public class TipoEntrada implements Activable {
     private boolean requiereSocio; // si es true, solo la compra un cliente socio
     /** Puntos que cuesta canjear esta tarifa; cero significa que no se descuentan puntos. */
     private int puntosCanje;
+    /** Si es true, solo se vende el día del cumpleaños del cliente (tarifa «Cumpleañero»). */
+    private boolean soloCumpleanos;
     private boolean estado;
 
     public TipoEntrada(int idTipoEntrada, String nombre, String descripcion, long tarifaCentavos,
-                       int puntosPorEntrada, boolean requiereSocio, boolean estado, int puntosCanje) {
+                       int puntosPorEntrada, boolean requiereSocio, boolean estado, int puntosCanje,
+                       boolean soloCumpleanos) {
         if (nombre == null || nombre.trim().isEmpty() || nombre.trim().length() > 40) {
             throw new IllegalArgumentException("El nombre es obligatorio (máx. 40 caracteres)");
         }
@@ -38,6 +41,9 @@ public class TipoEntrada implements Activable {
         if (puntosCanje > 0 && !requiereSocio) {
             throw new IllegalArgumentException("Un tipo de entrada que cuesta puntos debe ser exclusivo para socios");
         }
+        if (soloCumpleanos && !requiereSocio) {
+            throw new IllegalArgumentException("Un beneficio de cumpleaños debe ser exclusivo para socios");
+        }
         this.idTipoEntrada = idTipoEntrada;
         this.nombre = nombre.trim();
         this.descripcion = descripcion;
@@ -46,6 +52,7 @@ public class TipoEntrada implements Activable {
         this.requiereSocio = requiereSocio;
         this.estado = estado;
         this.puntosCanje = puntosCanje;
+        this.soloCumpleanos = soloCumpleanos;
     }
 
     /** Puntos que se descuentan del saldo del cliente al usar esta tarifa. */
@@ -56,10 +63,14 @@ public class TipoEntrada implements Activable {
         return this.tarifaCentavos;
     }
 
-    /** Rechaza tipos inactivos y exige que el cliente sea socio cuando la tarifa lo requiere. */
+    /**
+     * Rechaza tipos inactivos, exige que el cliente sea socio cuando la tarifa lo requiere y, si es un beneficio
+     * de cumpleaños, que hoy sea su cumpleaños.
+     */
     public boolean validarElegibilidad(Cliente cliente) {
         if (!this.estado) return false;
-        return !this.requiereSocio || (cliente != null && cliente.cumpleNivelSocio(1));
+        if (this.requiereSocio && (cliente == null || !cliente.cumpleNivelSocio(1))) return false;
+        return !this.soloCumpleanos || cliente.esCumpleanos();
     }
 
     /** Habilita esta tarifa para nuevas compras. */
@@ -89,6 +100,7 @@ public class TipoEntrada implements Activable {
     public String getDescripcion() { return descripcion; }
     public int getPuntosPorEntrada() { return puntosPorEntrada; }
     public boolean isRequiereSocio() { return requiereSocio; }
+    public boolean isSoloCumpleanos() { return soloCumpleanos; }
     @Override
     public boolean isEstado() { return estado; }
 

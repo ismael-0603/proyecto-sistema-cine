@@ -9,7 +9,6 @@ import javafx.scene.layout.VBox;
 public class AdminMenuVista extends Pantalla {
 
     @FXML private VBox raizMenu;
-    @FXML private Button btnColapsar;
     @FXML private Button btnPeliculas;
     @FXML private Button btnFunciones;
     @FXML private Button btnSalas;
@@ -19,18 +18,12 @@ public class AdminMenuVista extends Pantalla {
     @FXML private Button btnReclamos;
     @FXML private Button btnComprar;
 
-    private Runnable alColapsar = () -> { };
-
     public AdminMenuVista(Navegador nav) {
         super(nav);
     }
 
     @FXML
     private void initialize() {
-        if (btnColapsar != null) {
-            btnColapsar.setGraphic(Iconos.crear(Iconos.CHEVRON_IZQ, 15));
-            btnColapsar.setGraphicTextGap(2);
-        }
         btnPeliculas.setGraphic(Iconos.crear(Iconos.PELICULA, 17));
         btnFunciones.setGraphic(Iconos.crear(Iconos.RELOJ, 17));
         btnSalas.setGraphic(Iconos.crear(Iconos.SALA, 17));
@@ -67,15 +60,6 @@ public class AdminMenuVista extends Pantalla {
     @FXML
     private void onComprar() {
         nav.irACuentaPersonal();
-    }
-
-    public void configurarColapso(Runnable accion) {
-        this.alColapsar = accion != null ? accion : () -> { };
-    }
-
-    @FXML
-    private void onColapsar() {
-        alColapsar.run();
     }
 
     /** Oculta o muestra el menú lateral y su contenedor izquierdo en el BorderPane para ceder todo el ancho a la tabla. */

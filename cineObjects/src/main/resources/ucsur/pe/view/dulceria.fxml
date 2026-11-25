@@ -19,7 +19,7 @@
                 <VBox spacing="14" HBox.hgrow="ALWAYS">
                     <Label text="¿Quieres acompañar tu función?" styleClass="titulo-claro"/>
                     <HBox fx:id="categorias" styleClass="barra-filtros" maxWidth="-Infinity"/>
-                    <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" visible="false" managed="false"/>
+                    <Label fx:id="lblMensaje" styleClass="mensaje, mensaje-claro" maxWidth="Infinity" alignment="CENTER" textAlignment="CENTER" visible="false" managed="false"/>
                     <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
                         <FlowPane fx:id="productos" hgap="24" vgap="24">
                             <padding><Insets bottom="10"/></padding>

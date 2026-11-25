@@ -7,6 +7,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import ucsur.pe.controller.Respuesta;
@@ -34,7 +36,9 @@ public class HorarioVista extends Pantalla {
     @FXML private Label lblDuracion;
     @FXML private Label lblClasificacion;
     @FXML private Button btnTrailer;
+    @FXML private HBox cajaSedeFecha;
     @FXML private Label lblSedeFecha;
+    @FXML private Label lblResumenDia;
     @FXML private FlowPane dias;
     @FXML private Label lblMensaje;
     @FXML private VBox formatos;
@@ -54,11 +58,11 @@ public class HorarioVista extends Pantalla {
             return;
         }
         estado().setFuncion(null);
-        poster.getChildren().add(Formato.poster(p, 320, 480));
+        poster.getChildren().add(Formato.poster(p, 312, 460, 24));
         lblTitulo.setText(p.getTitulo());
         for (Genero g : p.getGeneros()) {
             Label tag = new Label(g.getNombre());
-            tag.getStyleClass().addAll("tag-genero", "tag-genero-claro");
+            tag.getStyleClass().add("tag-genero-oscuro");
             generos.getChildren().add(tag);
         }
         lblDuracion.setText(p.getDuracion() + " min");
@@ -66,6 +70,7 @@ public class HorarioVista extends Pantalla {
         btnTrailer.setGraphic(Iconos.crear(Iconos.PLAY, 15));
         btnTrailer.setGraphicTextGap(6);
         btnTrailer.setDisable(p.getTrailer() == null || p.getTrailer().isBlank());
+        cajaSedeFecha.getChildren().add(0, Iconos.crear(Iconos.UBICACION, 15, "icono-dorado"));
 
         Respuesta<List<Funcion>> r = app().cartelera().consultarCartelera(estado().getSede());
         if (!r.ok()) {
@@ -89,8 +94,7 @@ public class HorarioVista extends Pantalla {
             return;
         }
         for (DateTime dia : unicos.values()) {
-            Button b = new Button(Formato.diaCorto(dia));
-            b.getStyleClass().addAll("chip-dia", "btn-pastilla");
+            Button b = botonDia(dia);
             b.setOnAction(e -> elegirDia(dia, b));
             botonesDia.add(b);
             dias.getChildren().add(b);
@@ -104,6 +108,22 @@ public class HorarioVista extends Pantalla {
         elegirDia(lista.get(elegido), botonesDia.get(elegido));
     }
 
+    private static Button botonDia(DateTime dia) {
+        String[] partes = Formato.diaCorto(dia).split(" ");
+        Label semana = new Label(partes[0].toUpperCase());
+        semana.getStyleClass().add("dia-semana");
+        Label numero = new Label(partes.length > 1 ? partes[1] : String.valueOf(dia.getDia()));
+        numero.getStyleClass().add("dia-numero");
+        Label mes = new Label(Formato.mesCorto(dia).toUpperCase());
+        mes.getStyleClass().add("dia-mes");
+        VBox contenido = new VBox(-1, semana, numero, mes);
+        contenido.setAlignment(Pos.CENTER);
+        Button b = new Button();
+        b.setGraphic(contenido);
+        b.getStyleClass().add("dia-tarjeta");
+        return b;
+    }
+
     private void elegirDia(DateTime dia, Button boton) {
         for (Button b : botonesDia) b.getStyleClass().remove("activo");
         boton.getStyleClass().add("activo");
@@ -112,56 +132,99 @@ public class HorarioVista extends Pantalla {
         // Agrupa las funciones del día por formato de sala (2D, 3D, Prime...)
         Map<Integer, List<Funcion>> porFormato = new LinkedHashMap<>();
         Map<Integer, TipoSala> tipos = new LinkedHashMap<>();
+        int totalDia = 0;
         for (Funcion f : funciones) {
             if (!f.getFecha().equals(dia)) continue;
             TipoSala tipo = f.getSala().getTipoSala();
             porFormato.computeIfAbsent(tipo.getIdTipoSala(), k -> new ArrayList<>()).add(f);
             tipos.putIfAbsent(tipo.getIdTipoSala(), tipo);
+            totalDia++;
         }
+        lblResumenDia.setText(totalDia + (totalDia == 1 ? " horario disponible" : " horarios disponibles"));
+        lblResumenDia.setVisible(totalDia > 0);
+        lblResumenDia.setManaged(totalDia > 0);
+
         formatos.getChildren().clear();
         for (var entrada : porFormato.entrySet()) {
             formatos.getChildren().add(tarjetaFormato(tipos.get(entrada.getKey()), entrada.getValue()));
         }
     }
 
-    private HBox tarjetaFormato(TipoSala tipo, List<Funcion> delFormato) {
+    private VBox tarjetaFormato(TipoSala tipo, List<Funcion> delFormato) {
+        boolean esPremium = tipo.obtenerRecargoFormatoCentavos() > 0;
+
+        StackPane cajaIcono = new StackPane(Iconos.crear(esPremium ? Iconos.ESTRELLA : Iconos.SALA, 18));
+        cajaIcono.getStyleClass().add("tarjeta-formato-icono");
+
         Label nombre = new Label(tipo.getFormato());
         nombre.getStyleClass().add("titulo-seccion");
-        long recargo = tipo.obtenerRecargoFormatoCentavos();
-        Label etiqueta = new Label(recargo == 0 ? "Precio base" : "+" + Formato.dinero(recargo));
-        etiqueta.getStyleClass().add("recargo");
-        HBox cabecera = new HBox(10, nombre, etiqueta);
+
+        VBox textos = new VBox(3, nombre);
+        if (tipo.getDescripcion() != null && !tipo.getDescripcion().isBlank()) {
+            Label descripcion = new Label(tipo.getDescripcion());
+            descripcion.getStyleClass().add("nota-suave");
+            descripcion.setWrapText(true);
+            textos.getChildren().add(descripcion);
+        }
+        HBox.setHgrow(textos, Priority.ALWAYS);
+
+        int cantidad = delFormato.size();
+        Label cuenta = new Label(cantidad + (cantidad == 1 ? " función" : " funciones"));
+        cuenta.getStyleClass().add("tarjeta-formato-cuenta");
+        cuenta.setMinWidth(Region.USE_PREF_SIZE);
+
+        HBox cabecera = new HBox(14, cajaIcono, textos, cuenta);
         cabecera.setAlignment(Pos.CENTER_LEFT);
-        Label descripcion = new Label(tipo.getDescripcion());
-        descripcion.getStyleClass().add("nota-suave");
-        descripcion.setWrapText(true);
-        VBox info = new VBox(6, cabecera, descripcion);
-        info.setMinWidth(300);
-        info.setPrefWidth(300);
-        info.setMaxWidth(300);
+        cabecera.getStyleClass().add("tarjeta-formato-cabecera");
 
         FlowPane horas = new FlowPane(12, 12);
         horas.setAlignment(Pos.CENTER_LEFT);
         for (Funcion f : delFormato) horas.getChildren().add(botonHorario(f));
 
-        HBox tarjeta = new HBox(30, info, horas);
-        tarjeta.getStyleClass().add("tarjeta-plana");
-        tarjeta.setAlignment(Pos.CENTER_LEFT);
-        tarjeta.setMinHeight(112);
+        VBox cuerpo = new VBox(horas);
+        cuerpo.getStyleClass().add("tarjeta-formato-cuerpo");
+
+        VBox tarjeta = new VBox(cabecera, cuerpo);
+        tarjeta.getStyleClass().add("tarjeta-formato");
+        if (esPremium) tarjeta.getStyleClass().add("premium");
         return tarjeta;
     }
 
     private Button botonHorario(Funcion f) {
+        boolean disponible = f.estaDisponible();
         Label hora = new Label(f.getHoraInicio().soloHora());
         hora.getStyleClass().add("horario-hora");
-        Label idioma = new Label(f.estaDisponible() ? Formato.capitalizar(f.getIdioma()) : "Agotado");
+        hora.setMinWidth(Region.USE_PREF_SIZE);
+
+        String textoIdioma = disponible ? Formato.capitalizar(f.getIdioma()) : "Agotado";
+        Label idioma = new Label(textoIdioma);
         idioma.getStyleClass().add("horario-idioma");
-        VBox contenido = new VBox(2, hora, idioma);
-        contenido.setAlignment(Pos.CENTER);
+        idioma.setMinWidth(Region.USE_PREF_SIZE);
+        if (!disponible) {
+            idioma.getStyleClass().add("agotada");
+        } else if (textoIdioma.toLowerCase().contains("sub")) {
+            idioma.getStyleClass().add("subtitulada");
+        }
+
+        HBox filaSuperior = new HBox(8, hora, idioma);
+        filaSuperior.setAlignment(Pos.CENTER_LEFT);
+
+        int libres = disponible ? f.consultarDisponibilidad() : 0;
+        String textoDetalle = !disponible
+                ? "Sala " + f.getSala().getNumero() + " · Sin butacas"
+                : libres <= 10
+                        ? "Sala " + f.getSala().getNumero() + " · ¡Últimas " + libres + "!"
+                        : "Sala " + f.getSala().getNumero() + " · " + libres + " libres";
+        Label detalle = new Label(textoDetalle);
+        detalle.getStyleClass().add("horario-detalle");
+        if (disponible && libres <= 10) detalle.getStyleClass().add("pocos");
+
+        VBox contenido = new VBox(6, filaSuperior, detalle);
+        contenido.setAlignment(Pos.CENTER_LEFT);
         Button b = new Button();
         b.setGraphic(contenido);
         b.getStyleClass().add("horario");
-        b.setDisable(!f.estaDisponible());
+        b.setDisable(!disponible);
         b.setOnAction(e -> elegirFuncion(f));
         return b;
     }

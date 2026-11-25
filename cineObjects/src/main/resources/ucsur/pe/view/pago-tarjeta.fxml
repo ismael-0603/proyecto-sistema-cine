@@ -13,10 +13,10 @@
         <fx:include fx:id="encabezado" source="encabezado-compra.fxml"/>
     </top>
     <center>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
-            <HBox alignment="TOP_CENTER">
-                <padding><Insets top="30" left="24" right="24" bottom="24"/></padding>
-                <HBox spacing="36" maxWidth="1400">
+        <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER">
+            <VBox alignment="CENTER">
+                <padding><Insets top="24" left="24" right="24" bottom="24"/></padding>
+                <HBox alignment="CENTER" spacing="36" maxWidth="1400" maxHeight="-Infinity">
                     <VBox styleClass="tarjeta" spacing="8" HBox.hgrow="ALWAYS" minWidth="600" maxWidth="840">
                         <Label text="Datos de tu tarjeta" styleClass="tarjeta-titulo"/>
                         <Label text="Ingresa los datos de tu tarjeta de crédito o débito para completar tu compra." styleClass="nota"/>
@@ -65,7 +65,7 @@
                     </VBox>
                     <VBox fx:id="resumen" minWidth="420" prefWidth="520" maxWidth="520"/>
                 </HBox>
-            </HBox>
+            </VBox>
         </ScrollPane>
     </center>
     <bottom>

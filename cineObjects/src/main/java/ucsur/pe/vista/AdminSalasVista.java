@@ -229,7 +229,7 @@ public class AdminSalasVista extends PantallaAdmin {
                 for (int i = 0; i < l; i++) mapa.add(cuadro(null), col++, fila);
             }
             lblMapaTitulo.setText("Vista previa del mapa");
-            lblMapaNota.setText("Al guardar, el sistema ubica las butacas preferenciales y accesibles.");
+            lblMapaNota.setText("Al guardar, el sistema ubica las butacas accesibles junto a los pasillos.");
             panelMapa.setVisible(true);
             panelMapa.setManaged(true);
         } catch (NumberFormatException | NullPointerException e) {
@@ -252,7 +252,7 @@ public class AdminSalasVista extends PantallaAdmin {
         mapa.add(pasillo(), d[1] + d[2] + 2, 0);
         lblMapaTitulo.setText("Mapa de la sala " + s.getNumero() + " · " + s.getCapacidad() + " butacas");
         lblMapaNota.setText("Pasillos entre los bloques " + d[1] + " | " + d[2] + " | " + d[1]
-                + ". Fila ideal: " + filas.get(Sala.indiceFilaIdeal(filas.size())) + " (allí van las preferenciales).");
+                + ". Fila ideal: " + filas.get(Sala.indiceFilaIdeal(filas.size())) + " (la mejor vista a la pantalla).");
         panelMapa.setVisible(true);
         panelMapa.setManaged(true);
     }
@@ -267,7 +267,6 @@ public class AdminSalasVista extends PantallaAdmin {
     private static Region cuadro(Butaca b) {
         Region r = new Region();
         r.getStyleClass().add("butaca-mini");
-        if (b != null && Butaca.PREFERENCIAL.equals(b.getTipo())) r.getStyleClass().add("preferencial");
         if (b != null && b.esAccesible()) r.getStyleClass().add("accesible");
         return r;
     }

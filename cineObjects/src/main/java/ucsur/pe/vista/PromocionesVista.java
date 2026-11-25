@@ -24,6 +24,7 @@ public class PromocionesVista extends Pantalla {
     private enum Filtro { TODAS, PARA_TODOS, SOCIOS }
 
     @FXML private EncabezadoVista encabezadoController;
+    @FXML private Button btnVolver;
     @FXML private HBox filtros;
     @FXML private Label lblMensaje;
     @FXML private FlowPane promociones;
@@ -39,6 +40,9 @@ public class PromocionesVista extends Pantalla {
     @FXML
     private void initialize() {
         encabezadoController.marcarPromociones();
+        if (estado().getSede() == null && btnVolver != null) {
+            btnVolver.setText("← Volver");
+        }
         var recurso = App.class.getResource("img/promo-entradas.png");
         if (recurso != null) imagen = new Image(recurso.toExternalForm());
         Respuesta<List<Promocion>> r = app().cartelera().listarPromocionesVigentes();
@@ -85,8 +89,8 @@ public class PromocionesVista extends Pantalla {
             foto.setFitWidth(398);
             foto.setFitHeight(125);
             Rectangle esquinas = new Rectangle(398, 125);
-            esquinas.setArcWidth(24);
-            esquinas.setArcHeight(24);
+            esquinas.setArcWidth(32);
+            esquinas.setArcHeight(32);
             foto.setClip(esquinas);
             t.getChildren().add(foto);
         }
@@ -121,5 +125,10 @@ public class PromocionesVista extends Pantalla {
         Label l = new Label("Socio nivel " + nivel + "+");
         l.getStyleClass().addAll("estado-chip", "reembolsada");
         return l;
+    }
+
+    @FXML
+    private void onVolver() {
+        nav.ir(estado().getSede() == null ? "elegir-sede" : "cartelera");
     }
 }
