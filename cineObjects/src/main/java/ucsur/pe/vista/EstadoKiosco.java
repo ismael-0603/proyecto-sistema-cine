@@ -9,7 +9,6 @@ import ucsur.pe.model.Butaca;
 import ucsur.pe.model.Cliente;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.DateTime;
-import ucsur.pe.model.DetalleCompra;
 import ucsur.pe.model.Funcion;
 import ucsur.pe.model.Pelicula;
 import ucsur.pe.model.Sede;
@@ -40,9 +39,10 @@ public class EstadoKiosco {
     private final Map<TipoEntrada, Integer> cantidades = new LinkedHashMap<>();
     private final List<Butaca> butacas = new ArrayList<>();
 
-    // Postventa (fase 2): la compra elegida en «Mis compras» o la recuperada con su código
+    // Postventa (fase 2): la compra elegida en «Mis compras» o las recuperadas por código al correo
     private Compra compraElegida;
-    private DetalleCompra detalleRecuperado;
+    private Compra compraRecuperada;
+    private final List<Compra> comprasRecuperadas = new ArrayList<>();
     private String correoRecuperado;
     private int paginaCompras;
     // Administración: el registro que se abre en un formulario para editarlo (null = nuevo)
@@ -80,6 +80,7 @@ public class EstadoKiosco {
         sesion = null;
         invitado = null;
         compraElegida = null;
+        limpiarRecuperacion();
         paginaCompras = 0;
         correoLogin = null;
         menuAdminOculto = false;
@@ -164,16 +165,25 @@ public class EstadoKiosco {
     public void setMedioPago(String medioPago) { this.medioPago = medioPago; }
     public Map<TipoEntrada, Integer> getCantidades() { return cantidades; }
     public Compra getCompraElegida() { return compraElegida; }
-    public void setCompraElegida(Compra compra) { this.compraElegida = compra; this.detalleRecuperado = null; }
-    public DetalleCompra getDetalleRecuperado() { return detalleRecuperado; }
+    public void setCompraElegida(Compra compra) { this.compraElegida = compra; this.compraRecuperada = null; }
+    public Compra getCompraRecuperada() { return compraRecuperada; }
+    public void setCompraRecuperada(Compra compra) { this.compraRecuperada = compra; this.compraElegida = null; }
+    public List<Compra> getComprasRecuperadas() { return List.copyOf(comprasRecuperadas); }
     public String getCorreoRecuperado() { return correoRecuperado; }
-    public String getCorreoLogin() { return correoLogin; }
-    public void setCorreoLogin(String correo) { this.correoLogin = (correo == null || correo.isBlank()) ? null : correo.trim(); }
-    public void setDetalleRecuperado(DetalleCompra detalle, String correo) {
-        this.detalleRecuperado = detalle;
-        this.correoRecuperado = correo;
+    public void setComprasRecuperadas(List<Compra> compras, String correo) {
+        this.comprasRecuperadas.clear();
+        if (compras != null) this.comprasRecuperadas.addAll(compras);
+        this.correoRecuperado = correo == null ? "" : correo.trim();
+        this.compraRecuperada = null;
         this.compraElegida = null;
     }
+    public void limpiarRecuperacion() {
+        this.compraRecuperada = null;
+        this.comprasRecuperadas.clear();
+        this.correoRecuperado = null;
+    }
+    public String getCorreoLogin() { return correoLogin; }
+    public void setCorreoLogin(String correo) { this.correoLogin = (correo == null || correo.isBlank()) ? null : correo.trim(); }
     public int getPaginaCompras() { return paginaCompras; }
     public void setPaginaCompras(int pagina) { this.paginaCompras = pagina; }
 

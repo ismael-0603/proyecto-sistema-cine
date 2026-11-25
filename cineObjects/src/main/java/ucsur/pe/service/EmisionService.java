@@ -5,30 +5,47 @@ import ucsur.pe.exception.ReglaNegocioException;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.DateTime;
 import ucsur.pe.model.DetalleCompra;
+import ucsur.pe.model.Persona;
 import ucsur.pe.model.Reloj;
 import ucsur.pe.model.TransaccionPago;
 import ucsur.pe.repository.CompraRepository;
 import ucsur.pe.repository.PagoRepository;
+import java.security.SecureRandom;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 /**
  * Por qué existe: casos de uso de emisión (RF-20 a RF-22 y RF-33): ver el detalle de una compra pagada
  * (pantalla de comprobante o «Ver» en Mis compras), imprimirlo, enviarlo por correo y recuperar entradas
- * con el código de compra o el correo.
+ * verificando la titularidad del correo con un código temporal de 6 dígitos.
  */
 public class EmisionService {
-    public static final int MAX_INTENTOS_FALLIDOS = 5; // intentos seguidos de recuperar por código antes de bloquear
-    public static final int MINUTOS_BLOQUEO = 5;       // cuánto dura el bloqueo
+    public static final int MINUTOS_VIGENCIA_CODIGO = 10; // el código de recuperación vence a los 10 minutos
+    public static final int MAX_INTENTOS_CODIGO = 5;      // tras 5 códigos equivocados hay que pedir otro
+    /** Mismo mensaje haya o no compras: así no se revela qué correos compraron. */
+    public static final String MENSAJE_CODIGO_ENVIADO =
+            "Si hay compras confirmadas con ese correo, te enviamos un código de 6 dígitos";
 
     private final CompraRepository compras;
     private final PagoRepository pagos; // para mostrar con qué medio se pagó
     private final ServicioCorreo correo;
     private final Reloj reloj; // de dónde sale la hora actual (el real o uno fijo en pruebas)
+    private final SecureRandom azar = new SecureRandom();
+    /** Códigos pendientes por correo (en minúsculas). Viven en memoria: si el kiosco se reinicia, se pide otro. */
+    private final Map<String, CodigoRecuperacion> codigos = new HashMap<>();
 
-    // Cada kiosco tiene su propio EmisionService, así que el conteo es por kiosco.
-    private int intentosFallidos;
-    private DateTime bloqueadoHasta; // null si no está bloqueado
+    private static final class CodigoRecuperacion {
+        private final String codigo;
+        private final DateTime vence;
+        private int intentosFallidos;
+
+        private CodigoRecuperacion(String codigo, DateTime vence) {
+            this.codigo = codigo;
+            this.vence = vence;
+        }
+    }
 
     public EmisionService(CompraRepository compras, PagoRepository pagos, ServicioCorreo correo, Reloj reloj) {
         if (reloj == null) throw new IllegalArgumentException("El reloj es obligatorio");
@@ -67,52 +84,75 @@ public class EmisionService {
     }
 
     /**
-     * RF-33: con el código del comprobante (B001-000123) y el correo del comprador se vuelve a mostrar
-     * la compra y su QR. La serie es correlativa (así la pide SUNAT) y se puede adivinar, por eso no basta sola.
-     * Si no existe la serie o el correo no coincide, el mensaje es el mismo: así no se revela qué series existen.
-     * Tras MAX_INTENTOS_FALLIDOS seguidos, el kiosco bloquea la recuperación por MINUTOS_BLOQUEO minutos.
+     * RF-33 (paso 1): si el correo tiene compras confirmadas, envía un código temporal de 6 dígitos que vence
+     * en MINUTOS_VIGENCIA_CODIGO minutos. Siempre responde lo mismo para no revelar qué correos tienen compras.
      */
-    public DetalleCompra recuperarPorCodigo(String serieNumero, String correoComprador) {
-        DateTime ahora = reloj.ahora();
-        if (bloqueadoHasta != null && ahora.esAntesDe(bloqueadoHasta)) {
-            throw new ReglaNegocioException("Demasiados intentos fallidos; vuelve a intentarlo después de las "
-                    + bloqueadoHasta.soloHora());
+    public String solicitarCodigoRecuperacion(String correoCliente) {
+        String error = Persona.errorCorreo(correoCliente);
+        if (error != null) {
+            throw new ReglaNegocioException(error);
         }
-        Optional<Compra> compra = compras.buscarPorSerie(serieNumero)
-                .filter(c -> correoComprador != null && c.getCliente().getCorreo() != null
-                        && c.getCliente().getCorreo().equalsIgnoreCase(correoComprador.trim()));
-        if (compra.isEmpty()) {
-            registrarIntentoFallido(ahora);
-            throw new ReglaNegocioException("No se encontró una compra con ese código y correo");
+        String limpio = correoCliente.trim();
+        List<Compra> confirmadas = comprasConfirmadasDe(limpio);
+        if (!confirmadas.isEmpty()) {
+            String codigo = String.format("%06d", azar.nextInt(1_000_000));
+            codigos.put(clave(limpio),
+                    new CodigoRecuperacion(codigo, reloj.ahora().sumarMinutos(MINUTOS_VIGENCIA_CODIGO)));
+            String cuerpo = "Tu código para ver y recuperar tus entradas es " + codigo
+                    + ". Vence en " + MINUTOS_VIGENCIA_CODIGO + " minutos.\n"
+                    + "Si no lo pediste, ignora este mensaje.";
+            if (!correo.enviar(limpio, "Código para recuperar tus entradas", cuerpo)) {
+                codigos.remove(clave(limpio));
+                throw new ReglaNegocioException("No se pudo enviar el código; inténtalo de nuevo");
+            }
         }
-        intentosFallidos = 0;
-        bloqueadoHasta = null;
-        return verDetalle(compra.get());
-    }
-
-    /** Cuenta un intento fallido; al llegar al máximo bloquea la recuperación y reinicia la cuenta. */
-    private void registrarIntentoFallido(DateTime ahora) {
-        intentosFallidos++;
-        if (intentosFallidos >= MAX_INTENTOS_FALLIDOS) {
-            bloqueadoHasta = ahora.sumarMinutos(MINUTOS_BLOQUEO);
-            intentosFallidos = 0;
-        }
+        return MENSAJE_CODIGO_ENVIADO;
     }
 
     /**
-     * RF-33: con el correo no se muestran las entradas en el kiosco (cualquiera podría escribir un correo ajeno);
-     * se reenvían a ese correo las compras confirmadas. Devuelve cuántas se enviaron.
+     * RF-33 (paso 2): valida el código de 6 dígitos enviado al correo y devuelve sus compras confirmadas
+     * (de la más reciente a la más antigua). El código es de un solo uso y se anula tras MAX_INTENTOS_CODIGO fallos.
      */
-    public int recuperarPorCorreo(String correoCliente) {
-        List<Compra> confirmadas = compras.listarPorCorreo(correoCliente).stream()
-                .filter(c -> Compra.CONFIRMADA.equals(c.getEstado()))
-                .toList();
+    public List<Compra> verificarCodigoRecuperacion(String correoCliente, String codigo) {
+        String error = Persona.errorCorreo(correoCliente);
+        if (error != null) {
+            throw new ReglaNegocioException(error);
+        }
+        String limpio = correoCliente.trim();
+        String key = clave(limpio);
+        CodigoRecuperacion pendiente = codigos.get(key);
+        if (pendiente == null) {
+            throw new ReglaNegocioException("El código no es válido; solicita uno nuevo");
+        }
+        if (reloj.ahora().esDespuesDe(pendiente.vence)) {
+            codigos.remove(key);
+            throw new ReglaNegocioException("El código venció; solicita uno nuevo");
+        }
+        if (codigo == null || !pendiente.codigo.equals(codigo.trim())) {
+            pendiente.intentosFallidos++;
+            if (pendiente.intentosFallidos >= MAX_INTENTOS_CODIGO) {
+                codigos.remove(key);
+                throw new ReglaNegocioException("Demasiados intentos con un código incorrecto; solicita uno nuevo");
+            }
+            throw new ReglaNegocioException("El código no es correcto (te quedan "
+                    + (MAX_INTENTOS_CODIGO - pendiente.intentosFallidos) + " intentos)");
+        }
+        codigos.remove(key);
+        List<Compra> confirmadas = comprasConfirmadasDe(limpio);
         if (confirmadas.isEmpty()) {
-            throw new ReglaNegocioException("No hay compras confirmadas con el correo " + correoCliente);
+            throw new ReglaNegocioException("No hay compras confirmadas con ese correo");
         }
-        for (Compra c : confirmadas) {
-            enviarPorCorreo(c, correoCliente);
-        }
-        return confirmadas.size();
+        return confirmadas;
+    }
+
+    private List<Compra> comprasConfirmadasDe(String correoCliente) {
+        return compras.listarPorCorreo(correoCliente).stream()
+                .filter(c -> Compra.CONFIRMADA.equals(c.getEstado()))
+                .sorted(Comparator.comparingLong((Compra c) -> c.getFechaHora().toValorComparable()).reversed())
+                .toList();
+    }
+
+    private static String clave(String correoCliente) {
+        return correoCliente.trim().toLowerCase();
     }
 }

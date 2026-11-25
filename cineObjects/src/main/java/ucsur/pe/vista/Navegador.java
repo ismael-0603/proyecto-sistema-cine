@@ -32,10 +32,12 @@ import javafx.util.Duration;
 import ucsur.pe.App;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Compra;
+import ucsur.pe.model.DetalleCompra;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.FlowPane;
 
 /**
  * Por qué existe: el kiosco es una sola ventana que va cambiando de pantalla. El navegador carga cada FXML
@@ -189,15 +191,69 @@ public class Navegador {
         pausa.play();
     }
 
-    /** La impresora del kiosco se simula: muestra el ticket que se imprimiría. */
-    public void mostrarTicket(String texto) {
-        TextArea ticket = new TextArea(texto);
-        ticket.setEditable(false);
-        ticket.setPrefRowCount(18);
-        ticket.getStyleClass().add("ticket-texto");
+    /** La impresora del kiosco se simula: muestra el ticket con su texto y el código QR visual. */
+    public void mostrarTicket(String texto, DetalleCompra detalle) {
+        Label cuerpo = new Label(texto);
+        cuerpo.getStyleClass().add("ticket-texto");
+        cuerpo.setWrapText(true);
+        cuerpo.setMaxWidth(Double.MAX_VALUE);
+
+        VBox papel = new VBox(12, cuerpo);
+        papel.getStyleClass().add("qr-fondo");
+        papel.setMaxWidth(Double.MAX_VALUE);
+
+        List<String> codigos = (detalle != null && !detalle.getCodigosQR().isEmpty())
+                ? detalle.getCodigosQR()
+                : (detalle != null && detalle.getSerieNumero() != null ? List.of(detalle.getSerieNumero()) : List.of());
+
+        if (!codigos.isEmpty()) {
+            Region separador = new Region();
+            separador.getStyleClass().add("separador-ticket");
+            separador.setMaxWidth(Double.MAX_VALUE);
+
+            FlowPane zonaQrs = new FlowPane(12, 12);
+            zonaQrs.setAlignment(Pos.CENTER);
+            double tamano = codigos.size() > 1 ? 116 : 150;
+            List<String> butacas = detalle != null ? detalle.getButacas() : List.of();
+            int indiceEntrada = 0;
+
+            for (String codigo : codigos) {
+                String etiqueta;
+                if (codigo.startsWith("QR-PED-")) {
+                    etiqueta = "Dulcería";
+                } else if (codigo.startsWith("QR-ENT-")) {
+                    etiqueta = indiceEntrada < butacas.size()
+                            ? "Entrada · Butaca " + butacas.get(indiceEntrada)
+                            : "Entrada";
+                    indiceEntrada++;
+                } else {
+                    etiqueta = "Comprobante";
+                }
+                Label lblTipo = new Label(etiqueta);
+                lblTipo.getStyleClass().add("etiqueta-fuerte");
+                Label lblCod = new Label(codigo);
+                lblCod.getStyleClass().add("nota");
+                lblCod.setWrapText(true);
+                lblCod.setMaxWidth(tamano + 40);
+                lblCod.setAlignment(Pos.CENTER);
+
+                VBox tarjetaQr = new VBox(6, lblTipo, CodigoVisual.dibujar(codigo, tamano), lblCod);
+                tarjetaQr.setAlignment(Pos.CENTER);
+                tarjetaQr.getStyleClass().add("qr-fondo");
+                zonaQrs.getChildren().add(tarjetaQr);
+            }
+            papel.getChildren().addAll(separador, zonaQrs);
+        }
+
+        ScrollPane scroll = new ScrollPane(papel);
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setMaxHeight(500);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
         DialogoVista d = dialogo();
         d.configurar("Comprobante para imprimir", "Así sale el ticket en la impresora del kiosco.", false);
-        d.agregarContenido(ticket);
+        d.agregarContenido(scroll);
         d.botonPrincipal("Listo", this::cerrarModal);
     }
 
@@ -325,11 +381,11 @@ public class Navegador {
         ir("horario");
     }
 
-    /** La compra pagada: se detiene el reloj y se muestra el comprobante. */
+    /** La compra pagada: se detiene el reloj de compra y se muestra el comprobante. */
     public void compraPagada() {
         estado.detenerCuenta();
-        inactividad.stop();
         ir("comprobante");
+        reiniciarInactividad(null); // si hay sesión abierta, sigue vigilando inactividad en el comprobante
     }
 
     /**
@@ -353,10 +409,19 @@ public class Navegador {
 
     /** Fin del recorrido: la siguiente persona empieza en la cartelera de esta sede, sin sesión. */
     public void volverAlInicio() {
+        inactividad.stop();
         estado.terminarCompra();
         estado.cerrarSesion();
         capaCorreos.getChildren().clear(); // la siguiente persona no ve los correos de la anterior
         ir("cartelera");
+    }
+
+    /** Tras pagar, el usuario elige seguir comprando: termina la compra pero conserva su sesión abierta. */
+    public void seguirComprando() {
+        estado.terminarCompra();
+        capaCorreos.getChildren().clear();
+        ir("cartelera");
+        reiniciarInactividad(null);
     }
 
     /** Se acabaron los 4 minutos: la compra se cancela (si el modelo no la venció ya) y se avisa. */
@@ -373,25 +438,39 @@ public class Navegador {
 
     // ---------- Inactividad (wireframe 27) ----------
 
+    private boolean debeVigilarInactividad() {
+        return estado.cuentaActiva() || estado.getSesion() != null;
+    }
+
     private void reiniciarInactividad(Event e) {
-        if (estado.cuentaActiva() && cuentaAviso == null) {
+        if (debeVigilarInactividad() && cuentaAviso == null) {
             inactividad.playFromStart();
-        } else if (!estado.cuentaActiva()) {
+        } else if (!debeVigilarInactividad()) {
             inactividad.stop();
         }
     }
 
     private void avisarInactividad() {
-        if (!estado.cuentaActiva()) return;
+        boolean enCompra = estado.cuentaActiva();
+        if (!enCompra && estado.getSesion() == null) return;
         DialogoVista d = dialogo();
         d.configurar("¿Sigues ahí?",
-                "No detectamos actividad en la pantalla. Por seguridad, cancelaremos tu compra en:", false);
+                enCompra
+                        ? "No detectamos actividad en la pantalla. Por seguridad, cancelaremos tu compra en:"
+                        : "No detectamos actividad en la pantalla. Por seguridad, cerraremos tu sesión en:",
+                false);
         Label cuenta = new Label();
         cuenta.getStyleClass().add("cuenta-regresiva");
-        Label nota = new Label("Si se cancela, se liberan tus butacas y no se cobra nada.");
+        Label nota = new Label(enCompra
+                ? "Si se cancela, se liberan tus butacas y no se cobra nada."
+                : "Si no respondes, el kiosco volverá al inicio para proteger tu cuenta.");
         nota.getStyleClass().add("nota");
         d.agregarContenido(cuenta, nota);
-        d.botonSecundario("Cancelar compra", this::cancelarCompra);
+        if (enCompra) {
+            d.botonSecundario("Cancelar compra", this::cancelarCompra);
+        } else {
+            d.botonSecundario("Cerrar sesión", this::volverAlInicio);
+        }
         d.botonPrincipal("Sí, continuar", () -> {
             cerrarModal();
             inactividad.playFromStart();
@@ -402,7 +481,10 @@ public class Navegador {
         Timeline t = new Timeline(new KeyFrame(Duration.seconds(1), ev -> {
             quedan[0]--;
             cuenta.setText(String.format("00:%02d", Math.max(0, quedan[0])));
-            if (quedan[0] <= 0) cancelarCompra();
+            if (quedan[0] <= 0) {
+                if (enCompra) cancelarCompra();
+                else volverAlInicio();
+            }
         }));
         t.setCycleCount(SEGUNDOS_AVISO);
         cuentaAviso = t; // se asigna después de dialogo(): cerrarModal() la detiene al responder

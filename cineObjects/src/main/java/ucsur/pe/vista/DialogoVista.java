@@ -5,6 +5,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 
@@ -18,6 +19,8 @@ public class DialogoVista extends Pantalla {
     @FXML private Label lblTitulo;
     @FXML private Label lblTexto;
     @FXML private VBox contenido;
+    @FXML private HBox filaBotones;
+    @FXML private VBox columnaBotones;
     @FXML private Button btnSecundario;
     @FXML private Button btnPrincipal;
     @FXML private Button btnEnlace;
@@ -59,6 +62,25 @@ public class DialogoVista extends Pantalla {
 
     public void botonPrincipal(String texto, Runnable accion) {
         mostrar(btnPrincipal, texto, accion);
+    }
+
+    /** Dos botones apilados en vertical (principal arriba y secundario abajo). */
+    public void botonesVerticales(String textoPrincipal, Runnable accionPrincipal,
+                                  String textoSecundario, Runnable accionSecundario) {
+        ocultar(filaBotones);
+        Button arriba = new Button(textoPrincipal);
+        arriba.getStyleClass().add("btn-primario");
+        arriba.setMaxWidth(Double.MAX_VALUE);
+        arriba.setOnAction(e -> accionPrincipal.run());
+
+        Button abajo = new Button(textoSecundario);
+        abajo.getStyleClass().add("btn-secundario");
+        abajo.setMaxWidth(Double.MAX_VALUE);
+        abajo.setOnAction(e -> accionSecundario.run());
+
+        columnaBotones.getChildren().setAll(arriba, abajo);
+        columnaBotones.setVisible(true);
+        columnaBotones.setManaged(true);
     }
 
     /** Enlace rojo debajo de los botones (por ejemplo, «Cancelar compra»). */

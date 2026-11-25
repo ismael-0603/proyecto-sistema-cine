@@ -7,6 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.control.ToggleButton;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Cliente;
 import ucsur.pe.model.Compra;
@@ -25,7 +26,11 @@ public class CrearCuentaVista extends Pantalla {
     @FXML private TextField txtCorreo;
     @FXML private TextField txtTelefono;
     @FXML private PasswordField txtContra;
+    @FXML private TextField txtContraVisible;
+    @FXML private ToggleButton btnVerContra;
     @FXML private PasswordField txtConfirmar;
+    @FXML private TextField txtConfirmarVisible;
+    @FXML private ToggleButton btnVerConfirmar;
     @FXML private CheckBox chkTerminos;
     @FXML private Label lblMensaje;
 
@@ -38,6 +43,8 @@ public class CrearCuentaVista extends Pantalla {
     @FXML
     private void initialize() {
         encabezadoController.soloVolver("Volver", () -> nav.ir("iniciar-sesion"));
+        configurarOjo(txtContra, txtContraVisible, btnVerContra);
+        configurarOjo(txtConfirmar, txtConfirmarVisible, btnVerConfirmar);
         txtFechaNac.setTextFormatter(new TextFormatter<String>(CrearCuentaVista::mascaraFecha));
         // Cada campo se pone en rojo al salir de él si su dato no cumple la regla del modelo
         validacion = validacion(lblMensaje)
@@ -47,11 +54,21 @@ public class CrearCuentaVista extends Pantalla {
                 .campo(txtApellidos, () -> Persona.errorApellidos(txtApellidos.getText()))
                 .campo(txtCorreo, () -> Persona.errorCorreo(txtCorreo.getText()))
                 .campo(txtTelefono, () -> Persona.errorTelefono(txtTelefono.getText()))
-                .campo(txtContra, () -> Persona.errorContrasena(txtContra.getText()))
-                .campo(txtConfirmar, this::errorConfirmar)
+                .campo(txtContra, () -> Persona.errorContrasena(txtContra.getText()), txtContraVisible)
+                .campo(txtConfirmar, this::errorConfirmar, txtConfirmarVisible)
                 .relacionar(txtContra, txtConfirmar)
                 .campo(chkTerminos, () -> chkTerminos.isSelected() ? null
                         : "Debes aceptar los términos y el tratamiento de tus datos para crear la cuenta.");
+    }
+
+    private static void configurarOjo(PasswordField oculto, TextField visible, ToggleButton boton) {
+        visible.textProperty().bindBidirectional(oculto.textProperty());
+        visible.visibleProperty().bind(boton.selectedProperty());
+        oculto.visibleProperty().bind(boton.selectedProperty().not());
+        boton.setText(null);
+        boton.setGraphic(Iconos.crear(Iconos.OJO, 18, "icono-suave"));
+        boton.selectedProperty().addListener((o, antes, mostrar) ->
+                boton.setGraphic(Iconos.crear(mostrar ? Iconos.OJO_OCULTO : Iconos.OJO, 18, "icono-suave")));
     }
 
     /** dd/mm/aaaa completa, fecha que exista y edad entre 15 y 110 años. */

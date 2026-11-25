@@ -30,6 +30,7 @@ public class ComprobanteVista extends Pantalla {
     @FXML private Label lblMensaje;
 
     private Compra compra;
+    private DetalleCompra detalle;
 
     public ComprobanteVista(Navegador nav) {
         super(nav);
@@ -37,8 +38,8 @@ public class ComprobanteVista extends Pantalla {
 
     @FXML
     private void initialize() {
-        encabezadoController.soloVolver("Volver al inicio", nav::volverAlInicio);
-        encabezadoController.alTocarLogo(nav::volverAlInicio); // la compra terminó: la siguiente persona empieza sin sesión
+        encabezadoController.soloVolver("Volver al inicio", this::onInicio);
+        encabezadoController.alTocarLogo(this::onInicio);
         btnEnviar.setGraphic(Iconos.crear(Iconos.CORREO, 16));
         btnEnviar.setGraphicTextGap(8);
         btnImprimir.setGraphic(Iconos.crear(Iconos.TICKET, 16));
@@ -54,6 +55,7 @@ public class ComprobanteVista extends Pantalla {
             return;
         }
         DetalleCompra d = r.dato();
+        this.detalle = d;
         lblSerie.setText("Comprobante " + d.getSerieNumero());
 
         filas.getChildren().addAll(ResumenCompra.filasDetalle(d));
@@ -87,16 +89,24 @@ public class ComprobanteVista extends Pantalla {
         else mostrarError(lblMensaje, r.mensaje());
     }
 
-    /** Muestra el texto que se imprimiría (la impresora del kiosco se simula en pantalla). */
+    /** Muestra el ticket con su código QR (la impresora del kiosco se simula en pantalla). */
     @FXML
     private void onImprimir() {
         Respuesta<String> r = app().emision().imprimir(compra);
         if (!mostrar(lblMensaje, r)) return;
-        nav.mostrarTicket(r.dato());
+        nav.mostrarTicket(r.dato(), detalle);
     }
 
     @FXML
     private void onInicio() {
-        nav.volverAlInicio();
+        if (estado().getSesion() == null) {
+            nav.volverAlInicio();
+            return;
+        }
+        DialogoVista d = nav.dialogo();
+        d.configurar("¿Qué deseas hacer ahora?",
+                "Cierra tu sesión si ya terminaste en el kiosco, o mantenla abierta para seguir comprando.", false);
+        d.centrar();
+        d.botonesVerticales("Cerrar sesión", nav::volverAlInicio, "Seguir comprando", nav::seguirComprando);
     }
 }

@@ -14,9 +14,10 @@
 
     <Region minHeight="18"/>
 
-    <HBox spacing="12">
+    <HBox fx:id="filaBotones" spacing="12">
         <Button fx:id="btnSecundario" styleClass="btn-secundario" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
         <Button fx:id="btnPrincipal" styleClass="btn-primario" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
     </HBox>
+    <VBox fx:id="columnaBotones" spacing="10" visible="false" managed="false"/>
     <Button fx:id="btnEnlace" styleClass="btn-link, btn-link-rojo"/>
 </VBox>

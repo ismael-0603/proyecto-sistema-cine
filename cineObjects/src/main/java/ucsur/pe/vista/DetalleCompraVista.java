@@ -2,6 +2,7 @@ package ucsur.pe.vista;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -9,12 +10,10 @@ import javafx.scene.layout.VBox;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.DetalleCompra;
-import javafx.scene.control.Button;
 
 /**
- * 23 · Detalle de compra. Llega de dos lados: «Mis compras» (con la compra del cliente) o «Recuperar entradas»
- * (solo con el detalle que devolvió el código). En el segundo caso no hay sesión, así que reenviar usa el correo
- * del comprador y la impresión usa el texto del propio detalle.
+ * 23 · Detalle de compra. Llega de dos lados: «Mis compras» (con sesión iniciada) o «Recuperar entradas»
+ * (tras verificar el código enviado al correo). Permite ver el QR, reenviar ese comprobante e imprimirlo.
  */
 public class DetalleCompraVista extends Pantalla {
 
@@ -32,9 +31,10 @@ public class DetalleCompraVista extends Pantalla {
     @FXML private Label lblCorreo;
     @FXML private Label lblMensaje;
 
-    private Compra compra;          // si viene de «Mis compras»
+    private Compra compra;
     private DetalleCompra detalle;
     private String correo;
+    private boolean esRecuperada;
 
     public DetalleCompraVista(Navegador nav) {
         super(nav);
@@ -43,23 +43,27 @@ public class DetalleCompraVista extends Pantalla {
     @FXML
     private void initialize() {
         compra = estado().getCompraElegida();
-        if (compra != null) {
-            Respuesta<DetalleCompra> r = app().emision().verDetalle(compra);
-            if (!r.ok()) {
-                mostrarError(lblMensaje, r.mensaje());
-                return;
-            }
-            detalle = r.dato();
-            correo = compra.getCliente().getCorreo();
-        } else if (estado().getDetalleRecuperado() != null) {
-            detalle = estado().getDetalleRecuperado();
-            correo = estado().getCorreoRecuperado();
-            lblTitulo.setText("Tus entradas");
-            pestanas.setVisible(false);
-            btnVolver.setText("← Recuperar entradas");
-        } else {
+        if (compra == null && estado().getCompraRecuperada() != null) {
+            compra = estado().getCompraRecuperada();
+            esRecuperada = true;
+        }
+        if (compra == null) {
             Platform.runLater(() -> nav.ir("cartelera"));
             return;
+        }
+        Respuesta<DetalleCompra> r = app().emision().verDetalle(compra);
+        if (!r.ok()) {
+            mostrarError(lblMensaje, r.mensaje());
+            return;
+        }
+        detalle = r.dato();
+        correo = compra.getCliente().getCorreo();
+        if (esRecuperada) {
+            lblTitulo.setText("Tus entradas");
+            pestanas.setVisible(false);
+            pestanas.setManaged(false);
+            btnVolver.setText(estado().getComprasRecuperadas().size() > 1
+                    ? "← Volver a mis compras" : "← Recuperar entradas");
         }
         lblSerie.setText("Compra " + detalle.getSerieNumero());
         lblEstado.setText(Formato.estadoCompra(detalle.getEstado()));
@@ -78,39 +82,36 @@ public class DetalleCompraVista extends Pantalla {
         StackPane fondo = new StackPane(CodigoVisual.dibujar(codigo, 160));
         fondo.getStyleClass().add("qr-fondo");
         marcoQr.getChildren().setAll(fondo);
-        lblCorreo.setText("Se enviará a " + (compra != null ? correo : Formato.correoOculto(correo)));
+        lblCorreo.setText("Se enviará a " + (esRecuperada ? Formato.correoOculto(correo) : correo));
     }
 
     @FXML
     private void onEnviar() {
-        if (compra != null) {
-            Respuesta<Void> r = app().emision().enviarPorCorreo(compra, correo);
-            mostrar(lblMensaje, r);
-        } else {
-            mostrar(lblMensaje, app().emision().recuperarPorCorreo(correo));
-        }
+        Respuesta<Void> r = app().emision().enviarPorCorreo(compra, correo);
+        mostrar(lblMensaje, r);
     }
 
-    /** La impresora del kiosco se simula: se muestra el ticket en pantalla. */
+    /** La impresora del kiosco se simula: se muestra el ticket con su QR en pantalla. */
     @FXML
     private void onImprimir() {
-        String texto;
-        if (compra != null) {
-            Respuesta<String> r = app().emision().imprimir(compra);
-            if (!r.ok()) {
-                mostrarError(lblMensaje, r.mensaje());
-                return;
-            }
-            texto = r.dato();
-        } else {
-            texto = detalle.generarTexto();
+        Respuesta<String> r = app().emision().imprimir(compra);
+        if (!r.ok()) {
+            mostrarError(lblMensaje, r.mensaje());
+            return;
         }
-        nav.mostrarTicket(texto);
+        nav.mostrarTicket(r.dato(), detalle);
     }
 
     @FXML
     private void onVolver() {
-        nav.ir(compra != null ? "mis-compras" : "recuperar");
+        if (esRecuperada) {
+            if (estado().getComprasRecuperadas().size() <= 1) {
+                estado().limpiarRecuperacion();
+            }
+            nav.ir("recuperar");
+            return;
+        }
+        nav.ir("mis-compras");
     }
 
     @FXML

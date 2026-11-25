@@ -44,9 +44,21 @@
                         <TextField fx:id="txtTelefono" promptText="9 dígitos" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
 
                         <Label text="Contraseña" styleClass="etiqueta-campo" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
-                        <PasswordField fx:id="txtContra" promptText="Mínimo 8 caracteres" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+                        <StackPane alignment="CENTER_RIGHT" GridPane.rowIndex="7" GridPane.columnIndex="0">
+                            <PasswordField fx:id="txtContra" promptText="Mínimo 8 caracteres" styleClass="campo-con-icono"/>
+                            <TextField fx:id="txtContraVisible" promptText="Mínimo 8 caracteres" styleClass="campo-con-icono" visible="false"/>
+                            <ToggleButton fx:id="btnVerContra" styleClass="btn-ojo">
+                                <StackPane.margin><Insets right="6"/></StackPane.margin>
+                            </ToggleButton>
+                        </StackPane>
                         <Label text="Confirmar contraseña" styleClass="etiqueta-campo" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
-                        <PasswordField fx:id="txtConfirmar" promptText="Repite tu contraseña" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+                        <StackPane alignment="CENTER_RIGHT" GridPane.rowIndex="7" GridPane.columnIndex="1">
+                            <PasswordField fx:id="txtConfirmar" promptText="Repite tu contraseña" styleClass="campo-con-icono"/>
+                            <TextField fx:id="txtConfirmarVisible" promptText="Repite tu contraseña" styleClass="campo-con-icono" visible="false"/>
+                            <ToggleButton fx:id="btnVerConfirmar" styleClass="btn-ojo">
+                                <StackPane.margin><Insets right="6"/></StackPane.margin>
+                            </ToggleButton>
+                        </StackPane>
                     </GridPane>
 
                     <HBox alignment="CENTER">

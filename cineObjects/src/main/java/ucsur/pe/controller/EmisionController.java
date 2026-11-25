@@ -3,6 +3,7 @@ package ucsur.pe.controller;
 import ucsur.pe.model.Compra;
 import ucsur.pe.model.DetalleCompra;
 import ucsur.pe.service.EmisionService;
+import java.util.List;
 
 /** Acciones del comprobante: ver el detalle, imprimir, enviar por correo y recuperar entradas (RF-20 a RF-22, RF-33). */
 public class EmisionController extends ControllerBase {
@@ -24,13 +25,14 @@ public class EmisionController extends ControllerBase {
         return ejecutar("Te enviamos tus entradas por correo", () -> servicio.enviarPorCorreo(compra, destinatario));
     }
 
-    /** Recuperar entradas en el kiosco: código del comprobante y correo con el que se compró. */
-    public Respuesta<DetalleCompra> recuperarPorCodigo(String serieNumero, String correoComprador) {
-        return ejecutar("", () -> servicio.recuperarPorCodigo(serieNumero, correoComprador));
+    /** Paso 1 de recuperación (RF-33): envía un código de 6 dígitos al correo si tiene compras confirmadas. */
+    public Respuesta<Void> solicitarCodigoRecuperacion(String correo) {
+        Respuesta<String> r = ejecutar("", () -> servicio.solicitarCodigoRecuperacion(correo));
+        return r.ok() ? Respuesta.exito(r.dato(), null) : Respuesta.error(r.mensaje());
     }
 
-    public Respuesta<Integer> recuperarPorCorreo(String correo) {
-        Respuesta<Integer> r = ejecutar("", () -> servicio.recuperarPorCorreo(correo));
-        return r.ok() ? Respuesta.exito("Enviamos " + r.dato() + " compra(s) a " + correo, r.dato()) : r;
+    /** Paso 2 de recuperación (RF-33): verifica el código y devuelve las compras confirmadas del correo. */
+    public Respuesta<List<Compra>> verificarCodigoRecuperacion(String correo, String codigo) {
+        return ejecutar("", () -> servicio.verificarCodigoRecuperacion(correo, codigo));
     }
 }

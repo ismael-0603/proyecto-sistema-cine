@@ -56,6 +56,10 @@ public class EncabezadoVista extends Pantalla {
         } else {
             btnSesion.setText("Iniciar sesión");
         }
+        // Con sesión de cliente abierta ya tiene acceso directo a «Mis compras» desde su menú
+        if (estado().clienteConSesion() != null) {
+            ocultar(btnPerdiste);
+        }
     }
 
     /** Para «Elegir sede»: todavía no hay sede ni entradas que recuperar. */
