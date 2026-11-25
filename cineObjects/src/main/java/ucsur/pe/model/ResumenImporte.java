@@ -4,7 +4,8 @@ import ucsur.pe.util.ConversorDinero;
 
 /**
  * Por qué existe: guarda juntos los resultados del cálculo (subtotal, descuento, IGV y total), en céntimos.
- * Es inmutable: cada recálculo crea un resumen nuevo.
+ * Los precios ya traen el IGV: total = subtotal - descuento, y el IGV es la parte de ese total que es impuesto
+ * (la Op. Gravada es total - IGV). Es inmutable: cada recálculo crea un resumen nuevo.
  */
 public final class ResumenImporte {
     /** Importe de una compra que aún no tiene nada. */

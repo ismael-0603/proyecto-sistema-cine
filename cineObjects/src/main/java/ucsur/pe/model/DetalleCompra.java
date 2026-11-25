@@ -91,8 +91,9 @@ public final class DetalleCompra {
         if (!dulceria.isEmpty()) {
             lineas.add("Dulcería: " + String.join(", ", dulceria));
         }
+        lineas.add("Total sin descuento: " + ConversorDinero.formatear(importe.getSubtotalCentavos()));
         lineas.add("Descuento: -" + ConversorDinero.formatear(importe.getDescuentoCentavos()));
-        lineas.add("IGV: " + ConversorDinero.formatear(importe.getIgvCentavos()));
+        lineas.add("IGV incluido: " + ConversorDinero.formatear(importe.getIgvCentavos()));
         lineas.add("Total pagado: " + ConversorDinero.formatear(importe.getTotalCentavos()));
         if (medioPago != null) {
             lineas.add("Pagado con: " + medioPago);

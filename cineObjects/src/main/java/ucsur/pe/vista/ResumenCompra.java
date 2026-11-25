@@ -50,7 +50,10 @@ final class ResumenCompra {
         return compra.getPedido() == null ? 0 : compra.getPedido().getTotalCentavos();
     }
 
-    /** Filas de importes: entradas, dulcería, descuento, op. gravada, IGV (el total va aparte). */
+    /**
+     * Filas de importes: entradas, dulcería, descuento, op. gravada, IGV (el total va aparte).
+     * Los precios ya incluyen el IGV: la op. gravada y el IGV son el desglose del total, no un cargo extra.
+     */
     static List<Node> filasImporte(Compra compra) {
         ResumenImporte imp = compra.getImporte();
         String detalleEntradas = entradasPorTipo(compra);
@@ -60,7 +63,7 @@ final class ResumenCompra {
                 fila("Dulcería", Formato.dinero(montoDulceria(compra)), true),
                 fila("Descuento (cupón y promoción)", "- " + Formato.dinero(imp.getDescuentoCentavos()), true),
                 fila("Op. Gravada", Formato.dinero(imp.getTotalCentavos() - imp.getIgvCentavos()), true),
-                fila("IGV (18 %)", Formato.dinero(imp.getIgvCentavos()), true));
+                fila("IGV incluido (18 %)", Formato.dinero(imp.getIgvCentavos()), true));
     }
 
     /** Datos de la función para la columna «Resumen de tu compra» (8.1 y 8.2). */
@@ -86,8 +89,9 @@ final class ResumenCompra {
                 fila("Butacas", d.getButacas().isEmpty() ? "—" : String.join(", ", d.getButacas()), true),
                 fila("Entradas", entradas.isEmpty() ? "—" : String.join(", ", entradas), true),
                 fila("Dulcería", d.getDulceria().isEmpty() ? "—" : String.join(", ", d.getDulceria()), true),
+                fila("Total sin descuento", Formato.dinero(imp.getSubtotalCentavos()), true),
                 fila("Descuento", "- " + Formato.dinero(imp.getDescuentoCentavos()), true),
-                fila("IGV (18 %)", Formato.dinero(imp.getIgvCentavos()), true));
+                fila("IGV incluido (18 %)", Formato.dinero(imp.getIgvCentavos()), true));
     }
 
     /** «Total pagado  S/ 95.00». */

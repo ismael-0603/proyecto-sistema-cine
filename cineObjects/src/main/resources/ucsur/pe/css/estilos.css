@@ -226,19 +226,6 @@
     -fx-border-radius: 20;
     -fx-background-radius: 20;
 }
-.tarjeta-plana {
-    -fx-background-color:
-        rgba(0, 0, 0, 0.34),
-        linear-gradient(to bottom, #c3ccd9 0%, #9aa7ba 100%),
-        linear-gradient(to bottom, #ffffff 0%, #f6f8fb 52%, #e6ebf2 100%);
-    -fx-background-insets: 5 2 -5 2, 0, 0 0 3 0;
-    -fx-background-radius: 24, 24, 24;
-    -fx-border-color: rgba(255, 255, 255, 0.88);
-    -fx-border-width: 2;
-    -fx-border-radius: 24;
-    -fx-padding: 18 24 18 24;
-}
-.tarjeta-plana:hover { -fx-border-color: #e5a93c; }
 /* ===== ELEGIR SEDE ===== */
 .sede-filtro {
     -fx-background-color: rgba(255, 255, 255, 0.08);
@@ -616,7 +603,6 @@
     -fx-prompt-text-fill: rgba(3, 19, 44, 0.52);
 }
 .campo-con-icono { -fx-padding: 0 48 0 16; }
-.campo-con-icono-izq { -fx-padding: 0 16 0 44; }
 .campo-con-iconos { -fx-padding: 0 48 0 44; }
 .text-field:hover, .password-field:hover, .text-area:hover { -fx-border-color: rgba(3, 19, 44, 0.42); }
 .text-field:focused, .password-field:focused, .text-area:focused { -fx-border-color: #e5a93c; }
@@ -823,7 +809,6 @@
     -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px;
     -fx-text-fill: #03132c;
 }
-.tag-genero-claro { -fx-background-color: white; -fx-border-color: rgba(255, 255, 255, 0.5); }
 .poster-reemplazo {
     -fx-background-color: linear-gradient(to bottom, #16325f 0%, #03132c 100%);
     -fx-background-radius: 10;

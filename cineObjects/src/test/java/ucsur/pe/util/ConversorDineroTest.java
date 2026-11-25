@@ -76,6 +76,32 @@ class ConversorDineroTest {
         assertEquals(0L, ConversorDinero.aplicarPorcentaje(0, 18));
     }
 
+    @Test
+    @DisplayName("impuestoIncluido(2490, 18) = 380: S/ 24.90 trae S/ 3.80 de IGV (base 21.10)")
+    void impuestoIncluido_entradaGeneral() {
+        assertEquals(380L, ConversorDinero.impuestoIncluido(2490, 18));
+        assertEquals(18L, ConversorDinero.impuestoIncluido(118, 18));   // S/ 1.18 = 1.00 + 0.18 exacto
+        assertEquals(0L, ConversorDinero.impuestoIncluido(0, 18));      // valor límite
+    }
+
+    @Test
+    @DisplayName("impuestoIncluido: base + IGV da siempre el precio y la base es la más cercana a precio / 1.18")
+    void impuestoIncluido_cuadraSiempre() {
+        for (long precio = 0; precio <= 20000; precio++) {
+            long igv = ConversorDinero.impuestoIncluido(precio, 18);
+            long base = precio - igv;
+            // |base * 118 - precio * 100| <= 59  <=>  base es precio / 1.18 redondeado al céntimo
+            assertTrue(Math.abs(base * 118 - precio * 100) <= 59, "precio " + precio);
+        }
+    }
+
+    @Test
+    @DisplayName("impuestoIncluido rechaza montos o porcentajes negativos")
+    void impuestoIncluido_rechazaNegativos() {
+        assertThrows(IllegalArgumentException.class, () -> ConversorDinero.impuestoIncluido(-1, 18));
+        assertThrows(IllegalArgumentException.class, () -> ConversorDinero.impuestoIncluido(100, -1));
+    }
+
     // ---------------- Entero -> decimal ----------------
 
     @Test

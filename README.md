@@ -7,7 +7,7 @@ Modelo de dominio desarrollado en Java para representar las operaciones principa
 - Películas, géneros, sedes, salas y funciones.
 - Butacas y disponibilidad por función.
 - Entradas con estados y bloqueo temporal de asientos.
-- Compras con cálculo de subtotal, descuentos, IGV y total.
+- Compras con cálculo de subtotal, descuentos y total; los precios ya incluyen el IGV (18 %), que se desglosa en el comprobante.
 - Cupones, promociones y socios.
 - Pedidos de productos de dulcería e inventario.
 - Clientes, puntos y niveles de socio.
@@ -30,7 +30,7 @@ Desde la raíz del repositorio:
 
 ```bash
 cd cineObjects
-mvn clean javafx:run   # interfaz gráfica del kiosco (necesita XAMPP/MySQL con DB_Cine)
+mvn clean javafx:run   # interfaz gráfica del kiosco (necesita MySQL 8 encendido con DB_Cine)
 ```
 
 En NetBeans, el botón «Run» hace lo mismo (`nbactions.xml`).

@@ -107,7 +107,7 @@ public class App extends Application {
             conectarCapas(db.getConexion(), pasarela, correo);
         } catch (RepositoryException e) {
             Alert error = new Alert(Alert.AlertType.ERROR, e.getMessage()
-                    + "\n\nRevise que XAMPP (MySQL) esté encendido y que db.properties tenga los datos correctos.");
+                    + "\n\nRevise que el servidor MySQL esté encendido y que db.properties tenga los datos correctos.");
             error.setHeaderText("No se pudo abrir el kiosco");
             error.showAndWait();
             Platform.exit();

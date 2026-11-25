@@ -5,6 +5,7 @@ package ucsur.pe.util;
  * las sumas sean exactas (con double, 0.29 * 100 da 28.999999999999996). Nunca se pasa por double.
  * Solo convierte montos (sin reglas de negocio), por eso sus métodos son static, igual que Math:
  *   aCentavos("4.70") -> 470 · formatear(470) -> "S/ 4.70" · aplicarPorcentaje(1055, 18) -> 190
+ *   impuestoIncluido(2490, 18) -> 380 (el IGV que ya trae un precio de S/ 24.90)
  */
 public final class ConversorDinero {
 
@@ -68,5 +69,20 @@ public final class ConversorDinero {
             throw new IllegalArgumentException("El monto y el porcentaje no pueden ser negativos");
         }
         return (centavos * porcentaje + 50) / 100;
+    }
+
+    /**
+     * Separa el impuesto que YA está dentro de un precio (el precio al público incluye el IGV).
+     * Primero saca la base: precio * 100 / (100 + porcentaje), redondeada al céntimo más cercano con enteros
+     * (sumar la mitad del divisor antes de dividir). El impuesto es lo que falta para llegar al precio, así
+     * base + impuesto da siempre el precio exacto. Ejemplo: S/ 24.90 con 18% -> base 2110, impuesto 380.
+     */
+    public static long impuestoIncluido(long centavosConImpuesto, long porcentaje) {
+        if (centavosConImpuesto < 0 || porcentaje < 0) {
+            throw new IllegalArgumentException("El monto y el porcentaje no pueden ser negativos");
+        }
+        long divisor = 100 + porcentaje;
+        long base = (centavosConImpuesto * 100 + divisor / 2) / divisor;
+        return centavosConImpuesto - base;
     }
 }

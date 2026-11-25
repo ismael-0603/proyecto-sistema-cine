@@ -438,7 +438,7 @@ public class Compra implements Totalizable{
 
     /**
      * Monto a devolver, sin cambiar nada: el total pagado o, si la dulcería ya se entregó, solo lo que
-     * costaron las entradas (con sus descuentos e IGV), sin pasar nunca del total pagado.
+     * costaron las entradas (con sus descuentos, IGV incluido), sin pasar nunca del total pagado.
      */
     public long calcularMontoReembolsoCentavos() {
         if (!dulceriaEntregada()) return importe.getTotalCentavos();

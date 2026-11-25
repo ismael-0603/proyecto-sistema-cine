@@ -8,15 +8,19 @@ import java.util.List;
 /**
  * Por qué existe: para que el cálculo del dinero (subtotal, descuentos, IGV y total) esté en un solo lugar.
  * Si cambia el IGV o cómo se combinan los descuentos, solo se toca esta clase.
+ * Los precios de entradas y dulcería son precios al público: YA incluyen el IGV. Por eso el IGV no se suma:
+ * se separa del total para mostrarlo en el comprobante (Op. Gravada + IGV = total).
  * Todo se calcula en céntimos (long): las sumas son exactas y solo el IGV y los porcentajes redondean,
- * siempre al céntimo más cercano (ConversorDinero.aplicarPorcentaje).
+ * siempre al céntimo más cercano (ConversorDinero).
  */
 public class CalculadoraImporte {
-    private static final int PORCENTAJE_IGV = 18; // IGV de Perú: 18%
+    private static final int PORCENTAJE_IGV = 18; // IGV de Perú: 18%, incluido en el precio
 
     /**
-     * Aplica los descuentos uno tras otro según su orden de aplicación (las promociones antes que los cupones):
-     * cada uno descuenta sobre lo que dejó el anterior, así que el descuento total nunca supera el subtotal.
+     * Suma los precios (con IGV) y aplica los descuentos sobre ese monto, uno tras otro según su orden
+     * de aplicación (las promociones antes que los cupones): cada uno descuenta sobre lo que dejó el anterior,
+     * así que el descuento total nunca supera el subtotal. Lo que queda es el total a pagar, y de él se
+     * separa el IGV que contiene.
      * @param entradasValidas entradas que cuentan para el cobro (ni anuladas ni expiradas)
      * @param dulceria el pedido de dulcería, o null; solo se necesita su total, por eso basta un Totalizable
      */
@@ -26,7 +30,7 @@ public class CalculadoraImporte {
             sumaEntradas += e.getPrecioCentavos(); // el precio pactado al elegir el tipo, aunque la tarifa cambie después
         }
         long sumaDulceria = (dulceria != null) ? dulceria.calcularTotalCentavos() : 0;
-        long subtotal = sumaEntradas + sumaDulceria;
+        long subtotal = sumaEntradas + sumaDulceria; // con IGV incluido
 
         List<Descuento> enOrden = new ArrayList<>(descuentos);
         enOrden.sort(Comparator.comparingInt(Descuento::getOrdenAplicacion));
@@ -36,8 +40,8 @@ public class CalculadoraImporte {
         }
         long descuento = subtotal - restante;
 
-        long baseImponible = subtotal - descuento;
-        long igv = ConversorDinero.aplicarPorcentaje(baseImponible, PORCENTAJE_IGV);
-        return new ResumenImporte(subtotal, descuento, igv, baseImponible + igv);
+        long total = subtotal - descuento; // lo que paga el cliente, IGV incluido
+        long igv = ConversorDinero.impuestoIncluido(total, PORCENTAJE_IGV);
+        return new ResumenImporte(subtotal, descuento, igv, total);
     }
 }

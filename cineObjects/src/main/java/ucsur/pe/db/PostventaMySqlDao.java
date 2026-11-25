@@ -51,11 +51,10 @@ public class PostventaMySqlDao implements PostventaDao {
 
     @Override
     public void insertarReclamo(Reclamo reclamo) {
-        boolean idGenerado = reclamo.getIdReclamo() <= 0;
         String sql = """
-                INSERT INTO reclamo (tipo, descripcion, fecha, estado, respuesta, id_compra%s)
-                VALUES (?, ?, ?, ?, ?, ?%s)
-                """.formatted(idGenerado ? "" : ", id_reclamo", idGenerado ? "" : ", ?");
+                INSERT INTO reclamo (tipo, descripcion, fecha, estado, respuesta, id_compra)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """;
         try (PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, reclamo.getTipo());
             ps.setString(2, reclamo.getDescripcion());
@@ -63,11 +62,8 @@ public class PostventaMySqlDao implements PostventaDao {
             ps.setString(4, reclamo.getEstado());
             ps.setString(5, reclamo.getRespuesta());
             ps.setInt(6, reclamo.getCompra().getIdCompra());
-            if (!idGenerado) ps.setInt(7, reclamo.getIdReclamo());
             ps.executeUpdate();
-            if (idGenerado) {
-                reclamo.asignarId(Claves.generada(ps));
-            }
+            reclamo.asignarId(Claves.generada(ps)); // la base genera el id (AUTO_INCREMENT)
         } catch (SQLException e) {
             throw new RepositoryException("No se pudo registrar el reclamo de la compra #" + reclamo.getCompra().getIdCompra() + ".", e);
         }
@@ -107,21 +103,17 @@ public class PostventaMySqlDao implements PostventaDao {
 
     @Override
     public void insertarCalificacion(Calificacion calificacion) {
-        boolean idGenerado = calificacion.getIdCalificacion() <= 0;
         String sql = """
-                INSERT INTO calificacion (puntuacion, comentario, fecha, id_compra%s)
-                VALUES (?, ?, ?, ?%s)
-                """.formatted(idGenerado ? "" : ", id_calificacion", idGenerado ? "" : ", ?");
+                INSERT INTO calificacion (puntuacion, comentario, fecha, id_compra)
+                VALUES (?, ?, ?, ?)
+                """;
         try (PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, calificacion.getPuntuacion());
             ps.setString(2, calificacion.getComentario());
             ps.setTimestamp(3, Fechas.aTimestamp(calificacion.getFecha()));
             ps.setInt(4, calificacion.getCompra().getIdCompra());
-            if (!idGenerado) ps.setInt(5, calificacion.getIdCalificacion());
             ps.executeUpdate();
-            if (idGenerado) {
-                calificacion.asignarId(Claves.generada(ps));
-            }
+            calificacion.asignarId(Claves.generada(ps)); // la base genera el id (AUTO_INCREMENT)
         } catch (SQLIntegrityConstraintViolationException e) {
             throw new RepositoryException("Esta compra ya fue calificada.", e); // uq_calificacion_compra
         } catch (SQLException e) {
