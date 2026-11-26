@@ -35,7 +35,7 @@ public class AdminProductosVista extends PantallaAdmin {
 
     private final Tabla<Producto> tabla = new Tabla<>(
             new String[] {"Producto", "Categoría", "Precio", "Nivel mín.", "Stock", "Estado", "Acciones"},
-            new double[] {220, 110, 90, 120, 130, 105}, 8);
+            new double[] {220, 110, 90, 120, 130, 105}, 155, 8);
     private List<Producto> productos = new ArrayList<>();
     private Producto reponiendo;
     private Sede sede;

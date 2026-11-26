@@ -136,10 +136,10 @@ INSERT INTO cupon (id_cupon, codigo, tipo_descuento, descuento, fecha_inicio, fe
 -- imagen_url: foto de cada producto (resources/ucsur/pe/productos). Los tamaños de un mismo producto
 -- comparten foto, y los combos de socio usan la del combo Individual, Pareja o Familiar que les corresponde.
 INSERT INTO producto (id_producto, nombre, descripcion, categoria, precio, es_combo, nivel_socio_minimo, estado, imagen_url) VALUES
-(1, 'Canchita Pequeña', 'Canchita pequeña: elige salada, dulce o mixta', 'Canchita', 9.90, 0, 0, 1, 'productos/canchita-mixta.jpg'),
-(2, 'Canchita Mediana', 'Canchita mediana: elige salada, dulce o mixta', 'Canchita', 13.90, 0, 0, 1, 'productos/canchita-mixta.jpg'),
-(3, 'Canchita Grande', 'Canchita grande: elige salada, dulce o mixta', 'Canchita', 17.90, 0, 0, 1, 'productos/canchita-mixta.jpg'),
-(4, 'Canchita Jumbo', 'Canchita jumbo: elige salada, dulce o mixta', 'Canchita', 21.90, 0, 0, 1, 'productos/canchita-mixta.jpg'),
+(1, 'Canchita Pequeña', 'Canchita pequeña: elige salada, dulce o mixta', 'Canchita', 9.90, 0, 0, 1, 'productos/canchita-pequena.jpg'),
+(2, 'Canchita Mediana', 'Canchita mediana: elige salada, dulce o mixta', 'Canchita', 13.90, 0, 0, 1, 'productos/canchita-mediana.jpg'),
+(3, 'Canchita Grande', 'Canchita grande: elige salada, dulce o mixta', 'Canchita', 17.90, 0, 0, 1, 'productos/canchita-grande.jpg'),
+(4, 'Canchita Jumbo', 'Canchita jumbo: elige salada, dulce o mixta', 'Canchita', 21.90, 0, 0, 1, 'productos/canchita-jumbo.jpg'),
 (5, 'Gaseosa Mediana', 'Gaseosa de 16 oz: elige la marca', 'Bebidas', 8.90, 0, 0, 1, 'productos/inca-kola.jpg'),
 (6, 'Gaseosa Grande', 'Gaseosa de 22 oz: elige la marca', 'Bebidas', 10.90, 0, 0, 1, 'productos/inca-kola.jpg'),
 (7, 'Gaseosa Jumbo', 'Gaseosa de 32 oz: elige la marca', 'Bebidas', 12.90, 0, 0, 1, 'productos/inca-kola.jpg'),

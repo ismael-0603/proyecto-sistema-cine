@@ -43,7 +43,7 @@ public class AdminSalasVista extends PantallaAdmin {
 
     private final Tabla<Sala> tabla = new Tabla<>(
             new String[] {"Sala", "Formato", "Capacidad", "Distribución", "Estado", "Acciones"},
-            new double[] {80, 150, 110, 200, 160}, 8);
+            new double[] {80, 150, 110, 200, 160}, 375, 8);
     private Sala editando;
 
     public AdminSalasVista(Navegador nav) {

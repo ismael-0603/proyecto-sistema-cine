@@ -29,6 +29,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import javafx.application.Platform;
+import javafx.scene.text.TextAlignment;
 
 /**
  * 7 · Dulcería: el menú de la sede para este cliente. Cada −/+ cambia el pedido de la compra en el servicio,
@@ -41,8 +42,8 @@ public class DulceriaVista extends Pantalla {
     // Tarjeta de 280 px menos el borde (2 × 2); imagen al ras superior en coordenadas enteras
     private static final double ANCHO_IMAGEN = 276;
     private static final double ALTO_IMAGEN = 166;
-    private static final double ANCHO_OPCION_FOTO = 128;
-    private static final double ALTO_OPCION_FOTO = 64;
+    private static final double ANCHO_OPCION_FOTO = 136;
+    private static final double ALTO_OPCION_FOTO = 85;
     private static final Map<String, String> FOTOS_OPCIONES = Map.of(
             "Salada", "productos/canchita-salada.jpg",
             "Dulce", "productos/canchita-dulce.jpg",
@@ -337,6 +338,8 @@ public class DulceriaVista extends Pantalla {
                 alElegir.accept(opcion);
             });
             todos.add(b);
+            GridPane.setFillWidth(b, true);
+            GridPane.setFillHeight(b, true);
             grilla.add(b, i % 3, i / 3);
         }
         todos.get(0).getStyleClass().add("activo");
@@ -349,16 +352,23 @@ public class DulceriaVista extends Pantalla {
         String ruta = FOTOS_OPCIONES.get(opcion);
         Button b = new Button();
         b.setMaxWidth(Double.MAX_VALUE);
+        b.setMaxHeight(Double.MAX_VALUE);
         if (ruta != null) {
             Node foto = Formato.imagenProducto(ruta, opcion, ANCHO_OPCION_FOTO, ALTO_OPCION_FOTO);
             Label texto = new Label(opcion);
             texto.getStyleClass().add("opcion-visual-nombre");
             texto.setWrapText(true);
             texto.setAlignment(Pos.CENTER);
+            texto.setTextAlignment(TextAlignment.CENTER);
+            texto.setMinHeight(34);
+            texto.setPrefHeight(34);
+            texto.setMaxWidth(ANCHO_OPCION_FOTO);
             VBox contenido = new VBox(6, foto, texto);
             contenido.setAlignment(Pos.CENTER);
             b.setGraphic(contenido);
             b.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            b.setMinHeight(144);
+            b.setPrefHeight(144);
             b.getStyleClass().addAll("opcion", "opcion-visual");
         } else {
             b.setText(opcion);

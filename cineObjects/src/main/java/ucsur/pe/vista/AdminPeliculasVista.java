@@ -29,7 +29,7 @@ public class AdminPeliculasVista extends PantallaAdmin {
 
     private final Tabla<Pelicula> tabla = new Tabla<>(
             new String[] {"Título", "Género", "Duración", "Clasificación", "Estado", "Acciones"},
-            new double[] {235, 155, 105, 118, 145}, 8);
+            new double[] {235, 155, 105, 118, 145}, 145, 8);
     private List<Pelicula> peliculas = new ArrayList<>();
 
     public AdminPeliculasVista(Navegador nav) {

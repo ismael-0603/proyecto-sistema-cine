@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -75,10 +76,12 @@ public class ResumenPagoVista extends Pantalla {
         Label lblSub = new Label(subtitulo);
         lblSub.getStyleClass().add("opcion-pago-subtitulo");
         VBox textos = new VBox(2, lblTitulo, lblSub);
+        textos.setAlignment(Pos.CENTER_LEFT);
         HBox contenido = new HBox(14, radio, Iconos.crear(icono, 22), textos);
         contenido.setAlignment(Pos.CENTER_LEFT);
         boton.setText(null);
         boton.setGraphic(contenido);
+        boton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         return radio;
     }
 

@@ -560,6 +560,7 @@
 .opcion-visual-nombre {
     -fx-font-family: "Manrope Medium"; -fx-font-weight: normal; -fx-font-size: 13px;
     -fx-text-fill: #03132c;
+    -fx-text-alignment: center;
 }
 .opcion-visual.activo .opcion-visual-nombre {
     -fx-font-family: "Manrope SemiBold"; -fx-font-weight: normal;

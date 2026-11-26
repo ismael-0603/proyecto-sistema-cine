@@ -229,8 +229,27 @@ public class HorarioVista extends Pantalla {
         return b;
     }
 
-    /** Con cliente ya identificado empieza la compra; si no, pregunta si inicia sesión o sigue como invitado. */
+    /** Si la función es de otro día, pide confirmación antes de iniciar la compra. */
     private void elegirFuncion(Funcion f) {
+        if (f.getFecha().toValorSoloFecha() != DateTime.ahora().toValorSoloFecha()) {
+            DialogoVista d = nav.dialogo();
+            d.configurar("IMPORTANTE",
+                    "La fecha seleccionada para la función es " + Formato.fechaLarga(f.getFecha())
+                            + " (" + Formato.fecha(f.getFecha()) + ").",
+                    true);
+            d.centrar();
+            d.botonSecundario("Cancelar compra", nav::cerrarModal);
+            d.botonPrincipal("Continuar", () -> {
+                nav.cerrarModal();
+                continuarConFuncion(f);
+            });
+            return;
+        }
+        continuarConFuncion(f);
+    }
+
+    /** Con cliente ya identificado empieza la compra; si no, pregunta si inicia sesión o sigue como invitado. */
+    private void continuarConFuncion(Funcion f) {
         estado().setFuncion(f);
         if (estado().empleadoEnPanel()) {
             nav.irACuentaPersonalConHorario(); // el empleado compra con su cuenta personal

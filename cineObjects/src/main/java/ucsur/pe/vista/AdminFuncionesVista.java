@@ -31,7 +31,7 @@ public class AdminFuncionesVista extends PantallaAdmin {
 
     private final Tabla<Funcion> tabla = new Tabla<>(
             new String[] {"Película", "Sala", "Fecha y hora", "Idioma", "Ocupación", "Estado", "Acciones"},
-            new double[] {210, 135, 130, 105, 95, 118}, 8);
+            new double[] {210, 135, 130, 105, 95, 118}, 165, 8);
     private List<Funcion> funciones = new ArrayList<>();
 
     public AdminFuncionesVista(Navegador nav) {

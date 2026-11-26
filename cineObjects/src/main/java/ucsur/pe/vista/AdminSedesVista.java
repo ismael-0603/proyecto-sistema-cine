@@ -33,7 +33,7 @@ public class AdminSedesVista extends PantallaAdmin {
 
     private final Tabla<Sede> tabla = new Tabla<>(
             new String[] {"Sede", "Distrito", "Dirección", "Salas", "Estado", "Acciones"},
-            new double[] {170, 140, 225, 65, 125}, 8);
+            new double[] {170, 140, 225, 65, 125}, 295, 8);
     private List<Sede> sedes = new ArrayList<>();
     private Sede editando;
 
