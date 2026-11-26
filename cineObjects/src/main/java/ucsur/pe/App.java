@@ -101,7 +101,7 @@ public class App extends Application {
         try {
             // 1. Conexión con la base de datos.
             db = DBConnection.getInstance();
-            // 2. Repositorios, servicios y controllers: cada repositorio carga sus datos al crearse.
+            // 2. Repositorios, servicios y controllers (la mayoría carga su catálogo al crearse; Pedido deriva de compras).
             reloj = new RelojSistema();
             PasarelaPago pasarela = new PasarelaSimulada(reloj);
             conectarCapas(db.getConexion(), pasarela, correo);
@@ -141,9 +141,8 @@ public class App extends Application {
     }
 
     /**
-     * Arma las capas de abajo hacia arriba. El orden de los repositorios importa, porque cada uno reutiliza
-     * los objetos que ya cargaron los anteriores (un solo objeto por id en toda la aplicación):
-     * catálogo -> sedes (con salas, butacas y funciones) -> personas -> compras -> pagos, pedidos y postventa.
+     * Arma las capas de abajo hacia arriba. El orden de los repositorios importa porque reutilizan instancias por id:
+     * películas/tipos -> sedes y salas -> productos/descuentos -> personas -> compras -> pagos, pedidos y postventa.
      */
     private void conectarCapas(Connection conexion, PasarelaPago pasarela, ServicioCorreo correo) {
         // DAO y repositorios

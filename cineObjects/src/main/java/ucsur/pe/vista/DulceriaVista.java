@@ -32,9 +32,8 @@ import javafx.application.Platform;
 import javafx.scene.text.TextAlignment;
 
 /**
- * 7 · Dulcería: el menú de la sede para este cliente. Cada −/+ cambia el pedido de la compra en el servicio,
- * que valida stock y ofertas de socio y recalcula el total. En los combos con canchita o gaseosa, el «+»
- * abre primero la ventana para elegir sabor y gaseosa (RF-13); cada combinación es una línea del pedido.
+ * 7 · Dulcería: menú de la sede. Cada −/+ actualiza el pedido en el servicio (valida stock, ofertas y total).
+ * En productos personalizables (combos, canchitas y gaseosas, RF-13), el «+» abre el selector de opciones.
  */
 public class DulceriaVista extends Pantalla {
 

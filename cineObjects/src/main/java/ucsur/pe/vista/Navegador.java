@@ -48,10 +48,8 @@ import javafx.scene.layout.FlowPane;
  */
 public class Navegador {
 
-    /** Sin tocar la pantalla este tiempo durante una compra, se pregunta «¿Sigues ahí?». */
-    private static final int SEGUNDOS_INACTIVIDAD = 150;
-    /** Tiempo para responder al aviso antes de cancelar la compra (en total, 3 minutos sin tocar: RNF-04). */
-    private static final int SEGUNDOS_AVISO = 30;
+    private static final int SEGUNDOS_INACTIVIDAD = 150; // sin actividad en compra o sesión, pregunta «¿Sigues ahí?»
+    private static final int SEGUNDOS_AVISO = 30;        // margen antes de cancelar compra o cerrar sesión (3 min total: RNF-04)
 
     private final Stage stage;
     private final App app;
@@ -115,6 +113,12 @@ public class Navegador {
     /** Cambia a la pantalla del archivo view/{nombre}.fxml al instante (sin opacidad intermedia que difumine texto). */
     public void ir(String nombre) {
         cerrarModal();
+        if ("recuperar".equals(pantallaActual) && !"recuperar".equals(nombre) && !"detalle-compra".equals(nombre)) {
+            estado.limpiarRecuperacion();
+        } else if ("detalle-compra".equals(pantallaActual) && !"recuperar".equals(nombre)
+                && !"detalle-compra".equals(nombre) && !estado.getComprasRecuperadas().isEmpty()) {
+            estado.limpiarRecuperacion();
+        }
         if (pantallaActual != null && !pantallaActual.equals(nombre)
                 && !esCambioPestanaCuenta(pantallaActual, nombre)) {
             pantallaAnterior = pantallaActual;
@@ -123,7 +127,7 @@ public class Navegador {
         raiz.getChildren().set(0, cargar(nombre).raiz);
     }
 
-    /** Última pantalla distinta antes de la actual (útil para «Volver» en Mi cuenta o Promociones). */
+    /** Última pantalla distinta antes de la actual (usada en «Volver» de Mi cuenta del empleado). */
     public String pantallaAnterior() {
         return pantallaAnterior;
     }
@@ -142,7 +146,7 @@ public class Navegador {
         return controller;
     }
 
-    /** Muestra un aviso genérico (título, texto y hasta dos botones) encima de la pantalla actual. */
+    /** Muestra un diálogo genérico (título, texto, contenido opcional y acciones) encima de la pantalla actual. */
     public DialogoVista dialogo() {
         return modal("dialogo");
     }
@@ -191,7 +195,7 @@ public class Navegador {
         pausa.play();
     }
 
-    /** La impresora del kiosco se simula: muestra el ticket con su texto y el código QR visual. */
+    /** La impresora del kiosco se simula: muestra el ticket con su texto y sus códigos QR visuales. */
     public void mostrarTicket(String texto, DetalleCompra detalle) {
         Label cuerpo = new Label(texto);
         cuerpo.getStyleClass().add("ticket-texto");
@@ -363,13 +367,28 @@ public class Navegador {
     /** Cancela la compra en curso (libera butacas y dulcería) y vuelve a la cartelera. */
     public void cancelarCompra() {
         abandonarCompra();
+        if (estado.getSesion() == null) {
+            estado.limpiarInvitado();
+        }
         ir("cartelera");
+        if (estado.getSesion() != null) {
+            reiniciarInactividad(null);
+        }
     }
 
     /** Cancela la compra en curso, si la hay, sin cambiar de pantalla. */
     void abandonarCompra() {
         if (estado.hayCompra() && Compra.EN_PROCESO.equals(estado.getCompra().getEstado())) {
             app.compra().cancelar(estado.getCompra());
+        }
+        estado.terminarCompra();
+        inactividad.stop();
+    }
+
+    /** Marca la compra como expirada en servicio/BD sin cambiar de pantalla. */
+    private void expirarCompraEnCurso() {
+        if (estado.hayCompra() && Compra.EN_PROCESO.equals(estado.getCompra().getEstado())) {
+            app.compra().expirar(estado.getCompra());
         }
         estado.terminarCompra();
         inactividad.stop();
@@ -407,13 +426,23 @@ public class Navegador {
         cambioDeCuenta.aPanel(pantalla, zona);
     }
 
-    /** Fin del recorrido: la siguiente persona empieza en la cartelera de esta sede, sin sesión. */
-    public void volverAlInicio() {
+    /** Arranca o reinicia el contador de inactividad cuando hay una sesión activa. */
+    public void iniciarVigilanciaSesion() {
+        reiniciarInactividad(null);
+    }
+
+    /** Cierra la sesión actual, limpia correos simulados/invitado/recuperación y vuelve al inicio seguro. */
+    public void cerrarSesion() {
         inactividad.stop();
-        estado.terminarCompra();
+        abandonarCompra();
         estado.cerrarSesion();
         capaCorreos.getChildren().clear(); // la siguiente persona no ve los correos de la anterior
-        ir("cartelera");
+        ir(estado.getSede() == null ? "elegir-sede" : "cartelera");
+    }
+
+    /** Fin del recorrido: la siguiente persona empieza en el inicio de esta sede (o elegir sede), sin sesión. */
+    public void volverAlInicio() {
+        cerrarSesion();
     }
 
     /** Tras pagar, el usuario elige seguir comprando: termina la compra pero conserva su sesión abierta. */
@@ -424,10 +453,15 @@ public class Navegador {
         reiniciarInactividad(null);
     }
 
-    /** Se acabaron los 4 minutos: la compra se cancela (si el modelo no la venció ya) y se avisa. */
+    /** Se acabaron los 4 minutos: la compra expira y se avisa. */
     private void tiempoAgotado() {
         cerrarModal(); // si estaba abierto «¿Sigues ahí?», se detiene su cuenta para que no mande a la cartelera luego
-        abandonarCompra(); // si la compra ya expiró en el modelo, el mensaje de error de cancelar se ignora
+        expirarCompraEnCurso();
+        if (estado.getSesion() == null) {
+            estado.limpiarInvitado();
+        } else {
+            reiniciarInactividad(null);
+        }
         DialogoVista d = dialogo();
         d.configurar("Se acabó el tiempo",
                 "Tenías " + Compra.TIEMPO_MAXIMO_COMPRA_MIN + " minutos para completar la compra. Liberamos tus "
@@ -439,7 +473,8 @@ public class Navegador {
     // ---------- Inactividad (wireframe 27) ----------
 
     private boolean debeVigilarInactividad() {
-        return estado.cuentaActiva() || estado.getSesion() != null;
+        return estado.cuentaActiva() || estado.getSesion() != null
+                || estado.hayCliente() || !estado.getComprasRecuperadas().isEmpty();
     }
 
     private void reiniciarInactividad(Event e) {
@@ -452,12 +487,14 @@ public class Navegador {
 
     private void avisarInactividad() {
         boolean enCompra = estado.cuentaActiva();
-        if (!enCompra && estado.getSesion() == null) return;
+        if (!debeVigilarInactividad()) return;
         DialogoVista d = dialogo();
         d.configurar("¿Sigues ahí?",
                 enCompra
                         ? "No detectamos actividad en la pantalla. Por seguridad, cancelaremos tu compra en:"
-                        : "No detectamos actividad en la pantalla. Por seguridad, cerraremos tu sesión en:",
+                        : estado.getSesion() != null
+                                ? "No detectamos actividad en la pantalla. Por seguridad, cerraremos tu sesión en:"
+                                : "No detectamos actividad en la pantalla. Por seguridad, limpiaremos tu sesión en:",
                 false);
         Label cuenta = new Label();
         cuenta.getStyleClass().add("cuenta-regresiva");
@@ -469,7 +506,7 @@ public class Navegador {
         if (enCompra) {
             d.botonSecundario("Cancelar compra", this::cancelarCompra);
         } else {
-            d.botonSecundario("Cerrar sesión", this::volverAlInicio);
+            d.botonSecundario(estado.getSesion() != null ? "Cerrar sesión" : "Salir", this::volverAlInicio);
         }
         d.botonPrincipal("Sí, continuar", () -> {
             cerrarModal();

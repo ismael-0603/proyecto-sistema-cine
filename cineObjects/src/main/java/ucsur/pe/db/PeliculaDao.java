@@ -16,7 +16,7 @@ public interface PeliculaDao {
     /** Todas las películas con sus géneros; los géneros se toman del mapa (id -> Genero) para no repetir objetos. */
     List<Pelicula> listarTodas(Map<Integer, Genero> generos);
 
-    /** Inserta la película con su id y sus géneros. */
+    /** Inserta la película (id generado con AUTO_INCREMENT) y sus géneros. */
     void insertar(Pelicula pelicula);
 
     /** Actualiza los datos y reemplaza sus géneros. */

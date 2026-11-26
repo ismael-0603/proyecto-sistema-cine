@@ -83,6 +83,11 @@ public class CalificarReclamoVista extends Pantalla {
         if (previa.ok() && previa.dato() != null) {
             marcarCalificada(previa.dato().getPuntuacion());
             txtComentario.setText(previa.dato().getComentario() == null ? "" : previa.dato().getComentario());
+        } else if (!Compra.CONFIRMADA.equals(compra.getEstado())) {
+            botonesEstrella.forEach(b -> b.setDisable(true));
+            txtComentario.setDisable(true);
+            btnCalificar.setDisable(true);
+            mostrarOk(lblMensajeCalif, "Solo se pueden calificar compras confirmadas; puedes presentar un reclamo al costado.");
         }
         // Un reclamo a la vez: si hay uno sin cerrar, se avisa en vez de dejar presentar otro igual
         Respuesta<List<Reclamo>> previos = app().postventa().consultarReclamos(cliente, compra);

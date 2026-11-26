@@ -29,6 +29,7 @@ public class InfraestructuraAdminService {
     public Sede registrarSede(Empleado admin, String nombre, String direccion, String distrito,
                               String telefono, String horarioAtencion) {
         exigirAdmin(admin);
+        exigirNombreSedeLibre(nombre, null);
         Sede sede = new Sede(0, nombre, direccion, distrito, telefono, horarioAtencion, Sede.ACTIVA);
         sedes.guardar(sede); // la base le genera el id (AUTO_INCREMENT)
         return sede;
@@ -38,8 +39,19 @@ public class InfraestructuraAdminService {
                                String telefono, String horarioAtencion) {
         exigirAdmin(admin);
         if (sede == null) throw new IllegalArgumentException("La sede es obligatoria");
+        exigirNombreSedeLibre(nombre, sede);
         sede.actualizarDatos(nombre, direccion, distrito, telefono, horarioAtencion);
         sedes.guardar(sede);
+    }
+
+    private void exigirNombreSedeLibre(String nombre, Sede propia) {
+        if (nombre == null || nombre.isBlank()) return;
+        String buscado = nombre.trim();
+        for (Sede s : sedes.listarTodas()) {
+            if (!s.equals(propia) && s.getNombre().equalsIgnoreCase(buscado)) {
+                throw new ReglaNegocioException("Ya existe una sede con el nombre " + buscado);
+            }
+        }
     }
 
     /** Abre, cierra o pone en mantenimiento una sede; para cerrarla no debe tener funciones pendientes. */
@@ -78,8 +90,13 @@ public class InfraestructuraAdminService {
         Sala sala = new Sala(0, numero, filas * (2 * lateral + central), Sala.ACTIVA, sede, tipoSala);
         sala.generarButacas(filas, lateral, central);
         sede.agregarSala(sala); // rechaza un número de sala repetido en la sede
-        salas.guardar(sala);
-        sedes.guardar(sede);
+        try {
+            salas.guardar(sala);
+            sedes.guardar(sede);
+        } catch (RuntimeException e) {
+            sede.quitarSala(sala);
+            throw e;
+        }
         return sala;
     }
 

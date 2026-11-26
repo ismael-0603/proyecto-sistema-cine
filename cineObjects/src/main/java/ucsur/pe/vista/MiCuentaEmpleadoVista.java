@@ -14,6 +14,7 @@ import ucsur.pe.model.Persona;
 /** 12.1 · Mi cuenta del empleado: sus datos, rol, sede, turno, los accesos que le da su rol y su PIN. */
 public class MiCuentaEmpleadoVista extends Pantalla {
 
+    @FXML private EncabezadoVista encabezadoController;
     @FXML private Button btnVolver;
     @FXML private Label lblSubtitulo;
     @FXML private Label lblNombres;
@@ -49,6 +50,8 @@ public class MiCuentaEmpleadoVista extends Pantalla {
             return;
         }
         String rol = empleado.getRol() == null ? "—" : empleado.getRol().getNombre();
+        encabezadoController.modoPanel("Mi cuenta", "Cuenta de empleado · " + rol
+                + (empleado.getSede() == null ? "" : " · Sede " + empleado.getSede().getNombre()));
         lblSubtitulo.setText("Cuenta de empleado · " + rol);
         lblNombres.setText(empleado.getNombres());
         lblApellidos.setText(empleado.getApellidos());
@@ -83,13 +86,17 @@ public class MiCuentaEmpleadoVista extends Pantalla {
         if (!validacionPin.validarTodos()) return;
         Respuesta<Void> r = app().login().cambiarPin(empleado, txtPinActual.getText(),
                 txtPinNuevo.getText(), txtPinConfirmar.getText());
-        if (mostrar(lblMensajePin, r)) {
+        if (r.ok()) {
             txtPinActual.clear();
             txtPinNuevo.clear();
             txtPinConfirmar.clear();
-            validacionPin.limpiar(); // sin rojo tras vaciar los campos
-        } else if (r.mensaje() != null && r.mensaje().contains("PIN") && !r.mensaje().contains("nuevos")) {
-            validacionPin.marcar(txtPinActual, r.mensaje()); // el PIN actual no es el correcto
+            validacionPin.limpiar(); // limpiar antes de mostrar para no borrar «PIN actualizado»
+            mostrar(lblMensajePin, r);
+        } else {
+            mostrar(lblMensajePin, r);
+            if (r.mensaje() != null && r.mensaje().contains("PIN") && !r.mensaje().contains("nuevos")) {
+                validacionPin.marcar(txtPinActual, r.mensaje()); // el PIN actual no es el correcto
+            }
         }
     }
 
@@ -104,8 +111,7 @@ public class MiCuentaEmpleadoVista extends Pantalla {
 
     @FXML
     private void onCerrarSesion() {
-        estado().cerrarSesion();
-        nav.ir(estado().getSede() == null ? "elegir-sede" : "cartelera");
+        nav.cerrarSesion();
     }
 
     private void configurarVolver(boolean admin) {

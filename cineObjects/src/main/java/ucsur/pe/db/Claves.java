@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Por qué existe: todas las tablas de DB_Cine generan su id con AUTO_INCREMENT. Cada DAO inserta la fila
+ * Por qué existe: las tablas de entidades de DB_Cine generan su id con AUTO_INCREMENT. Cada DAO inserta la fila
  * sin id (con Statement.RETURN_GENERATED_KEYS) y lee aquí el id que generó la base, para asignárselo
  * al objeto del modelo con su método asignarId. Así ningún DAO repite este bloque.
  */

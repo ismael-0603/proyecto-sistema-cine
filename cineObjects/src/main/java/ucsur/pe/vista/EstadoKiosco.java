@@ -33,7 +33,7 @@ public class EstadoKiosco {
     private Pelicula pelicula;
     private DateTime diaElegido;    // día filtrado en la cartelera: «Horarios» abre en ese día (null = el primero)
     private Funcion funcion;
-    private Compra compra;          // compra EN_PROCESO; null fuera del flujo de compra
+    private Compra compra;          // compra actual (EN_PROCESO o CONFIRMADA en comprobante); null fuera del flujo
     private String medioPago;       // medio elegido en «Resumen y pago»
     // Lo elegido en «Asientos», para volver a mostrarlo si el cliente regresa desde la dulcería
     private final Map<TipoEntrada, Integer> cantidades = new LinkedHashMap<>();
@@ -74,6 +74,10 @@ public class EstadoKiosco {
 
     public void entrarComoInvitado(Cliente invitado) {
         this.invitado = invitado;
+    }
+
+    public void limpiarInvitado() {
+        this.invitado = null;
     }
 
     public void cerrarSesion() {

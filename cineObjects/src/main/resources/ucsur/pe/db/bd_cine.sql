@@ -268,11 +268,14 @@ CREATE TABLE funcion (
     hora_inicio TIME        NOT NULL,
     idioma      VARCHAR(30) NOT NULL,
     estado      VARCHAR(15) NOT NULL DEFAULT 'DISPONIBLE',
-    id_pelicula INT         NOT NULL,
-    id_sala     INT         NOT NULL,
+    id_pelicula     INT         NOT NULL,
+    id_sala         INT         NOT NULL,
+    -- columna calculada: vale 1 solo si la funcion NO esta CANCELADA (permite reprogramar horarios cancelados)
+    horario_activo  TINYINT GENERATED ALWAYS AS
+                        (CASE WHEN estado <> 'CANCELADA' THEN 1 ELSE NULL END) STORED,
 
     CONSTRAINT pk_funcion          PRIMARY KEY (id_funcion),
-    CONSTRAINT uq_funcion_horario  UNIQUE (id_sala, fecha, hora_inicio),
+    CONSTRAINT uq_funcion_horario  UNIQUE (id_sala, fecha, hora_inicio, horario_activo),
     CONSTRAINT ck_funcion_estado   CHECK (estado IN ('DISPONIBLE', 'AGOTADA', 'EN_CURSO', 'FINALIZADA', 'CANCELADA')),
     CONSTRAINT fk_funcion_pelicula FOREIGN KEY (id_pelicula) REFERENCES pelicula (id_pelicula),
     CONSTRAINT fk_funcion_sala     FOREIGN KEY (id_sala)     REFERENCES sala (id_sala)

@@ -18,7 +18,7 @@ final class Transaccion {
 
     private Transaccion() { }
 
-    /** Ejecuta el bloque en una transacción; si falla, revierte y lanza RepositoryException con el mensaje dado. */
+    /** Ejecuta el bloque en una transacción; si falla, revierte (envuelve SQLException en RepositoryException y relanza RuntimeException). */
     static void ejecutar(Connection conexion, String mensajeError, Bloque bloque) {
         try {
             boolean autoCommitAntes = conexion.getAutoCommit();

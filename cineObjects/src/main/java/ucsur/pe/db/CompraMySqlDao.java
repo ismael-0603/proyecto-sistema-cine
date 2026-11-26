@@ -235,6 +235,8 @@ public class CompraMySqlDao implements CompraDao {
             guardarEntradas(compra, idCompra[0], idsEntradas);
             if (compra.getPedido() != null) {
                 idPedidoNuevo[0] = guardarPedido(compra.getPedido(), idCompra[0]);
+            } else {
+                eliminarPedidoBorrador(idCompra[0]);
             }
             actualizarPuntosCliente(compra.getCliente());
             actualizarUsosCupon(compra);
@@ -430,6 +432,15 @@ public class CompraMySqlDao implements CompraDao {
             }
         }
         return idNuevo;
+    }
+
+    /** Elimina un pedido borrador (sin QR) cuando el cliente vacía u omite la dulcería después de haber vuelto a butacas. */
+    private void eliminarPedidoBorrador(int idCompra) throws SQLException {
+        try (PreparedStatement ps = conexion.prepareStatement(
+                "DELETE FROM pedido WHERE id_compra = ? AND codigo_qr IS NULL")) {
+            ps.setInt(1, idCompra);
+            ps.executeUpdate();
+        }
     }
 
     /** Un pedido guardado sin QR todavía no se registró: sus líneas aún pueden cambiar. */

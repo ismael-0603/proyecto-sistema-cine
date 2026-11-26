@@ -46,17 +46,39 @@ public class FuncionAdminService {
         if (pelicula != null && !pelicula.estaEnCartelera()) {
             throw new ReglaNegocioException("Solo se programan películas en cartelera, en preestreno o reestrenadas");
         }
+        if (sala == null) {
+            throw new IllegalArgumentException("La sala es obligatoria");
+        }
+        if (!sala.estaOperativa()) {
+            throw new ReglaNegocioException("La sala " + sala.getNumero() + " no está activa");
+        }
         Funcion funcion = new Funcion(0, fecha, hora, idioma, Funcion.DISPONIBLE, pelicula, sala, reloj);
+        if (!reloj.ahora().esAntesDe(funcion.obtenerFechaHoraInicio())) {
+            throw new IllegalArgumentException("La fecha y hora de la función deben ser futuras");
+        }
         admin.getSede().agregarFuncion(funcion);
-        sedes.guardar(admin.getSede());
+        try {
+            sedes.guardar(admin.getSede());
+        } catch (RuntimeException e) {
+            admin.getSede().quitarFuncion(funcion);
+            throw e;
+        }
         return funcion;
     }
 
     /** Cambia fecha, hora e idioma de una función que aún no tiene entradas vendidas ni reservadas. */
     public void editarFuncion(Empleado admin, Funcion funcion, DateTime fecha, DateTime hora, String idioma) {
         exigirFuncionDeSuSede(admin, funcion);
+        DateTime fechaAntes = funcion.getFecha();
+        DateTime horaAntes = funcion.getHoraInicio();
+        String idiomaAntes = funcion.getIdioma();
         funcion.reprogramar(fecha, hora, idioma);
-        sedes.guardar(admin.getSede());
+        try {
+            sedes.guardar(admin.getSede());
+        } catch (RuntimeException e) {
+            funcion.restaurarHorario(fechaAntes, horaAntes, idiomaAntes);
+            throw e;
+        }
     }
 
     /**

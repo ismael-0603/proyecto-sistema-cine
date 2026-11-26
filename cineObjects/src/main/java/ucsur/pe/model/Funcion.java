@@ -109,7 +109,7 @@ public class Funcion {
         return null;
     }
 
-    /** Indica si se puede vender (estado DISPONIBLE) tras actualizar el estado. */
+    /** Indica si se puede vender (estado calculado DISPONIBLE). */
     public boolean estaDisponible() {
         return DISPONIBLE.equals(calcularEstado());
     }
@@ -183,6 +183,16 @@ public class Funcion {
         this.fecha = nuevaFecha;
         this.horaInicio = nuevaHora;
         this.idioma = nuevoIdioma.trim();
+    }
+
+    /** Restaura fecha, hora e idioma previos si falló la persistencia tras reprogramar. */
+    public void restaurarHorario(DateTime fechaAnterior, DateTime horaAnterior, String idiomaAnterior) {
+        if (fechaAnterior == null || horaAnterior == null || idiomaAnterior == null || idiomaAnterior.trim().isEmpty()) {
+            return;
+        }
+        this.fecha = fechaAnterior;
+        this.horaInicio = horaAnterior;
+        this.idioma = idiomaAnterior.trim();
     }
 
     /** Valida que el estado inicial sea uno de los cinco definidos (en la BD, ck_funcion_estado). */

@@ -205,6 +205,13 @@ public class Sala {
         funciones.add(nuevaFuncion);
     }
 
+    /** Quita una función aún no guardada en BD (id <= 0) si falló su persistencia. */
+    void quitarFuncion(Funcion funcion) {
+        if (funcion != null && funcion.getIdFuncion() <= 0) {
+            funciones.remove(funcion);
+        }
+    }
+
     /**
      * Comprueba que una función que empezaría en {@code inicioNueva} no se cruce con otra de la sala
      * (ni con su limpieza). Ignora a la propia función, para poder reprogramarla o reactivarla.

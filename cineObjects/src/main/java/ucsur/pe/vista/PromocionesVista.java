@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.Insets;
 
-/** 10 · Promociones vigentes hoy, con filtro «Para todos» o «Socios». */
+/** 10 · Promociones vigentes hoy, con filtro «Todas», «Para todos» o «Socios». */
 public class PromocionesVista extends Pantalla {
 
     private enum Filtro { TODAS, PARA_TODOS, SOCIOS }

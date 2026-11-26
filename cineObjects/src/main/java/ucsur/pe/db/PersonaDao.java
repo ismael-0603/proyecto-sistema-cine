@@ -14,7 +14,7 @@ public interface PersonaDao {
     List<Cliente> listarClientes();
     /** Inserta el cliente (socio o invitado, con id 0) y le asigna el id que genera la base (AUTO_INCREMENT). */
     void insertarCliente(Cliente cliente);
-    /** Guarda los datos que cambian: contacto, clave, estado, puntos, nivel y si dejó de ser invitado. */
+    /** Actualiza los datos editables del cliente (contacto, clave, estado, puntos y nivel). */
     void actualizarCliente(Cliente cliente);
 
     List<Rol> listarRoles();

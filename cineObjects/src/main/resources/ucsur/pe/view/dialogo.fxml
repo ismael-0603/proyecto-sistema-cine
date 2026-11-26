@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<!-- Aviso encima de la pantalla: 8.3, 8.4, 8.5 y 27 -->
+<!-- Diálogo modal reutilizable (avisos, confirmaciones, PIN, personalización y ticket) -->
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:id="raiz" fx:controller="ucsur.pe.vista.DialogoVista"
       styleClass="dialogo" maxWidth="560" maxHeight="-Infinity" minWidth="520">

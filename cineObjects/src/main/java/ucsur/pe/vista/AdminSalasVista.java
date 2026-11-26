@@ -194,6 +194,9 @@ public class AdminSalasVista extends PantallaAdmin {
             int[] actual = distribucion(editando);
             if (r.ok() && (actual[0] != filas || actual[1] != lateral || actual[2] != central)) {
                 r = app().adminInfraestructura().redistribuirSala(admin, editando, filas, lateral, central);
+                if (!r.ok()) {
+                    cargar(true); // número/formato ya quedaron guardados en la sala
+                }
             }
         }
         if (!r.ok()) {
@@ -241,6 +244,13 @@ public class AdminSalasVista extends PantallaAdmin {
     private void verMapa(Sala s) {
         mapa.getChildren().clear();
         List<String> filas = s.obtenerFilas();
+        if (filas.isEmpty()) {
+            lblMapaTitulo.setText("Mapa de la sala " + s.getNumero() + " · " + s.getCapacidad() + " butacas");
+            lblMapaNota.setText("Esta sala aún no tiene butacas configuradas.");
+            panelMapa.setVisible(true);
+            panelMapa.setManaged(true);
+            return;
+        }
         int[] d = distribucion(s);
         for (Butaca b : s.obtenerMapaButacas()) {
             int fila = filas.indexOf(b.getFila());
@@ -248,8 +258,10 @@ public class AdminSalasVista extends PantallaAdmin {
             mapa.add(cuadro(b), b.getNumero() + corrimiento, fila);
         }
         for (int f = 0; f < filas.size(); f++) mapa.add(letra(f), 0, f);
-        if (d[1] > 0) mapa.add(pasillo(), d[1] + 1, 0);
-        mapa.add(pasillo(), d[1] + d[2] + 2, 0);
+        if (d[1] > 0) {
+            mapa.add(pasillo(), d[1] + 1, 0);
+            mapa.add(pasillo(), d[1] + d[2] + 2, 0);
+        }
         lblMapaTitulo.setText("Mapa de la sala " + s.getNumero() + " · " + s.getCapacidad() + " butacas");
         lblMapaNota.setText("Pasillos entre los bloques " + d[1] + " | " + d[2] + " | " + d[1]
                 + ". Fila ideal: " + filas.get(Sala.indiceFilaIdeal(filas.size())) + " (la mejor vista a la pantalla).");

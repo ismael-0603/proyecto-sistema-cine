@@ -72,10 +72,12 @@ public class MiCuentaVista extends Pantalla {
             lblVisitas.setText("Ya tienes el nivel más alto. ¡Gracias por tu preferencia!");
             barraVisitas.setProgress(1);
         } else {
-            int enEsteNivel = cliente.contarVisitasAnioActual() % Cliente.VISITAS_POR_NIVEL;
-            lblVisitas.setText(enEsteNivel + " de " + Cliente.VISITAS_POR_NIVEL
+            int visitas = cliente.contarVisitasAnioActual();
+            int meta = nivel * Cliente.VISITAS_POR_NIVEL;
+            int progreso = Math.min(visitas, meta);
+            lblVisitas.setText(progreso + " de " + meta
                     + " visitas del año para subir a nivel " + (nivel + 1));
-            barraVisitas.setProgress((double) enEsteNivel / Cliente.VISITAS_POR_NIVEL);
+            barraVisitas.setProgress((double) progreso / meta);
         }
         beneficios.getChildren().setAll(
                 beneficio("Ganas x" + multiplicador() + " puntos por cada compra"),
@@ -107,8 +109,7 @@ public class MiCuentaVista extends Pantalla {
 
     @FXML
     private void onCerrarSesion() {
-        estado().cerrarSesion();
-        nav.ir("cartelera");
+        nav.cerrarSesion();
     }
 
     @FXML

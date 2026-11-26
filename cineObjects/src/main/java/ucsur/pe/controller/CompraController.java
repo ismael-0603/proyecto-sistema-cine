@@ -78,8 +78,20 @@ public class CompraController extends ControllerBase {
         return ejecutar("Promoción aplicada", () -> servicio.aplicarPromocion(compra, promocion));
     }
 
+    public Respuesta<Boolean> quitarCupon(Compra compra) {
+        return ejecutar("Cupón retirado", () -> servicio.quitarCupon(compra));
+    }
+
+    public Respuesta<Boolean> quitarPromocion(Compra compra) {
+        return ejecutar("Promoción retirada", () -> servicio.quitarPromocion(compra));
+    }
+
     public Respuesta<Void> cancelar(Compra compra) {
         return ejecutar("Compra cancelada", () -> servicio.cancelar(compra));
+    }
+
+    public Respuesta<Void> expirar(Compra compra) {
+        return ejecutar("Compra expirada", () -> servicio.expirar(compra));
     }
 
 }

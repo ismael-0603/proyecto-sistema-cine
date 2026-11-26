@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<!-- Menú lateral de administración (wireframes 17 a 26) -->
+<!-- Menú lateral de administración (wireframes 17 a 21, 25 y 26) -->
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:id="raizMenu" fx:controller="ucsur.pe.vista.AdminMenuVista" styleClass="menu-lateral" spacing="6"
       minWidth="222" prefWidth="222" maxWidth="222">

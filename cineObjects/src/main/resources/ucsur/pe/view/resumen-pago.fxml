@@ -25,16 +25,18 @@
                         <Label text="Código de cupón" styleClass="etiqueta-fuerte">
                             <VBox.margin><Insets top="18" bottom="6"/></VBox.margin>
                         </Label>
-                        <HBox spacing="20">
+                        <HBox spacing="12">
                             <TextField fx:id="txtCupon" promptText="Ingresa tu cupón" HBox.hgrow="ALWAYS" onAction="#onAplicarCupon"/>
                             <Button text="Aplicar" styleClass="btn-secundario" prefWidth="120" onAction="#onAplicarCupon"/>
+                            <Button fx:id="btnQuitarCupon" text="Quitar" styleClass="btn-secundario" prefWidth="95" visible="false" managed="false" onAction="#onQuitarCupon"/>
                         </HBox>
                         <Label text="Promoción" styleClass="etiqueta-fuerte">
                             <VBox.margin><Insets top="14" bottom="6"/></VBox.margin>
                         </Label>
-                        <HBox spacing="20">
+                        <HBox spacing="12">
                             <ComboBox fx:id="cmbPromocion" promptText="Elegir promoción" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
                             <Button text="Aplicar" styleClass="btn-secundario" prefWidth="120" onAction="#onAplicarPromocion"/>
+                            <Button fx:id="btnQuitarPromocion" text="Quitar" styleClass="btn-secundario" prefWidth="95" visible="false" managed="false" onAction="#onQuitarPromocion"/>
                         </HBox>
                         <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false">
                             <VBox.margin><Insets top="8"/></VBox.margin>

@@ -9,11 +9,13 @@ public class CalculoPorcentaje implements CalculoDescuento {
     // Nombre en la BD (constante: se usa como CalculoPorcentaje.TIPO y su valor no cambia).
     public static final String TIPO = "PORCENTAJE";
 
-    private final long porcentaje; // entero de 1 a 100
+    public static final long MAX_PORCENTAJE = 90; // tope máximo de descuento: no existen compras de S/ 0.00
+
+    private final long porcentaje; // entero de 1 a 90
 
     public CalculoPorcentaje(long porcentaje) {
-        if (porcentaje < 1 || porcentaje > 100) { // un 0 % crearía una promoción que no descuenta nada
-            throw new IllegalArgumentException("El porcentaje debe estar entre 1 y 100");
+        if (porcentaje < 1 || porcentaje > MAX_PORCENTAJE) { // un 0 % no descuenta nada y > 90 % se prohíbe
+            throw new IllegalArgumentException("El porcentaje debe estar entre 1 y " + MAX_PORCENTAJE);
         }
         this.porcentaje = porcentaje;
     }

@@ -171,9 +171,16 @@ public class AdminFuncionesVista extends PantallaAdmin {
 
     private void reintentar(List<Compra> pendientes) {
         List<String> mensajes = new ArrayList<>();
-        for (Compra c : pendientes) mensajes.add(app().adminFunciones().reintentarReembolso(admin, c).mensaje());
+        boolean todosOk = true;
+        for (Compra c : pendientes) {
+            Respuesta<Long> r = app().adminFunciones().reintentarReembolso(admin, c);
+            if (!r.ok()) todosOk = false;
+            mensajes.add(r.mensaje());
+        }
         nav.cerrarModal();
-        mostrarOk(lblMensaje, String.join(" · ", mensajes));
+        String texto = String.join(" · ", mensajes);
+        if (todosOk) mostrarOk(lblMensaje, texto);
+        else mostrarError(lblMensaje, texto);
         cargar(true);
     }
 }

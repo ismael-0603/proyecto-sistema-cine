@@ -29,8 +29,8 @@ public class TipoEntrada implements Activable {
         if (descripcion != null && descripcion.length() > 200) {
             throw new IllegalArgumentException("La descripción no puede superar 200 caracteres");
         }
-        if (tarifaCentavos < 0) {
-            throw new IllegalArgumentException("La tarifa no puede ser negativa");
+        if (tarifaCentavos <= 0) {
+            throw new IllegalArgumentException("La tarifa debe ser mayor a 0");
         }
         if (puntosPorEntrada < 0) {
             throw new IllegalArgumentException("Los puntos por entrada no pueden ser negativos");

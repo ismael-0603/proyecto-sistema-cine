@@ -1,6 +1,6 @@
 # Sistema de autoservicio de cine
 
-Modelo de dominio desarrollado en Java para representar las operaciones principales de un sistema de autoservicio de cine. Incluye entidades y reglas de negocio para la cartelera, la reserva de butacas, la venta de entradas, las compras y los pedidos de dulcería. 
+Aplicación de escritorio en Java (JavaFX 21 + MySQL) para un kiosco de autoservicio de cine, con modelo de dominio, cartelera, selección de butacas, dulcería, pagos, postventa y paneles de empleado/administración.
 
 ## Funcionalidades modeladas
 
@@ -60,6 +60,7 @@ con el título.
         ├── tipo/          Formas de calcular un descuento (porcentaje, monto fijo) y su fábrica
         ├── pasarela/      Pasarela de pagos (interfaz y versión simulada)
         ├── correo/        Proveedor de correo (interfaz y versión simulada)
+        ├── util/          Utilidades transversales (ConversorDinero)
         └── exception/     ReglaNegocioException y RepositoryException
 ```
 

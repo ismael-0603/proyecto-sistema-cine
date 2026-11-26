@@ -128,6 +128,7 @@ public class CrearCuentaVista extends Pantalla {
         Respuesta<Sesion> sesion = app().login().iniciarSesion(txtCorreo.getText(), txtContra.getText());
         if (!mostrar(lblMensaje, sesion)) return;
         estado().iniciarSesion(sesion.dato());
+        nav.iniciarVigilanciaSesion();
         Respuesta<Compra> compra = nav.continuarTrasIdentificarse();
         if (compra != null && !compra.ok()) mostrarError(lblMensaje, compra.mensaje());
     }

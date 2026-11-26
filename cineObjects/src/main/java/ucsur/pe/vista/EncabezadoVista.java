@@ -12,9 +12,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 /**
- * Encabezado blanco de las pantallas del cliente. Por defecto muestra la sede elegida, «¿Perdiste tus
- * entradas?», «Promociones» e «Iniciar sesión» (o el nombre de quien inició sesión). Las pantallas que lo
- * incluyen lo ajustan con {@link #sinSede()} o {@link #soloVolver(String, Runnable)}.
+ * Encabezado compartido del kiosco. En modo cliente muestra sede, «¿Perdiste tus entradas?», «Promociones»
+ * y sesión; las pantallas lo ajustan con {@link #sinSede()}, {@link #soloVolver(String, Runnable)},
+ * {@link #modoPanel(String, String)} o {@link #configurarMenuLateral(boolean, Runnable)}.
  */
 public class EncabezadoVista extends Pantalla {
 
@@ -56,7 +56,7 @@ public class EncabezadoVista extends Pantalla {
         } else {
             btnSesion.setText("Iniciar sesión");
         }
-        // Con sesión de cliente abierta ya tiene acceso directo a «Mis compras» desde su menú
+        // Con sesión de cliente abierta puede consultar sus compras desde «Mi cuenta»
         if (estado().clienteConSesion() != null) {
             ocultar(btnPerdiste);
         }
@@ -71,7 +71,7 @@ public class EncabezadoVista extends Pantalla {
         accionLogo = () -> { };
     }
 
-    /** Cambia lo que hace el logo (p. ej. el comprobante vuelve al inicio cerrando la sesión). */
+    /** Cambia lo que hace el logo (p. ej. en el comprobante pregunta si cerrar sesión o seguir comprando). */
     public void alTocarLogo(Runnable accion) {
         accionLogo = accion;
     }
@@ -185,10 +185,7 @@ public class EncabezadoVista extends Pantalla {
                     opcion("Panel de dulcería", Iconos.PANEL, false, () -> nav.ir("panel-dulceria")),
                     opcion("Mi cuenta", Iconos.USUARIO, false, () -> nav.ir("mi-cuenta-empleado")));
         }
-        menu.getItems().add(opcion("Cerrar sesión", Iconos.SALIR, false, () -> {
-            estado().cerrarSesion();
-            nav.ir(estado().getSede() == null ? "elegir-sede" : "cartelera");
-        }));
+        menu.getItems().add(opcion("Cerrar sesión", Iconos.SALIR, false, nav::cerrarSesion));
         menu.show(btnSesion, Side.BOTTOM, -60, 8);
     }
 

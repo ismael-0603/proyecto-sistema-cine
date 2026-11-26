@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<!-- Encabezado de las pantallas del cliente (sede, cartelera, horarios, login, comprobante) -->
+<!-- Encabezado compartido (pantallas del cliente y modo panel de dulcería/administración) -->
 <HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="ucsur.pe.vista.EncabezadoVista" styleClass="encabezado">
     <fx:include fx:id="logo" source="logo.fxml"/>

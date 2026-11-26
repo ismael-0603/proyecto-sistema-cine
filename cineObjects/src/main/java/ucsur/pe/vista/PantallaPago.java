@@ -1,5 +1,6 @@
 package ucsur.pe.vista;
 
+import javafx.beans.binding.Bindings;
 import javafx.scene.control.Label;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Compra;
@@ -27,13 +28,30 @@ public abstract class PantallaPago extends Pantalla {
             nav.compraPagada();
             return;
         }
+        boolean enProceso = compra() != null && Compra.EN_PROCESO.equals(compra().getEstado());
         DialogoVista d = nav.dialogo();
+        if (!enProceso) {
+            estado().terminarCompra();
+            if (estado().getSesion() == null) estado().limpiarInvitado();
+            else nav.iniciarVigilanciaSesion();
+            d.configurar("No pudimos completar tu compra", "No se hizo ningún cobro.", true);
+            Label motivo = new Label("Motivo: " + (r.mensaje() == null ? "sin detalle" : r.mensaje()));
+            motivo.getStyleClass().addAll("aviso", "nota");
+            motivo.setWrapText(true);
+            motivo.setMaxWidth(Double.MAX_VALUE);
+            d.agregarContenido(motivo);
+            d.botonPrincipal("Volver a la cartelera", () -> nav.ir("cartelera"));
+            return;
+        }
         d.configurar("No pudimos procesar tu pago", "El medio de pago fue rechazado. No se hizo ningún cobro.", true);
         Label motivo = new Label("Motivo: " + (r.mensaje() == null ? "sin detalle" : r.mensaje()));
         motivo.getStyleClass().addAll("aviso", "nota");
         motivo.setWrapText(true);
         motivo.setMaxWidth(Double.MAX_VALUE);
-        Label quedan = new Label("Tus butacas siguen reservadas: quedan " + estado().tiempoRestante());
+        Label quedan = new Label();
+        quedan.textProperty().bind(Bindings.createStringBinding(
+                () -> "Tus butacas siguen reservadas: quedan " + estado().tiempoRestante(),
+                estado().segundosRestantesProperty()));
         quedan.getStyleClass().add("etiqueta-fuerte");
         quedan.setMaxWidth(Double.MAX_VALUE);
         d.agregarContenido(motivo, quedan);

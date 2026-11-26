@@ -12,7 +12,7 @@ import java.util.Properties;
  * Por qué existe: maneja la única conexión JDBC de la aplicación (Singleton, como en MVCone).
  * Lee los datos de db.properties y abre la conexión a DB_Cine.
  *
- * A diferencia de MVCone, NO ejecuta el script de la base: BD_Cine.sql usa DELIMITER $$ en sus
+ * A diferencia de MVCone, NO ejecuta el script de la base: bd_cine.sql usa DELIMITER $$ en sus
  * triggers y partirlo por ";" lo rompería. La base se crea una vez desde MySQL Workbench.
  */
 public class DBConnection {

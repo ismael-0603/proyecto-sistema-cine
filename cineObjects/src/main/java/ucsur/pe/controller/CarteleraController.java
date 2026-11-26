@@ -9,7 +9,7 @@ import ucsur.pe.model.Sede;
 import ucsur.pe.service.CarteleraService;
 import java.util.List;
 
-/** Acciones de la cartelera: elegir sede, ver y filtrar funciones, ver butacas y promociones. */
+/** Acciones de la cartelera: elegir sede, ver y filtrar funciones, próximos estrenos y promociones. */
 public class CarteleraController extends ControllerBase {
     private final CarteleraService servicio;
 

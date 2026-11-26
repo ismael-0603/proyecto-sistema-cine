@@ -14,6 +14,8 @@ import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Compra;
+import ucsur.pe.model.Cupon;
+import ucsur.pe.model.Descuento;
 import ucsur.pe.model.Promocion;
 import java.util.List;
 import javafx.application.Platform;
@@ -27,7 +29,9 @@ public class ResumenPagoVista extends Pantalla {
     @FXML private VBox filas;
     @FXML private HBox filaTotal;
     @FXML private TextField txtCupon;
+    @FXML private Button btnQuitarCupon;
     @FXML private ComboBox<Promocion> cmbPromocion;
+    @FXML private Button btnQuitarPromocion;
     @FXML private Label lblMensaje;
     @FXML private Label lblSocio;
     @FXML private Button btnTarjeta;
@@ -91,11 +95,36 @@ public class ResumenPagoVista extends Pantalla {
         String total = Formato.dinero(compra.getTotalCentavos());
         lblPieTotal.setText(total);
         btnPagar.setText("Pagar " + total);
+
+        Cupon cuponAplicado = null;
+        Promocion promoAplicada = null;
+        for (Descuento d : compra.getDescuentos()) {
+            if (d instanceof Cupon c) cuponAplicado = c;
+            else if (d instanceof Promocion p) promoAplicada = p;
+        }
+        if (cuponAplicado != null && txtCupon.getText().isBlank()) {
+            txtCupon.setText(cuponAplicado.getCodigo());
+        }
+        if (promoAplicada != null && cmbPromocion.getValue() == null) {
+            cmbPromocion.setValue(promoAplicada);
+        }
+        btnQuitarCupon.setVisible(cuponAplicado != null);
+        btnQuitarCupon.setManaged(cuponAplicado != null);
+        btnQuitarPromocion.setVisible(promoAplicada != null);
+        btnQuitarPromocion.setManaged(promoAplicada != null);
     }
 
     @FXML
     private void onAplicarCupon() {
         mostrar(lblMensaje, app().compra().aplicarCupon(compra, txtCupon.getText()));
+        refrescar();
+    }
+
+    @FXML
+    private void onQuitarCupon() {
+        if (mostrar(lblMensaje, app().compra().quitarCupon(compra))) {
+            txtCupon.clear();
+        }
         refrescar();
     }
 
@@ -106,6 +135,15 @@ public class ResumenPagoVista extends Pantalla {
             return;
         }
         mostrar(lblMensaje, app().compra().aplicarPromocion(compra, cmbPromocion.getValue()));
+        refrescar();
+    }
+
+    @FXML
+    private void onQuitarPromocion() {
+        if (mostrar(lblMensaje, app().compra().quitarPromocion(compra))) {
+            cmbPromocion.getSelectionModel().clearSelection();
+            cmbPromocion.setValue(null);
+        }
         refrescar();
     }
 

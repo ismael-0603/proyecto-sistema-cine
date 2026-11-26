@@ -18,7 +18,7 @@ public class Pedido implements Totalizable {
     public static final String ANULADO = "ANULADO"; // su compra se canceló, expiró o se reembolsó; ya no se prepara ni se entrega
 
     private int idPedido;
-    private String codigoQR; // null hasta que el pedido se registra, cuando ya existe su id real.
+    private String codigoQR; // null hasta registrarse; asignarId() lo rehace con el id generado por la BD.
     private DateTime fechaHora;
     private DateTime fechaEntrega;
     private String estado;
@@ -95,7 +95,7 @@ public class Pedido implements Totalizable {
         }
     }
 
-    /** Forma el QR con el id del pedido y la fecha de registro; se llama una vez que el pedido ya tiene su id. */
+    /** Forma el QR con el id actual del pedido y su fecha; se rehace al asignar el id real de la BD. */
     private String generarCodigoQR() {
         return formarCodigoQR(idPedido, fechaHora);
     }
@@ -110,20 +110,54 @@ public class Pedido implements Totalizable {
 
     /** Agrega una línea antes del registro. */
     public void agregarDetalle(DetallePedido detalle) {
+        agregarDetalle(detalle, null);
+    }
+
+    /** Agrega una línea validando además el stock acumulado del producto en la sede de la compra. */
+    void agregarDetalle(DetallePedido detalle, Sede sede) {
         if (detalle == null) {
             throw new IllegalArgumentException("El detalle no puede ser nulo");
         }
         exigirNoRegistrado();
+        exigirStockDisponible(sede, detalle.getProducto(), cantidadDe(detalle.getProducto(), null) + detalle.getCantidad());
         detalles.add(detalle);
     }
 
     /** Cambia la cantidad de una línea mientras el pedido no esté registrado. */
     public void modificarCantidad(DetallePedido detalle, int cantidad) {
+        modificarCantidad(detalle, cantidad, null);
+    }
+
+    /** Cambia la cantidad validando el stock acumulado del producto en la sede de la compra. */
+    void modificarCantidad(DetallePedido detalle, int cantidad, Sede sede) {
         exigirNoRegistrado();
         if (!detalles.contains(detalle)) {
             throw new IllegalArgumentException("La línea no pertenece a este pedido");
         }
+        if (cantidad > 0) {
+            exigirStockDisponible(sede, detalle.getProducto(), cantidadDe(detalle.getProducto(), detalle) + cantidad);
+        }
         detalle.modificarCantidad(cantidad);
+    }
+
+    private int cantidadDe(Producto producto, DetallePedido excluyendo) {
+        if (producto == null) return 0;
+        int total = 0;
+        for (DetallePedido d : detalles) {
+            if (d != excluyendo && d.getProducto().getIdProducto() == producto.getIdProducto()) {
+                total += d.getCantidad();
+            }
+        }
+        return total;
+    }
+
+    private static void exigirStockDisponible(Sede sede, Producto producto, int cantidadTotal) {
+        if (sede == null || producto == null) return;
+        int disponible = producto.getStock(sede);
+        if (!producto.isEstado() || disponible < cantidadTotal) {
+            throw new IllegalStateException("Stock insuficiente de " + producto.getNombre()
+                    + " en " + sede.getNombre() + " (disponible: " + disponible + ")");
+        }
     }
 
     /** Quita una línea del carrito mientras el pedido no esté registrado (RF-14). */

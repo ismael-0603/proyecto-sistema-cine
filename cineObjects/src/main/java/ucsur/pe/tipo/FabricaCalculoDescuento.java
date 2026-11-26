@@ -18,7 +18,7 @@ public final class FabricaCalculoDescuento {
         TIPOS.put(CalculoMontoFijo.TIPO, CalculoMontoFijo::new);
     }
 
-    private FabricaCalculoDescuento() { } // solo tiene un método estático
+    private FabricaCalculoDescuento() { } // clase utilitaria con métodos estáticos
 
     /**
      * Crea la forma de cálculo según el tipo guardado en la BD; lanza error si el tipo no existe.

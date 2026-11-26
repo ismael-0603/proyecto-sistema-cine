@@ -45,9 +45,10 @@
                             <TextField fx:id="txtHora" promptText="hh:mm" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
                         </GridPane>
                         <Label text="Idioma" styleClass="etiqueta-campo"><VBox.margin><Insets top="8"/></VBox.margin></Label>
-                        <HBox spacing="40">
+                        <HBox spacing="28">
                             <RadioButton fx:id="rbDoblada" text="Doblada" selected="true"/>
                             <RadioButton fx:id="rbSubtitulada" text="Subtitulada"/>
+                            <RadioButton fx:id="rbEspanol" text="Español"/>
                         </HBox>
                         <Label fx:id="lblMensaje" styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
                         <Label text="Al editar, película y sala quedan bloqueadas: solo cambian fecha, hora e idioma, y solo si la función aún no tiene entradas vendidas o reservadas."

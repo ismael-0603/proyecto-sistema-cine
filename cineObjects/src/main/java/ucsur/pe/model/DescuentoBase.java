@@ -63,8 +63,7 @@ public abstract class DescuentoBase implements Descuento, Activable {
         return calculo.calcularCentavos(totalCentavos);
     }
 
-    // esAplicable y getOrdenAplicacion vienen de la interfaz Descuento y quedan abstractos:
-    // cada hija (Cupon, Promocion) los define a su manera.
+    // esAplicable, getOrdenAplicacion y getCategoria vienen de Descuento y quedan abstractos para cada hija.
 
     /** Habilita el descuento. */
     @Override

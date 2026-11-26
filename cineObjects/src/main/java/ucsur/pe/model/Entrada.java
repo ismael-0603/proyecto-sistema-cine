@@ -36,7 +36,7 @@ public class Entrada {
         this.estado = PRESELECCIONADA;
     }
 
-    /** Crea una entrada con su tipo, calculando el precio base y validando sus asociaciones. */
+    /** Crea una entrada con su tipo, calculando el precio final (tarifa + recargo de sala) y validando sus asociaciones. */
     public Entrada(int idEntrada, Funcion funcion, Butaca butaca, TipoEntrada tipoEntrada) {
         this(idEntrada, funcion, butaca);
         asignarTipoEntrada(tipoEntrada);

@@ -29,7 +29,7 @@ import java.util.Map;
 public class SedeMySqlDao implements SedeDao {
 
     private final Connection conexion;
-    private final Reloj reloj; // las funciones y entradas lo necesitan para saber su estado actual
+    private final Reloj reloj; // las funciones lo necesitan para calcular su estado actual
 
     public SedeMySqlDao(Connection conexion, Reloj reloj) {
         this.conexion = conexion;

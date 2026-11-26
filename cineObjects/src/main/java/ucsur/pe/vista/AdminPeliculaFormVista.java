@@ -69,7 +69,7 @@ public class AdminPeliculaFormVista extends PantallaAdmin {
             estados.getChildren().add(r);
         }
         txtSinopsis.textProperty().addListener((o, a, t) ->
-                lblContador.setText(t.length() + " de " + Pelicula.MAX_SINOPSIS + " caracteres"));
+                lblContador.setText((t == null ? 0 : t.length()) + " de " + Pelicula.MAX_SINOPSIS + " caracteres"));
         txtPoster.textProperty().addListener((o, a, t) -> mostrarPoster());
         if (editando != null) cargarDatos();
         else grupoEstado.getToggles().get(0).setSelected(true);
@@ -79,7 +79,7 @@ public class AdminPeliculaFormVista extends PantallaAdmin {
     private void cargarDatos() {
         lblTitulo.setText("Editar película");
         txtTitulo.setText(editando.getTitulo());
-        txtSinopsis.setText(editando.getSinopsis());
+        txtSinopsis.setText(editando.getSinopsis() == null ? "" : editando.getSinopsis());
         txtDuracion.setText(String.valueOf(editando.getDuracion()));
         txtDuracion.setDisable(true);
         lblDuracion.setText("Duración (min) · no se cambia al editar");

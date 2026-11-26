@@ -68,6 +68,11 @@ final class ResumenCompra {
 
     /** Datos de la función para la columna «Resumen de tu compra» (8.1 y 8.2). */
     static List<Node> filasFuncion(Funcion f, Compra compra) {
+        if (f == null) {
+            return List.of(
+                    fila("Tipo", "Solo dulcería", false),
+                    fila("Sede", compra.getSede().getNombre(), false));
+        }
         return List.of(
                 fila("Película", f.getPelicula().getTitulo(), false),
                 fila("Sede", f.getSala().getSede().getNombre(), false),

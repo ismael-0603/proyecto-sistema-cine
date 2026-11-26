@@ -101,6 +101,8 @@ public class AdminPromocionFormVista extends PantallaAdmin {
                     tipo, valor, desde, hasta, nivel, diasElegidos);
             if (!mostrar(lblMensaje, r)) return;
             promo = r.dato();
+            editando = promo; // si falla cambiarEstado abajo, reintentar actualiza en lugar de duplicar
+            lblTitulo.setText("Editar promoción");
         } else {
             Respuesta<Void> r = app().adminDescuentos().actualizarPromocion(admin, editando, txtNombre.getText(),
                     txtDescripcion.getText(), tipo, valor, desde, hasta, nivel, diasElegidos);

@@ -6,8 +6,8 @@ import ucsur.pe.model.Empleado;
 import ucsur.pe.service.Sesion;
 
 /**
- * Lo común a las pantallas de administración: el encabezado en modo panel, el menú lateral con la sección
- * marcada y el administrador de la sesión, que todas las acciones de los controllers Admin*Controller reciben.
+ * Por qué existe: reúne lo común a las pantallas de administración (encabezado en modo panel, menú lateral
+ * colapsable y el empleado administrador de la sesión requerido por los controllers de gestión).
  */
 public abstract class PantallaAdmin extends Pantalla {
 

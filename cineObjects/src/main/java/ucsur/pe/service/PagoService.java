@@ -14,7 +14,7 @@ import ucsur.pe.repository.PagoRepository;
 /**
  * Por qué existe: caso de uso "Realizar pago" (RF-16 a RF-18, RF-45) y el reembolso automático (RF-24).
  * Coordina el modelo, la pasarela de pagos (actor externo) y los repositorios.
- * Orden: validar sin cambiar nada -> cobrar -> confirmar con el mismo instante (todo o nada, RNF-10).
+ * Orden: verificar expiración y validar -> cobrar -> confirmar con el mismo instante (todo o nada, RNF-10).
  */
 public class PagoService {
     private final PagoRepository pagos;
@@ -39,6 +39,7 @@ public class PagoService {
      * El pedido de dulcería se guarda en esa misma transacción, junto con la compra, y desde ahí entra a la cola.
      */
     public TransaccionPago pagar(Compra compra, long montoCentavos, String medioPago) {
+        boolean estabaEnProceso = Compra.EN_PROCESO.equals(compra.getEstado());
         TransaccionPago pago = new TransaccionPago(0, montoCentavos, medioPago, compra);
         procesar(pago);
         boolean guardado = false;
@@ -52,6 +53,13 @@ public class PagoService {
         }
         if (!guardado) {
             pagos.guardar(pago); // rechazado (o cobro devuelto): queda registrado con su motivo
+            if (estabaEnProceso && Compra.EXPIRADA.equals(compra.getEstado())) {
+                try {
+                    compras.guardar(compra);
+                } catch (RepositoryException ignored) {
+                    // Si la BD no responde, ev_expirar_compras la expirará al vencer su plazo.
+                }
+            }
         }
         return pago;
     }
@@ -81,7 +89,7 @@ public class PagoService {
         Compra compra = pago.getCompra();
         DateTime ahora = reloj.ahora(); // un único instante para validar y confirmar
 
-        // 1. Validaciones antes de cobrar (no cambian nada)
+        // 1. Validaciones antes de cobrar (si venció el plazo, verificarExpiracion() la marca EXPIRADA)
         if (compra.verificarExpiracion()) {
             pago.rechazar("La compra expiró: se acabaron los " + Compra.TIEMPO_MAXIMO_COMPRA_MIN + " minutos", ahora);
             return;

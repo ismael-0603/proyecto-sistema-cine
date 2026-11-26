@@ -59,10 +59,12 @@ public class RecuperarContrasenaVista extends Pantalla {
             if (limpio.length() > 6) limpio = limpio.substring(0, 6);
             if (!limpio.equals(ahora)) txtCodigo.setText(limpio);
         });
-        // El código se sigue revisando al pulsar «Cambiar contraseña» (lo verifica el servicio)
+        // El código también se valida en vivo para que al corregirlo se habilite de nuevo «Cambiar contraseña»
         validacionCorreo = validacion(lblMensaje)
                 .campo(txtCorreo, () -> Persona.errorCorreo(txtCorreo.getText()));
         validacionClave = validacion(lblMensaje)
+                .campo(txtCodigo, () -> txtCodigo.getText().trim().length() == 6
+                        ? null : "Escribe el código de 6 dígitos que enviamos a tu correo")
                 .campo(txtNueva, () -> Persona.errorContrasena(txtNueva.getText()), txtNuevaVisible)
                 .campo(txtConfirmar, this::errorConfirmar, txtConfirmarVisible)
                 .relacionar(txtNueva, txtConfirmar);
@@ -76,7 +78,13 @@ public class RecuperarContrasenaVista extends Pantalla {
     private void onEnviar() {
         if (!validacionCorreo.validarTodos()) return;
         Respuesta<Void> r = app().login().solicitarRecuperacion(txtCorreo.getText());
-        if (!mostrar(lblMensaje, r)) return;
+        if (!r.ok()) {
+            mostrar(lblMensaje, r);
+            return;
+        }
+        txtCodigo.clear();
+        validacionClave.limpiar();
+        mostrar(lblMensaje, r);
         mostrarPasoCodigo(true);
         txtCodigo.requestFocus();
     }

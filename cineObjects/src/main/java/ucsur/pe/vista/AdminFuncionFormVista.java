@@ -22,6 +22,7 @@ public class AdminFuncionFormVista extends PantallaAdmin {
 
     private static final String DOBLADA = "Doblada";
     private static final String SUBTITULADA = "Subtitulada";
+    private static final String ESPANOL = "Español";
 
     @FXML private Label lblTitulo;
     @FXML private Label lblSede;
@@ -31,6 +32,7 @@ public class AdminFuncionFormVista extends PantallaAdmin {
     @FXML private TextField txtHora;
     @FXML private RadioButton rbDoblada;
     @FXML private RadioButton rbSubtitulada;
+    @FXML private RadioButton rbEspanol;
     @FXML private Label lblMensaje;
     @FXML private Label lblFormato;
     @FXML private Label lblCapacidad;
@@ -51,6 +53,7 @@ public class AdminFuncionFormVista extends PantallaAdmin {
         ToggleGroup idioma = new ToggleGroup();
         rbDoblada.setToggleGroup(idioma);
         rbSubtitulada.setToggleGroup(idioma);
+        rbEspanol.setToggleGroup(idioma);
         lblSede.setText("Sede: " + admin.getSede().getNombre() + " (tu sede)");
         cmbPelicula.setConverter(convertidor(Pelicula::getTitulo));
         cmbSala.setConverter(convertidor(s -> "Sala " + s.getNumero() + " · " + s.getTipoSala().getFormato()));
@@ -80,7 +83,10 @@ public class AdminFuncionFormVista extends PantallaAdmin {
             cmbSala.setDisable(true);
             txtFecha.setText(Formato.fecha(editando.getFecha()));
             txtHora.setText(editando.getHoraInicio().soloHora());
-            (SUBTITULADA.equalsIgnoreCase(editando.getIdioma()) ? rbSubtitulada : rbDoblada).setSelected(true);
+            String lang = editando.getIdioma();
+            if (SUBTITULADA.equalsIgnoreCase(lang)) rbSubtitulada.setSelected(true);
+            else if (ESPANOL.equalsIgnoreCase(lang) || "Espanol".equalsIgnoreCase(lang)) rbEspanol.setSelected(true);
+            else rbDoblada.setSelected(true);
         }
         actualizarDatosSala();
     }
@@ -124,7 +130,8 @@ public class AdminFuncionFormVista extends PantallaAdmin {
             mostrarError(lblMensaje, e.getMessage());
             return;
         }
-        String idioma = rbSubtitulada.isSelected() ? SUBTITULADA : DOBLADA;
+        String idioma = rbSubtitulada.isSelected() ? SUBTITULADA
+                : rbEspanol.isSelected() ? ESPANOL : DOBLADA;
         Respuesta<?> r = editando == null
                 ? app().adminFunciones().programarFuncion(admin, cmbPelicula.getValue(), cmbSala.getValue(), fecha, hora, idioma)
                 : app().adminFunciones().editarFuncion(admin, editando, fecha, hora, idioma);

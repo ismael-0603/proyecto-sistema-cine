@@ -39,8 +39,7 @@ public class AdminProductoFormVista extends PantallaAdmin {
 
     private Producto editando;
 
-    /** Tamaño de la vista previa: la misma proporción que la tarjeta del producto en la dulcería. */
-    private static final double ANCHO_PREVIA = 250;
+    private static final double ANCHO_PREVIA = 250; // tamaño de la vista previa de imagen en el formulario
     private static final double ALTO_PREVIA = 157;
 
     public AdminProductoFormVista(Navegador nav) {
@@ -122,6 +121,10 @@ public class AdminProductoFormVista extends PantallaAdmin {
                     categoria, precio, chkCombo.isSelected(), nivel, imagen, stock);
             if (!mostrar(lblMensaje, r)) return;
             producto = r.dato();
+            editando = producto; // si falla cambiarEstado abajo, reintentar actualiza en lugar de duplicar
+            lblTitulo.setText("Editar producto");
+            cajaStock.setVisible(false);
+            cajaStock.setManaged(false);
         } else {
             Respuesta<Void> r = app().adminProductos().actualizarProducto(admin, editando, txtNombre.getText(),
                     txtDescripcion.getText(), categoria, precio, chkCombo.isSelected(), nivel, imagen);

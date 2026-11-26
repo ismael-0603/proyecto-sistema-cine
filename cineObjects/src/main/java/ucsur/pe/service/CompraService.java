@@ -108,7 +108,7 @@ public class CompraService {
         }
     }
 
-    /** «Volver» desde Dulcería: libera las butacas bloqueadas para poder cambiarlas; el plazo sigue corriendo. */
+    /** «Cambiar butacas» desde Dulcería: libera las butacas bloqueadas para volver a elegir; el plazo sigue corriendo. */
     public void liberarAsientos(Compra compra) {
         compra.liberarSeleccionAsientos();
         compras.guardar(compra);
@@ -153,8 +153,24 @@ public class CompraService {
         compra.aplicarDescuento(promocion);
     }
 
+    public boolean quitarCupon(Compra compra) {
+        exigirCompra(compra);
+        return compra.quitarDescuento(Cupon.CATEGORIA);
+    }
+
+    public boolean quitarPromocion(Compra compra) {
+        exigirCompra(compra);
+        return compra.quitarDescuento(Promocion.CATEGORIA);
+    }
+
     public void cancelar(Compra compra) {
         compra.cancelar();
+        compras.guardar(compra);
+    }
+
+    public void expirar(Compra compra) {
+        exigirCompra(compra);
+        compra.expirar();
         compras.guardar(compra);
     }
 

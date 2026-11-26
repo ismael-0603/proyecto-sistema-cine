@@ -222,7 +222,7 @@ public class Compra implements Totalizable{
     public void agregarProducto(DetallePedido detalle) {
         validarEnProceso();
         Pedido destino = (pedido != null) ? pedido : new Pedido(0, reloj);
-        destino.agregarDetalle(detalle);
+        destino.agregarDetalle(detalle, sede);
         try {
             gestorPuntos.validarProductosSocio(cliente, destino);
         } catch (RuntimeException e) {
@@ -236,7 +236,7 @@ public class Compra implements Totalizable{
     /** Cambia la cantidad de una línea del pedido y recalcula el total. */
     public void cambiarCantidad(DetallePedido detalle, int cantidad) {
         validarEnProceso();
-        exigirPedido().modificarCantidad(detalle, cantidad);
+        exigirPedido().modificarCantidad(detalle, cantidad, sede);
         recalcularImporte();
     }
 
@@ -261,7 +261,7 @@ public class Compra implements Totalizable{
     }
 
     // ---------- Totales (delegado en CalculadoraImporte) ----------
-    /** Recalcula subtotal, descuentos, IGV y total, y los puntos que cuesta la compra. */
+    /** Calcula y devuelve el total actual de la compra en céntimos (sin modificar campos). */
     @Override
     public long calcularTotalCentavos() {
         return calculadora.calcular(asientos.getEntradasValidas(), pedido, descuentos).getTotalCentavos();
@@ -292,9 +292,27 @@ public class Compra implements Totalizable{
         if (!descuento.esAplicable(contextoDescuento())) {
             throw new IllegalStateException("El descuento " + descuento + " no aplica a esta compra (fechas, día, usos o nivel de socio)");
         }
-        descuentos.removeIf(d -> d.getCategoria().equals(descuento.getCategoria()));
-        descuentos.add(descuento);
+        List<Descuento> prueba = new ArrayList<>(descuentos);
+        prueba.removeIf(d -> d.getCategoria().equals(descuento.getCategoria()));
+        prueba.add(descuento);
+        ResumenImporte nuevo = calculadora.calcular(asientos.getEntradasValidas(), pedido, prueba);
+        if (nuevo.getSubtotalCentavos() > 0 && nuevo.getTotalCentavos() <= 0) {
+            throw new IllegalStateException("El descuento no puede dejar el total de la compra en S/ 0.00");
+        }
+        descuentos.clear();
+        descuentos.addAll(prueba);
         recalcularImporte();
+    }
+
+    /** Quita el descuento de la categoría indicada (p. ej. Cupon.CATEGORIA o Promocion.CATEGORIA). */
+    public boolean quitarDescuento(String categoria) {
+        validarEnProceso();
+        if (categoria == null) return false;
+        boolean quitado = descuentos.removeIf(d -> d.getCategoria().equals(categoria));
+        if (quitado) {
+            recalcularImporte();
+        }
+        return quitado;
     }
 
     /** Al confirmar: los descuentos con límite de usos (el cupón) suman uno. */
@@ -320,7 +338,7 @@ public class Compra implements Totalizable{
     /**
      * Revisa, SIN CAMBIAR NADA, si la compra se puede confirmar en el instante indicado.
      * Devuelve null si todo está bien, o el motivo por el que no se puede (para mostrárselo al cliente).
-     * TransaccionPago la llama ANTES de cobrar: si hay un motivo, no se cobra.
+     * PagoService la llama ANTES de cobrar: si hay un motivo, no se cobra.
      */
     public String motivoNoConfirmable(DateTime ahora) {
         if (!EN_PROCESO.equals(estado)) return "la compra está " + estado;
@@ -339,6 +357,9 @@ public class Compra implements Totalizable{
             if (motivoFuncion != null) return motivoFuncion;
         }
         if (asientos.contarBloqueadas() == 0 && pedido == null) return "no hay entradas ni pedido que vender";
+        if (calcularTotalCentavos() <= 0) {
+            return "el total de la compra debe ser mayor a S/ 0.00 (quita o cambia el descuento)";
+        }
         // Cada descuento debe seguir siendo aplicable (por ejemplo, un cupón que agotó sus usos ya no)
         for (Descuento d : descuentos) {
             if (!d.esAplicable(contextoDescuento())) return "el descuento " + d + " ya no es válido";
@@ -407,6 +428,15 @@ public class Compra implements Totalizable{
         if (pedido != null) {
             pedido.anular();
         }
+    }
+
+    /** Marca la compra como EXPIRADA por vencimiento de plazo y libera sus bloqueos. */
+    public void expirar() {
+        if (EXPIRADA.equals(estado)) return;
+        if (!EN_PROCESO.equals(estado)) {
+            throw new IllegalStateException("La compra ya no está EN_PROCESO (estado actual: " + estado + ")");
+        }
+        cancelarPorTimeout();
     }
 
     /**

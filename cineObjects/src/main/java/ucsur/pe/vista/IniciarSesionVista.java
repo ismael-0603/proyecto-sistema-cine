@@ -56,6 +56,7 @@ public class IniciarSesionVista extends Pantalla {
         if (!mostrar(lblMensaje, r)) return;
         Sesion sesion = r.dato();
         estado().iniciarSesion(sesion);
+        nav.iniciarVigilanciaSesion();
         if (sesion.tipo() == Sesion.TipoCuenta.DULCERIA) {
             nav.ir("panel-dulceria"); // el personal de dulcería entra directo a su cola de pedidos
             return;

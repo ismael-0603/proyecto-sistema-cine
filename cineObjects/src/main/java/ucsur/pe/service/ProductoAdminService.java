@@ -1,5 +1,6 @@
 package ucsur.pe.service;
 
+import ucsur.pe.exception.ReglaNegocioException;
 import ucsur.pe.model.Empleado;
 import ucsur.pe.model.Producto;
 import ucsur.pe.repository.ProductoRepository;
@@ -28,6 +29,7 @@ public class ProductoAdminService {
                                       int stockInicial) {
         exigirAdmin(admin);
         if (stockInicial < 0) throw new IllegalArgumentException("El stock inicial no puede ser negativo");
+        exigirNombreLibre(nombre, null);
         Producto producto = new Producto(0, nombre, descripcion, categoria, precioCentavos, esCombo, nivelSocioMinimo, true);
         producto.asignarImagen(imagen);
         if (stockInicial > 0) producto.reponerStock(admin.getSede(), stockInicial);
@@ -41,9 +43,20 @@ public class ProductoAdminService {
                                    String imagen) {
         exigirAdmin(admin);
         if (producto == null) throw new IllegalArgumentException("El producto es obligatorio");
+        exigirNombreLibre(nombre, producto);
         producto.actualizar(nombre, descripcion, categoria, precioCentavos, esCombo, nivelSocioMinimo);
         producto.asignarImagen(imagen);
         productos.guardar(producto);
+    }
+
+    private void exigirNombreLibre(String nombre, Producto propio) {
+        if (nombre == null || nombre.isBlank()) return;
+        String buscado = nombre.trim();
+        for (Producto p : productos.listarTodos()) {
+            if (p != propio && p.getNombre().equalsIgnoreCase(buscado)) {
+                throw new ReglaNegocioException("Ya existe un producto con el nombre " + buscado);
+            }
+        }
     }
 
     /**

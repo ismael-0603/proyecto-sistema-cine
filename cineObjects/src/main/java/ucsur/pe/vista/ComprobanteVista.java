@@ -68,8 +68,10 @@ public class ComprobanteVista extends Pantalla {
         StackPane fondo = new StackPane(CodigoVisual.dibujar(codigo, 170));
         fondo.getStyleClass().add("qr-fondo");
         marcoQr.getChildren().setAll(fondo);
+        boolean tienePedido = d.getCodigosQR().stream().anyMatch(c -> c.startsWith("QR-PED-"));
         lblCodigo.setText(d.getCodigosQR().size() > 1
-                ? d.getCodigosQR().size() + " códigos: entradas y pedido de dulcería" : "Código " + codigo);
+                ? d.getCodigosQR().size() + (tienePedido ? " códigos: entradas y pedido de dulcería" : " códigos de entrada")
+                : "Código " + codigo);
 
         boolean hayPuntos = d.getPuntosGanados() > 0 || d.getSaldoPuntos() != null;
         cajaPuntos.setVisible(hayPuntos);

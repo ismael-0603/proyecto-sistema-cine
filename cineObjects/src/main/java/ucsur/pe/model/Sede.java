@@ -88,6 +88,13 @@ public class Sede {
         salas.add(sala);
     }
 
+    /** Quita una sala aún no guardada en BD (id <= 0) si falló su persistencia. */
+    public void quitarSala(Sala sala) {
+        if (sala != null && sala.getIdSala() <= 0) {
+            salas.remove(sala);
+        }
+    }
+
     /** Cambia número y formato de una sala propia sin repetir el número de otra sala de la sede (RF-39). */
     public void actualizarSala(Sala sala, int numero, TipoSala tipoSala) {
         if (sala == null || !salas.contains(sala)) {
@@ -123,6 +130,15 @@ public class Sede {
         cartelera.add(funcion);
     }
 }
+
+    /** Quita de la sede y de su sala una función aún no guardada en BD (id <= 0) si falló su persistencia. */
+    public void quitarFuncion(Funcion funcion) {
+        if (funcion == null || funcion.getIdFuncion() > 0) return;
+        cartelera.remove(funcion);
+        if (funcion.getSala() != null) {
+            funcion.getSala().quitarFuncion(funcion);
+        }
+    }
 
     /** Una sede solo opera si está ACTIVA. */
     public boolean estaOperativa() {

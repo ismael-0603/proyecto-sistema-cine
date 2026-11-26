@@ -93,7 +93,11 @@ public class AsientosVista extends Pantalla {
     private void volverAElegir() {
         List<Entrada> entradas = compra.getEntradas();
         if (entradas.isEmpty()) return;
-        app().compra().liberarAsientos(compra);
+        Respuesta<Void> liberada = app().compra().liberarAsientos(compra);
+        if (!liberada.ok()) {
+            mostrarError(lblMensaje, liberada.mensaje());
+            return;
+        }
         for (Entrada e : entradas) app().compra().quitarEntrada(compra, e);
         elegidas.addAll(estado().getButacas());
     }
@@ -246,6 +250,7 @@ public class AsientosVista extends Pantalla {
             d.configurar("Recuerda", "* Descuento solo para personas con discapacidad.\n"
                     + "* Se debe presentar DNI y carné CONADIS en la taquilla antes de ingresar a la sala.", false);
             d.centrar();
+            d.botonSecundario("Cancelar", nav::cerrarModal);
             d.botonPrincipal("Aceptar", () -> {
                 nav.cerrarModal();
                 aplicarCambio(tipo, cambio);

@@ -20,7 +20,7 @@ public class Pelicula {
     private int idPelicula;
     private String titulo;
     private String sinopsis;
-    private int duracion; // en minutos, debe ser > 0
+    private int duracion; // en minutos (entre MIN_DURACION y MAX_DURACION)
     private String clasificacionEdad;
     private String trailer; // enlace al tráiler
     private String poster; // enlace a la imagen del póster

@@ -148,8 +148,8 @@ public class MisComprasVista extends Pantalla {
             } else {
                 acciones.getChildren().add(boton("Calificar", true, () -> abrirPostventa(c)));
             }
-            acciones.getChildren().add(botonReclamo(c));
         }
+        acciones.getChildren().add(botonReclamo(c));
 
         HBox h = new HBox(celda(texto(fecha), 0), celda(texto(pelicula), 1), celda(texto(sedeSala), 2),
                 celda(texto(Formato.dinero(c.getTotalCentavos())), 3), celda(estado, 4), celda(acciones, 5));

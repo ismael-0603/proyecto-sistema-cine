@@ -239,7 +239,7 @@ public final class Formato {
         return posterReemplazo(pelicula.getTitulo(), ancho, alto);
     }
 
-    /** Igual que el anterior, con el título y la ruta sueltos (vista previa del formulario de película). */
+    /** Igual que {@link #poster(Pelicula, double, double)}, con título y ruta sueltos (vista previa del formulario). */
     public static Node poster(String tituloPelicula, String ruta, double ancho, double alto) {
         Image imagen = cargarImagen(ruta);
         if (imagen != null && !imagen.isError()) return marcoRecortado(imagen, ancho, alto, 16);
@@ -283,7 +283,7 @@ public final class Formato {
         return productoReemplazo(producto.getCategoria(), ancho, alto);
     }
 
-    /** Igual que el anterior, con la ruta y la categoría sueltas (vista previa del formulario de producto). */
+    /** Igual que {@link #imagenProducto(Producto, double, double)}, con ruta y categoría sueltas (vista previa del formulario). */
     public static Node imagenProducto(String ruta, String textoCategoria, double ancho, double alto) {
         Image imagen = cargarImagen(ruta);
         if (imagen != null && !imagen.isError()) return marcoRecortado(imagen, ancho, alto, 10);

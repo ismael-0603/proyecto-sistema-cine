@@ -5,8 +5,8 @@ import ucsur.pe.model.TransaccionPago;
 import ucsur.pe.service.PagoService;
 
 /**
- * Acciones del pago: medios disponibles y pagar. El cliente no pide reembolsos: se hacen solos cuando
- * el administrador cancela una función (AdminFuncionController.cancelarFuncion).
+ * Acciones del pago: procesar el cobro de una compra. Los reembolsos no los pide el cliente: se ejecutan
+ * automáticamente cuando el administrador cancela una función (AdminFuncionController.cancelarFuncion).
  */
 public class PagoController extends ControllerBase {
     private final PagoService servicio;

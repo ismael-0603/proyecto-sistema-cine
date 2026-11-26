@@ -9,14 +9,15 @@ import javafx.scene.layout.VBox;
 import ucsur.pe.controller.LoginController;
 import ucsur.pe.controller.Respuesta;
 import ucsur.pe.model.Compra;
+import ucsur.pe.model.Empleado;
 import ucsur.pe.model.Persona;
+import ucsur.pe.model.Sede;
 import ucsur.pe.service.CuentaPersonal;
 import ucsur.pe.service.Sesion;
 
 /**
- * Por qué existe: el paso del empleado entre su panel y su cuenta personal cruza varias pantallas
- * (encabezado, horarios, Mi cuenta). Aquí están los diálogos de ese paso: vincular la cuenta personal
- * la primera vez, pedir el PIN para volver al panel y la pantalla de transición.
+ * Por qué existe: el paso del empleado entre su panel y su cuenta personal se dispara desde varias pantallas
+ * (encabezado, horarios y menú admin). Aquí van sus diálogos: vincular/crear cuenta personal y pedir PIN al volver.
  */
 final class CambioDeCuenta {
 
@@ -113,11 +114,20 @@ final class CambioDeCuenta {
         correo.requestFocus();
     }
 
-    /** Transición y luego la cartelera de su sede (o la compra, si ya había elegido un horario). */
+    /** Transición y luego la cartelera de su sede (o elegir sede si su sede no está operativa). */
     private void entrarComoCliente() {
         EstadoKiosco estado = nav.estado();
-        if (estado.getSede() == null) estado.setSede(sesion().empleado().getSede());
+        Sede sedeEmpleado = sesion().empleado().getSede();
+        if (estado.getSede() == null && sedeEmpleado != null && sedeEmpleado.estaOperativa()) {
+            estado.setSede(sedeEmpleado);
+        }
         nav.mostrarTransicion("Cambiando a tu cuenta personal…", () -> {
+            if (estado.getSede() == null || !estado.getSede().estaOperativa()) {
+                estado.setSede(null);
+                estado.setFuncion(null);
+                nav.ir("elegir-sede");
+                return;
+            }
             Respuesta<Compra> compra = nav.continuarTrasIdentificarse();
             if (compra != null && !compra.ok()) avisar("No se pudo empezar la compra", compra.mensaje());
         });
@@ -125,7 +135,7 @@ final class CambioDeCuenta {
 
     // ---------- De la cuenta personal al panel ----------
 
-    /** «Panel de dulcería» o «Administración» en modo cliente: pide el PIN (y antes, deja la compra en curso). */
+    /** «Panel de dulcería» o «Administración» en modo cliente: pide el PIN (y si hay compra, la cancela tras validar). */
     void aPanel(String pantalla, String zona) {
         EstadoKiosco estado = nav.estado();
         if (estado.hayCompra() && Compra.EN_PROCESO.equals(estado.getCompra().getEstado())) {
@@ -133,16 +143,13 @@ final class CambioDeCuenta {
             d.configurar("Tienes una compra en curso",
                     "Si vuelves a " + zona + " se cancela la compra y se liberan tus butacas.", false);
             d.botonSecundario("Seguir comprando", nav::cerrarModal);
-            d.botonPrincipal("Cancelar compra", () -> {
-                nav.abandonarCompra();
-                pedirPin(pantalla, zona);
-            });
+            d.botonPrincipal("Cancelar compra", () -> pedirPin(pantalla, zona, true));
             return;
         }
-        pedirPin(pantalla, zona);
+        pedirPin(pantalla, zona, false);
     }
 
-    private void pedirPin(String pantalla, String zona) {
+    private void pedirPin(String pantalla, String zona, boolean cancelarCompraAlEntrar) {
         PasswordField pin = new PasswordField();
         pin.setPromptText("••••");
         pin.getStyleClass().add("campo-pin");
@@ -154,9 +161,18 @@ final class CambioDeCuenta {
         d.configurar("Acceder a " + zona, "Escribe tu PIN de 4 dígitos para volver a tu panel.", false);
         d.agregarContenido(pin, mensaje);
         Runnable entrar = () -> {
+            String errorFormato = Empleado.errorPin(pin.getText());
+            if (errorFormato != null) {
+                error(mensaje, errorFormato);
+                pin.requestFocus();
+                return;
+            }
             Sesion sesion = sesion();
             Respuesta<Void> r = login().volverAModoEmpleado(sesion, pin.getText());
             if (r.ok()) {
+                if (cancelarCompraAlEntrar) {
+                    nav.abandonarCompra();
+                }
                 nav.mostrarTransicion("Accediendo a " + zona + "…", () -> nav.ir(pantalla));
             } else if (sesion.cerradaPorSeguridad()) {
                 cerrarPorSeguridad(r.mensaje());

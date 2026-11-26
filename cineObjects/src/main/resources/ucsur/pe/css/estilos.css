@@ -5,8 +5,8 @@
  *   crema #faf0e0 (avisos), beige #f5edde (etiquetas), bordes rgba(3,19,44,0.22).
  * Fuente Manrope: Regular y Bold comparten familia "Manrope" (normal/bold);
  * Medium, SemiBold y ExtraBold se cargan como familia propia ("Manrope Medium", "Manrope SemiBold", "Manrope ExtraBold").
- * Relieve sin -fx-effect en contenedores de texto: usa capas de -fx-background-color/-fx-background-insets
- * para mantener antialiasing LCD nítido (ClearType) y máximo rendimiento en JavaFX.
+ * Relieve mayormente con capas de -fx-background-color/-fx-background-insets (evitando -fx-effect salvo acentos
+ * puntuales como encabezado y botones/hover) para mantener texto nítido y buen rendimiento en JavaFX.
  */
 
 /* ===== BASE ===== */
@@ -482,7 +482,7 @@
 .btn-ojo:hover { -fx-background-color: #faf0e0; }
 .btn-ojo:selected { -fx-background-color: #f5edde; }
 
-/* Botones de la pantalla elegida (chips de género, días, medios de pago) */
+/* Botones seleccionables (chips de categoría/estado, filtros de promociones y opciones de pago/personalización) */
 .chip {
     -fx-background-color: transparent;
     -fx-text-fill: rgba(255, 255, 255, 0.88);
@@ -682,7 +682,7 @@
 .check-box:selected .box { -fx-background-color: #e5a93c; -fx-border-color: #c98a1d; }
 .check-box:selected .mark { -fx-background-color: #03132c; }
 
-/* ===== CARTELERA ===== */
+/* ===== FILTROS Y CARTELERA ===== */
 .barra-filtros {
     -fx-background-color:
         rgba(0, 0, 0, 0.28),
@@ -1668,5 +1668,5 @@
     -fx-background-radius: 14;
 }
 .correo-cerrar:hover { -fx-background-color: rgba(155, 24, 12, 0.14); -fx-text-fill: #9b180c; }
-/* Código de 6 dígitos de «Recuperar contraseña»: más grande y centrado, para leerlo como un código */
+/* Código de 6 dígitos («Recuperar contraseña» y «Recuperar entradas»): grande y centrado */
 .campo-codigo { -fx-font-family: "Manrope ExtraBold"; -fx-font-weight: normal; -fx-font-size: 22px; -fx-alignment: center; }

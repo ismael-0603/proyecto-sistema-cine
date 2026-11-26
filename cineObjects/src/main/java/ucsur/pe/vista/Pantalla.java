@@ -44,7 +44,7 @@ public abstract class Pantalla {
         cambiarMensaje(mensaje, "", OK);
     }
 
-    // ---------- Campos con dato incorrecto (borde rojo, ver .campo-error en estilos.css) ----------
+    // ---------- Validación en vivo y mensajes de estado ----------
 
     /** Validación en vivo de un formulario cuyo mensaje va en 'mensaje' (ver ValidacionEnVivo). */
     protected ValidacionEnVivo validacion(Label mensaje) {

@@ -78,9 +78,9 @@ INSERT INTO tipo_entrada (id_tipo_entrada, nombre, descripcion, tarifa, puntos_p
 (4, 'Estudiante', 'Presentando carné universitario o escolar vigente', 19.90, 1, 0, 0, 1, 0),
 (5, 'Conadis', 'Personas con discapacidad con carné CONADIS', 15.90, 1, 0, 0, 1, 0),
 (7, 'Socio', 'Tarifa exclusiva para socios', 21.90, 3, 1, 0, 1, 0),
-(8, 'Canje Puntos 2D', 'Entrada canjeable con puntos de socio', 0.00, 1, 1, 50, 1, 0),
-(9, 'Canje Puntos Premium', 'Entrada premium canjeable con puntos de socio', 0.00, 1, 1, 80, 1, 0),
-(10, 'Canje Puntos Niño', 'Entrada infantil canjeable con puntos de socio', 0.00, 1, 1, 35, 1, 0),
+(8, 'Canje Puntos 2D', 'Entrada canjeable con puntos de socio', 14.90, 1, 1, 50, 1, 0),
+(9, 'Canje Puntos Premium', 'Entrada premium canjeable con puntos de socio', 12.90, 1, 1, 80, 1, 0),
+(10, 'Canje Puntos Niño', 'Entrada infantil canjeable con puntos de socio', 9.90, 1, 1, 35, 1, 0),
 (11, 'Cumpleañero', 'Beneficio de cumpleaños para socios', 14.90, 1, 1, 0, 1, 1);
 
 -- promocion: 3 permanentes y la Semana del Cine (una semana cada 4 meses) (6 filas)
@@ -229,7 +229,7 @@ INSERT INTO producto (id_producto, nombre, descripcion, categoria, precio, es_co
 (91, 'Combo Leyenda Dúo', 'Canchita grande y dos gaseosas - exclusivo socios nivel 4 o superior', 'Combos', 27.90, 1, 4, 1, 'productos/combo-pareja.jpg'),
 (92, 'Combo Leyenda Familiar', 'Canchita jumbo, cuatro gaseosas y nachos - exclusivo socios nivel 4 o superior', 'Combos', 51.90, 1, 4, 1, 'productos/combo-familiar.jpg');
 
--- inventario_sede: todos los productos en todas las sedes activas (1599 filas)
+-- inventario_sede: todos los productos en todas las sedes activas (1196 filas)
 INSERT INTO inventario_sede (id_sede, id_producto, stock) VALUES
 (1, 1, 232),
 (1, 2, 212),
@@ -8686,7 +8686,7 @@ SELECT CHAR(64 + f.n),
  ORDER BY s.id_sala, f.n, b.n;
 
 -- funcion: 50 historicas (44 pasadas, 2 de ellas canceladas, y 6 de hoy) y las de preestreno.
--- Las de los proximos 7 dias se generan al final del script. (65 filas)
+-- Las de los proximos 12 dias se generan al final del script. (65 filas)
 INSERT INTO funcion (id_funcion, fecha, hora_inicio, idioma, estado, id_pelicula, id_sala) VALUES
 (1, '2026-10-01', '17:15:00', 'Doblada', 'FINALIZADA', 27, 16),
 (2, '2026-10-02', '17:15:00', 'Doblada', 'FINALIZADA', 2, 42),
@@ -9156,7 +9156,7 @@ INSERT INTO transaccion_pago (id_transaccion, monto, medio_pago, estado_pago, fe
 (89, 60.62, 'YAPE', 'APROBADO', '2026-11-17 07:43:54', 'PAS-74-20261117074354', NULL, 83),
 (90, 44.07, 'PLIN', 'APROBADO', '2026-11-17 07:54:08', 'PAS-75-20261117075408', NULL, 84);
 
--- pedido de dulceria (QR como Pedido.generarCodigoQR; sin QR si nunca se registro) (43 filas)
+-- pedido de dulceria (QR como Pedido.generarCodigoQR; sin QR si nunca se registro) (41 filas)
 INSERT INTO pedido (id_pedido, codigo_qr, fecha_hora, fecha_entrega, estado, id_compra, id_empleado) VALUES
 (1, 'QR-PED-1-20261003095123', '2026-10-03 09:51:23', '2026-10-04 13:10:00', 'ENTREGADO', 6, 79),
 (2, 'QR-PED-2-20261003170317', '2026-10-03 17:03:17', '2026-10-04 13:11:00', 'ENTREGADO', 7, 86),
@@ -9200,7 +9200,7 @@ INSERT INTO pedido (id_pedido, codigo_qr, fecha_hora, fecha_entrega, estado, id_
 (40, 'QR-PED-40-20261117074402', '2026-11-17 07:44:02', NULL, 'PENDIENTE', 83, NULL),
 (41, 'QR-PED-41-20261117075404', '2026-11-17 07:54:04', NULL, 'EN_PREPARACION', 84, 55);
 
--- detalle_pedido (79 filas)
+-- detalle_pedido (70 filas)
 INSERT INTO detalle_pedido (id_detalle, cantidad, precio_unitario, personalizacion, id_pedido, id_producto) VALUES
 (1, 1, 22.90, 'Gaseosa sin hielo', 1, 76),
 (2, 1, 44.90, NULL, 1, 80),

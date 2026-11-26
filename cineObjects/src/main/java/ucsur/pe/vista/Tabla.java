@@ -16,9 +16,8 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * Por qué existe: las listas de administración (películas, funciones, productos, sedes, salas, cupones)
- * son la misma tabla blanca con cabecera, filas y paginación «Anterior · 1 2 · Siguiente». Esta clase la arma;
- * cada pantalla solo dice las columnas, sus pesos proporcionales y el ancho compacto de Acciones.
+ * Por qué existe: las listas de administración (películas, funciones, productos, sedes, salas, cupones y promociones)
+ * comparten tabla blanca con cabecera, filas y paginación. Cada pantalla solo define columnas, pesos y ancho de Acciones.
  */
 final class Tabla<T> {
 

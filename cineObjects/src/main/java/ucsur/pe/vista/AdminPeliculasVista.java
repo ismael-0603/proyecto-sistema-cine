@@ -116,8 +116,14 @@ public class AdminPeliculasVista extends PantallaAdmin {
             }
             DialogoVista aviso = nav.dialogo();
             aviso.configurar("No se pudo retirar", r.mensaje(), true);
-            aviso.botonSecundario("Entendido", nav::cerrarModal);
-            aviso.botonPrincipal("Ir a Funciones", () -> nav.ir("admin-funciones"));
+            boolean enSuSede = admin.getSede() != null && r.mensaje() != null
+                    && r.mensaje().contains(admin.getSede().getNombre());
+            if (enSuSede) {
+                aviso.botonSecundario("Entendido", nav::cerrarModal);
+                aviso.botonPrincipal("Ir a Funciones", () -> nav.ir("admin-funciones"));
+            } else {
+                aviso.botonPrincipal("Entendido", nav::cerrarModal);
+            }
         });
     }
 }
