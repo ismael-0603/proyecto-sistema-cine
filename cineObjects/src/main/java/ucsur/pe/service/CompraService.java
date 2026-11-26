@@ -100,7 +100,12 @@ public class CompraService {
     /** Bloquea las butacas elegidas; con BD, aquí se insertan las entradas (ya con su tipo). */
     public void confirmarAsientos(Compra compra) {
         compra.confirmarSeleccionAsientos();
-        compras.guardar(compra);
+        try {
+            compras.guardar(compra);
+        } catch (RuntimeException ex) {
+            compra.liberarSeleccionAsientos();
+            throw ex;
+        }
     }
 
     /** «Volver» desde Dulcería: libera las butacas bloqueadas para poder cambiarlas; el plazo sigue corriendo. */

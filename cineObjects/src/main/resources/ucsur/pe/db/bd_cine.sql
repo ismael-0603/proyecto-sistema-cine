@@ -186,7 +186,7 @@ CREATE TABLE cliente (
     es_invitado    BOOLEAN      NOT NULL DEFAULT FALSE,
     -- columna calculada: solo tiene valor si el cliente NO es invitado
     correo_unico   VARCHAR(100) GENERATED ALWAYS AS
-                       (CASE WHEN es_invitado = 0 THEN correo ELSE NULL END) VIRTUAL,
+                       (CASE WHEN es_invitado = 0 THEN correo ELSE NULL END) STORED,
 
     CONSTRAINT pk_cliente           PRIMARY KEY (id_cliente),
     CONSTRAINT uq_cliente_dni       UNIQUE (dni),
@@ -327,7 +327,7 @@ CREATE TABLE entrada (
     id_tipo_entrada INT          NOT NULL,
     -- columna calculada: vale 1 solo si la entrada esta BLOQUEADA o VENDIDA
     butaca_ocupada  TINYINT GENERATED ALWAYS AS
-                        (CASE WHEN estado IN ('BLOQUEADA', 'VENDIDA') THEN 1 ELSE NULL END) VIRTUAL,
+                        (CASE WHEN estado IN ('BLOQUEADA', 'VENDIDA') THEN 1 ELSE NULL END) STORED,
 
     CONSTRAINT pk_entrada                PRIMARY KEY (id_entrada),
     CONSTRAINT uq_entrada_qr             UNIQUE (codigo_qr),
